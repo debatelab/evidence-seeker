@@ -102,12 +102,12 @@ We do this for each evidence item retrieved and each claim.
 
 For each claim, we aggregate:
 
-```json
+```yaml
 {
     "claim_id": "claim_id",  
     "n_evidence": 823, // number of relevant evidence items found
     "degree_of_confirmation": -0.21, // average degree of confirmation of the claim by the evidence items
-    "evidential_uncertainty": .32, // variance of degrees of confirmation
+    "evidential_uncertainty": 0.32, // variance of degrees of confirmation
 }
 ```
 
