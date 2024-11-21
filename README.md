@@ -88,10 +88,10 @@ Do [recursive retrieval](https://docs.llamaindex.ai/en/stable/examples/retriever
 
 ### Evidential Confirmation Analysis
 
-We frame confirmation analysis a rich textual entailment task. We assess the degree to which a single evidence item (retrieved in previous step):
+We frame confirmation analysis as a rich textual entailment task. We assess the degree to which a single evidence item (retrieved in previous step):
 
-a) entails the claim, and
-b) entails the negation of the claim.
+1. entails the claim, and
+2. entails the negation of the claim.
 
 This gives us a degree of confirmation of the claim by the evidence item, which ranges between -1 and 1.
 
@@ -110,3 +110,5 @@ For each claim, we aggregate:
     "evidential_uncertainty": .32, // variance of degrees of confirmation
 }
 ```
+
+and **verbalize** these results.
