@@ -24,7 +24,9 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
-dependencies = []
+dependencies = [
+  "numpy",
+]
 
 [project.urls]
 Documentation = "https://github.com/debatelab/evidence-seeker#readme"
@@ -33,6 +35,11 @@ Source = "https://github.com/debatelab/evidence-seeker"
 
 [tool.hatch.version]
 path = "src/evidence_seeker/__about__.py"
+
+[tool.hatch.envs.default]
+dependencies = [
+  "pytest",
+]
 
 [tool.hatch.envs.types]
 extra-dependencies = [
