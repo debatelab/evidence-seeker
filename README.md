@@ -3,6 +3,20 @@
 
 
 
+### Overall workflow
+
+```mermaid
+graph LR;
+    IC[Input Claim] --> LSP(Logico-Semantic<br/>Pre-Processing);
+    LSP --> C1[Clarified<br/>Claim 1];
+    LSP --> etc[...];
+    C1 --> ER(Retrieval of<br/>Relevant<br/>Documents);
+    ER --> ECA(Evidential<br/>Confirmation<br/>Analysis);
+    ECA --> EA(Evidence<br/>Aggregation);
+    EA --> Verbalization;
+```
+
+
 ### Logico-Semantic Pre-Processing
 
 ```mermaid
