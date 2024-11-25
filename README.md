@@ -62,7 +62,7 @@ graph LR;
     <claim>{claim}</claim>
     Before we proceed with retrieving evidence items, we carefully analyse the claim. Your task is to contribute to this preparatory analysis, as detailed below.
     In particular, you should  
-    1. thoroughly discuss whether the claim contains ascriptions, that is, whether the claim ascribes a statement to a person or organisation (e.g., as something person has said, believes, acts on etc.) rather than plainly asserting it, where  -- if so, try to identify which statements are ascribed to whom exactly and in which ways;
+    1. thoroughly discuss whether the claim contains ascriptions, that is, whether the claim ascribes a given statement to a person or organisation (e.g., as something the person has said, believes, acts on etc.) rather than plainly asserting that statement straightaway  -- if so, try to identify which statements are ascribed to whom exactly and in which ways;
     2. watch out for ambiguity and vagueness during your discussion, making alternative interpretations explicit.
 - name: LSP-4
   description: |
@@ -72,7 +72,7 @@ graph LR;
     <claim>{claim}</claim>
     Before we proceed with retrieving evidence items, we carefully analyse the claim. Your task is to contribute to this preparatory analysis, as detailed below.
     In particular, you should  
-    1. thoroughly discuss the strength of the claim, that is, whether the claim unequivocally states a proposition a true (or false), or whether it's content is more nuanced, e.g. by including modal qualifiers, such as "might", "could", "probably", "possibly", "likely", "unlikely", "certainly", "impossible", etc. -- if so, try to describe the quality and stremgth of the claim as clearly as possible;
+    1. thoroughly discuss the strength of the claim, that is, whether the claim unequivocally states a proposition as true (or false), or whether it's content is more nuanced, e.g. by including modal qualifiers, such as "might", "could", "probably", "possibly", "likely", "unlikely", "certainly", "maybe", etc. -- if so, try to describe the quality and stremgth of the claim as clearly as possible;
     2. watch out for ambiguity and vagueness during your discussion, making alternative interpretations explicit.
 - name: LSP-5
   description: |
@@ -80,7 +80,7 @@ graph LR;
   prompt: |
     The following claim has been submitted for fact-checking.
     <claim>{claim}</claim>
-    Building on our previous analysis, I want you to to identify the normative, the factual, and the ascriptive content in the claim. In particular, you should  
+    Building on our previous analysis, I want you to to identify the normative, the factual, and the ascriptive content of the claim. In particular, you should  
     1. List all normative statements, such as value judgements, recommendations, or evaluations, contained in the claim;
     2. List all factual or descriptive statements, which can be verified or falsified by empirical observation or scientific analysis, contained in the claim;
     3. List all ascriptions, that is, statements ascribed to a person or organisation, contained in the claim.
