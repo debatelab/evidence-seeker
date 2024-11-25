@@ -103,7 +103,7 @@ graph LR;
 
 ### Evidence Retrieval
 
-Do [recursive retrieval](https://docs.llamaindex.ai/en/stable/examples/retrievers/auto_vs_recursive_retriever/) of documents to find relevant evidence items for each clarified claim and its negation.
+Do [node sentence window/document retrieval](https://docs.llamaindex.ai/en/stable/examples/node_postprocessor/MetadataReplacementDemo/) to find relevant evidence items for each clarified claim and its negation.
 
 ### Evidential Confirmation Analysis
 
