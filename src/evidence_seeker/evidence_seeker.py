@@ -22,10 +22,9 @@ class EvidenceSeeker:
         preprocessed_claims = await self.preprocessor(claim)
 
         async def _chain(pclaim: dict) -> dict:
-            with_document = await self.retriever(pclaim)
-            with_confirmation = await self.analyzer(with_document)
-            with_verbalization = await self.aggregator(with_confirmation)
-            return with_verbalization
+            for acallable in [self.retriever, self.analyzer, self.aggregator]:
+                result = await acallable(pclaim)
+            return result
 
         return await asyncio.gather(*[_chain(pclaim) for pclaim in preprocessed_claims])
 
