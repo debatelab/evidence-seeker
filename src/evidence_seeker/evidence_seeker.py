@@ -14,6 +14,7 @@ from evidence_seeker.retrieval import DocumentRetriever
 class EvidenceSeeker:
 
     def __init__(self, **kwargs):
+        # TODO: Configure API endpoints and other kwargs for the components 
         self.preprocessor = ClaimPreprocessor()
         self.retriever = DocumentRetriever()
         self.analyzer = ConfirmationAnalyzer()
