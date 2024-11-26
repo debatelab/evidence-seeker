@@ -1,0 +1,21 @@
+"models.py"
+
+from typing import Mapping
+import pydantic
+
+
+class Document(pydantic.BaseModel):
+    text: str
+    uid: str
+
+class CheckedClaim(pydantic.BaseModel):
+    text: str
+    negation: str
+    uid: str
+    n_evidence: int | None = None
+    average_confirmation: float | None = None
+    evidential_uncertainty: float | None = None
+    verbalized_confirmation: str | None = None
+    documents: list[Document] | None = None
+    confirmation_by_document: Mapping[str, float] | None = None
+    metadata: dict = {}
