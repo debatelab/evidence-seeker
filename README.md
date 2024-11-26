@@ -26,16 +26,16 @@ graph LR;
 
 ```mermaid
 graph LR;
-    Claim --> LSP-1;
-    Claim --> LSP-2;
-    Claim --> LSP-3;
-    Claim --> LSP-4;
-    LSP-1 --> LSP-5;
-    LSP-2 --> LSP-5;
-    LSP-3 --> LSP-5;
-    LSP-4 --> LSP-5;
-    LSP-5 --> LSP-6;
-    LSP-6 --> ClaimPairs;
+    C[Claim] --> LSP1(LSP-1);
+    C --> LSP2(LSP-2);
+    C --> LSP3(LSP-3);
+    C --> LSP4(LSP-4);
+    LSP1 --> LSP5(LSP-5);
+    LSP2 --> LSP5;
+    LSP3 --> LSP5;
+    LSP4 --> LSP5;
+    LSP5 --> LSP6(LSP-6);
+    LSP6 --> ClaimPairs;
 ```
 
 ```yaml
