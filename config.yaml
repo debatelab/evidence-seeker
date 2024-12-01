@@ -1,0 +1,53 @@
+# `config_version` is used internally to indicate and check whether a config is compatible with the (current) code.
+config_version: 'v0.1'
+used_model: model_1
+description: |
+  Erste Version einer Konfiguration für die EvidenceSeeker Boilerplate.
+pipeline:
+  system_prompt: &default_sp |
+    Test system prompt
+  preprocessing:
+    workflow_events:
+      ascriptive_analysis_event:
+        name:
+        description:
+        prompt_template: |
+          The following claim has been submitted for fact-checking.
+          <claim>{claim}</claim>
+          Before we proceed with retrieving evidence items, we carefully analyse the claim. Your task is to contribute to this preparatory analysis, as detailed below.
+          In particular, you should  
+          1. thoroughly discuss whether the claim contains ascriptions, that is, whether the claim ascribes a given statement to a person or organisation (e.g., as something the person has said, believes, acts on etc.) rather than plainly asserting that statement straightaway  -- if so, try to identify which statements are ascribed to whom exactly and in which ways;
+          2. watch out for ambiguity and vagueness during your discussion, making alternative interpretations explicit.
+        system_prompt: *default_sp
+      descriptive_analysis_event:
+        name: 
+        description:
+        prompt_template: |
+          The following claim has been submitted for fact-checking.
+          <claim>{claim}</claim>
+          Before we proceed with retrieving evidence items, we carefully analyse the claim. Your task is to contribute to this preparatory analysis, as detailed below.
+          In particular, you should  
+          1. thoroughly discuss whether the claim contains or implies factual or descriptive statements, which can be verified or falsified by empirical observation or scientific analysis and which may include, for example, descriptive reports, historical facts, or scientific claims -- if so, try to identify them and render them in your own words;
+          2. watch out for ambiguity and vagueness during your discussion, making alternative interpretations explicit.
+        system_prompt: *default_sp
+      normative_analysis_event:
+        name: 
+        description:
+        prompt_template: |
+          The following claim has been submitted for fact-checking.
+          <claim>{claim}</claim>
+          Before we proceed with retrieving evidence items, we carefully analyse the claim. Your task is to contribute to this preparatory analysis, as detailed below.
+          In particular, you should  
+          1. thoroughly discuss whether the claim contains or implies normative statements, such as value judgements, recommendations, or evaluations -- if so, try to identify them and render them in your own words;
+          2. watch out for ambiguity and vagueness during your discussion, making alternative interpretations explicit.
+        system_prompt: *default_sp
+models:
+  model_1:
+    name: "Llama-3.1-70B-Instruct"
+    description: "NVIDEA NIM API (kostenpflichtig über DebateLab Account)"
+    base_url: "https://huggingface.co/api/integrations/dgx/v1"
+    model: "meta-llama/Llama-3.1-70B-Instruct"
+    api_key_name: "kideku_toxicity_app_nim"
+    # TODO: pass values 
+    max_tokens: 512
+    temperature: 0.2
