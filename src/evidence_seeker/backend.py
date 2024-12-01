@@ -17,7 +17,7 @@ def get_openai_llm(
     if api_key is None and api_key_name is None:
          raise ValueError("You should provide an api key or an a name of an env variable that holds the api key.")
     if api_key is not None:
-        log_msg(f"Instantiating OpenAILike model (model: {model} /base_url: {base_url} ).") 
+        log_msg(f"Instantiating OpenAILike model (model: {model}, base_url: {base_url}).") 
         llm = OpenAILike(
             model=model, 
             api_base=base_url, 
