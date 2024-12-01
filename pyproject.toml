@@ -26,6 +26,7 @@ classifiers = [
 ]
 dependencies = [
   "llama-index",
+  "llama-index-llms-openai-like",
   "numpy",
   "pydantic",
 ]
