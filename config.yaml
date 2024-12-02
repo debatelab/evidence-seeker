@@ -21,6 +21,27 @@ pipeline:
           1. thoroughly discuss whether the claim contains ascriptions, that is, whether the claim ascribes a given statement to a person or organisation (e.g., as something the person has said, believes, acts on etc.) rather than plainly asserting that statement straightaway  -- if so, try to identify which statements are ascribed to whom exactly and in which ways;
           2. watch out for ambiguity and vagueness during your discussion, making alternative interpretations explicit.
         system_prompt: *default_sp
+      list_ascriptive_claims_event:
+        name: 'Ascriptive-statements list'
+        description: 'List all ascriptive statements.'
+        prompt_template: |
+          The following claim has been submitted for analysing its ascriptive content.
+          <claim>{claim}</claim>
+          The analysis yielded the following results:
+          <results>
+          {ascriptive_analysis_event}
+          </results>
+          Building on this analysis: 
+          - I want you to identify all ascription of the claim. In particular, you should list all ascriptions, that is, 
+            statements ascribed to a person or organisation, contained in the claim;
+          - Include all identified interpretations of the ascriptive content as seperate statements. 
+          Format your output as a JSON object according to the following schema:
+          <json-schema>
+          {json_schema}
+          </json-schema>
+          Do not include any other text than the JSON object.
+          Omit any markdown formatting. Do not include any preamble or explanation.
+        system_prompt: *default_sp
       descriptive_analysis_event:
         name: 'Descriptive analysis'
         description: |
@@ -66,6 +87,27 @@ pipeline:
           In particular, you should  
           1. thoroughly discuss whether the claim contains or implies normative statements, such as value judgements, recommendations, or evaluations -- if so, try to identify them and render them in your own words;
           2. watch out for ambiguity and vagueness during your discussion, making alternative interpretations explicit.
+        system_prompt: *default_sp
+      list_normative_claims_event:
+        name: 'Normative-statements list'
+        description: 'List all normative statements.'
+        prompt_template: |
+          The following claim has been submitted for analysing its normative content.
+          <claim>{claim}</claim>
+          The analysis yielded the following results:
+          <results>
+          {normative_analysis_event}
+          </results>
+          Building on this analysis: 
+          - I want you to identify the normative of the claim. In particular, you should list 
+            all normative statements, such as value judgements, recommendations, or evaluations, contained in the claim;
+          - Include all identified interpretations of the normative content as seperate statements. 
+          Format your output as a JSON object according to the following schema:
+          <json-schema>
+          {json_schema}
+          </json-schema>
+          Do not include any other text than the JSON object.
+          Omit any markdown formatting. Do not include any preamble or explanation.
         system_prompt: *default_sp
 models:
   model_1:

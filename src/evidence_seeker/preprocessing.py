@@ -89,6 +89,9 @@ class Claims(BaseModel):
 class NormativeAnalysisEvent(DictInitializedPromptEvent):
     event_key: str = "normative_analysis_event"
 
+class ListNormativeClaimsEvent(DictInitializedPromptEvent):
+    event_key: str = "list_normative_claims_event"
+
 class NormativeAnalysisEndEvent(DictInitializedPromptEvent):
     """Marks end of normative analysis."""
 
@@ -103,6 +106,9 @@ class ListDescriptiveClaimsEvent(DictInitializedPromptEvent):
 
 class AscriptiveAnalysisEvent(DictInitializedPromptEvent):
     event_key: str = "ascriptive_analysis_event"
+
+class ListAscriptiveClaimsEvent(DictInitializedPromptEvent):
+    event_key: str = "list_ascriptive_claims_event"
 
 class AscriptiveAnalysisEndEvent(DictInitializedPromptEvent):
     """Marks end of ascriptive analysis."""
@@ -191,23 +197,42 @@ class PreprocessingWorkflow(Workflow):
             result=f"Descriptive claims:\n {request_dict[ev.result_key]}",
         )
 
-
     @step
-    async def normative_analysis(self, ctx: Context, ev: NormativeAnalysisEvent) -> NormativeAnalysisEndEvent:
+    async def normative_analysis(self, ctx: Context, ev: NormativeAnalysisEvent) -> ListNormativeClaimsEvent:
         log_msg("Analysing normative aspects of claim.")
         request_dict = await self._prompt_step(ctx, ev, **ev.request_dict)
-        return NormativeAnalysisEndEvent(
+        return ListNormativeClaimsEvent(
+            init_data_dict=ev.init_data_dict,
             request_dict=request_dict,
-            result=f"Normative Analaysis:\n {request_dict[ev.result_key]}",
+            # result=f"Normative Analaysis:\n {request_dict[ev.result_key]}",
         )
 
     @step
-    async def ascriptive_analysis(self, ctx: Context, ev: AscriptiveAnalysisEvent) -> AscriptiveAnalysisEndEvent:
+    async def list_normative_claims(self, ctx: Context, ev: ListNormativeClaimsEvent) -> NormativeAnalysisEndEvent:
+        json_schema = json.dumps(Claims.model_json_schema(), indent=2)
+        request_dict = await self._constraint_prompt_step(ctx, ev, json_schema, **ev.request_dict)
+        return NormativeAnalysisEndEvent(
+            request_dict=request_dict,
+            result=f"Normative claims:\n {request_dict[ev.result_key]}",
+        )
+    
+    @step
+    async def ascriptive_analysis(self, ctx: Context, ev: AscriptiveAnalysisEvent) -> ListAscriptiveClaimsEvent:
         log_msg("Analysing ascriptive aspects of claim.")
         request_dict = await self._prompt_step(ctx, ev, **ev.request_dict)
+        return ListAscriptiveClaimsEvent(
+            init_data_dict=ev.init_data_dict,
+            request_dict=request_dict,
+            # result=f"Ascriptive Analaysis:\n {request_dict[ev.result_key]}",
+        )
+
+    @step
+    async def list_ascriptive_claims(self, ctx: Context, ev: ListAscriptiveClaimsEvent) -> AscriptiveAnalysisEndEvent:
+        json_schema = json.dumps(Claims.model_json_schema(), indent=2)
+        request_dict = await self._constraint_prompt_step(ctx, ev, json_schema, **ev.request_dict)
         return AscriptiveAnalysisEndEvent(
             request_dict=request_dict,
-            result=f"Ascriptive Analaysis:\n {request_dict[ev.result_key]}",
+            result=f"Ascriptive claims:\n {request_dict[ev.result_key]}",
         )
 
     @step
