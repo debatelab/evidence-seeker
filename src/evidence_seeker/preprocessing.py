@@ -57,11 +57,8 @@ class DictInitializedPromptEvent(DictInitializedEvent):
     request_dict: Dict = dict()
     result_key: str = None
 
-    # ?: `super.model_post_init` is not found. (For now: Using the constructor.)
-    # def model_post_init(self, *args, **kwargs):
-    #     super.model_post_init(*args, **kwargs)
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def model_post_init(self, *args, **kwargs):
+        super().model_post_init(*args, **kwargs)
         # if result key is not set, we use 'event_key' as default result_key
         if self.result_key is None:
             self.result_key = self.event_key
@@ -94,7 +91,7 @@ class NormativeAnalysisEvent(DictInitializedPromptEvent):
 
 class NormativeAnalysisEndEvent(DictInitializedPromptEvent):
     """Marks end of normative analysis."""
-    
+
 class DescriptiveAnalysisEvent(DictInitializedPromptEvent):
     event_key: str = "descriptive_analysis_event"
 
