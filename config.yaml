@@ -5,12 +5,14 @@ description: |
   Erste Version einer Konfiguration für die EvidenceSeeker Boilerplate.
 pipeline:
   system_prompt: &default_sp |
-    Test system prompt
+    You are a helpful assistant and an expert for the categorisation and annotation of texts.
+    You read instructions carefully and follow them precisely. You give concise and clear answers.
   preprocessing:
     workflow_events:
       ascriptive_analysis_event:
-        name:
-        description:
+        name: 'Ascriptive analysis'
+        description: |
+          Instruct the assistant to carry out free-text analysis of ascriptions.
         prompt_template: |
           The following claim has been submitted for fact-checking.
           <claim>{claim}</claim>
@@ -20,8 +22,9 @@ pipeline:
           2. watch out for ambiguity and vagueness during your discussion, making alternative interpretations explicit.
         system_prompt: *default_sp
       descriptive_analysis_event:
-        name: 
-        description:
+        name: 'Descriptive analysis'
+        description: |
+          Instruct the assistant to carry out free-text analysis of factual content.
         prompt_template: |
           The following claim has been submitted for fact-checking.
           <claim>{claim}</claim>
@@ -30,9 +33,32 @@ pipeline:
           1. thoroughly discuss whether the claim contains or implies factual or descriptive statements, which can be verified or falsified by empirical observation or scientific analysis and which may include, for example, descriptive reports, historical facts, or scientific claims -- if so, try to identify them and render them in your own words;
           2. watch out for ambiguity and vagueness during your discussion, making alternative interpretations explicit.
         system_prompt: *default_sp
+      list_descriptive_claims_event:
+        name: 'Descriptive-statements list'
+        description: 'List all factual statements.'
+        prompt_template: |
+          The following claim has been submitted for analysing its descriptive content.
+          <claim>{claim}</claim>
+          The analysis yielded the following results:
+          <results>
+          {descriptive_analysis_event}
+          </results>
+          Building on this analysis: 
+          - I want you to identify the descriptive content of the claim. In particular, you should list all factual or descriptive
+            statements, which can be verified or falsified by empirical observation or scientific 
+            analysis, contained in the claim.
+          - Include all identified interpretations of the descriptive content as seperate statements. 
+          Format your output as a JSON object according to the following schema:
+          <json-schema>
+          {json_schema}
+          </json-schema>
+          Do not include any other text than the JSON object.
+          Omit any markdown formatting. Do not include any preamble or explanation.
+        system_prompt: *default_sp
       normative_analysis_event:
-        name: 
-        description:
+        name: 'Normative Analysis'
+        description: |
+          Instruct the assistant to carry out free-text analysis of normative content.
         prompt_template: |
           The following claim has been submitted for fact-checking.
           <claim>{claim}</claim>
@@ -48,6 +74,18 @@ models:
     base_url: "https://huggingface.co/api/integrations/dgx/v1"
     model: "meta-llama/Llama-3.1-70B-Instruct"
     api_key_name: "kideku_toxicity_app_nim"
+    backend_type: nim
     # TODO: pass values 
-    max_tokens: 512
+    max_tokens: 1024
     temperature: 0.2
+  model_2:
+    name: "Mistral-7B-Instruct-v0.2"
+    description: "HF inference API"
+    base_url: "https://api-inference.huggingface.co/v1/"
+    model: "mistralai/Mistral-7B-Instruct-v0.2"
+    api_key_name: "HF_TOKEN_KIDEKU_INFERENCE"
+    backend_type: openai
+    # TODO: pass values 
+    max_tokens: 1024
+    temperature: 0.2
+

@@ -4,6 +4,7 @@
 # in: llama_index/core/workflow/utils.py:97, in validate_step_signature(spec) 
 # from __future__ import annotations
 
+import json
 from llama_index.core import ChatPromptTemplate
 from llama_index.core.workflow import (
     StartEvent,
@@ -18,6 +19,7 @@ from pydantic import BaseModel, Field
 from pprint import pprint
 
 from .models import CheckedClaim
+from .backend import log_msg
 
 class ClaimPreprocessor:
     async def __call__(self, claim: str) -> list[CheckedClaim]:
@@ -99,30 +101,8 @@ class DescriptiveAnalysisEvent(DictInitializedPromptEvent):
 class DescriptiveAnalysisEndEvent(DictInitializedPromptEvent):
     """Marks end of descriptive analysis."""
 
-# class ListDescriptiveClaimsEvent(DictInitializedPromptEvent):
-#     result: str
-#     claim: str
-#     user_template: str = """
-#     The following claim has been submitted for analysing its descriptive content.
-#     <claim>{claim}</claim>
-#     The analysis yielded the following results:
-#     <results>
-#     {result}
-#     </results>
-#     Building on this analysis, I want you to identify the descriptive content of the claim. In particular, you should  
-#     list all factual or descriptive statements, which can be verified or falsified by empirical observation or scientific analysis, contained in the claim.
-
-#     Do not explain or comment your answer. Just list the statements in the following form:
-#     - Claim: statement 1
-#     - Claim: statement 2
-#     - ... 
-#     """    
-#     chat_msg: List[Tuple[str, str]] = [
-#         ("system", _SYSTEM_PROMPT,),
-#         ("user", user_template),
-#     ]
-#     template: ChatPromptTemplate = ChatPromptTemplate.from_messages(chat_msg)
-
+class ListDescriptiveClaimsEvent(DictInitializedPromptEvent):
+    event_key: str = "list_descriptive_claims_event"
 
 class AscriptiveAnalysisEvent(DictInitializedPromptEvent):
     event_key: str = "ascriptive_analysis_event"
@@ -135,20 +115,46 @@ class PreprocessingWorkflow(Workflow):
     
     async def _prompt_step(self, ctx: Context, ev: DictInitializedPromptEvent, **kwargs) -> Dict[str, Any]:
         request_dict = ev.request_dict
-        # print(f"In prompt step with the flw request dict:")
-        # pprint(request_dict)
-        # print("And the following params for templates:")
-        # pprint(kwargs)
-        # print("Fields of the event object:")
-        # print(ev.items())
-        
         llm = await ctx.get("llm")
         messages = ev.get_messages().format_messages(**kwargs)
         response = await llm.achat(messages=messages)
         response = response.message.content
         request_dict.update({ev.result_key: response})
         return request_dict
-    
+
+    async def _constraint_prompt_step(self, 
+                                      ctx: Context, 
+                                      ev: DictInitializedPromptEvent,
+                                      json_schema: str, 
+                                      **kwargs) -> Dict[str, Any]:
+        request_dict = ev.request_dict
+        llm = await ctx.get("llm")
+        conf = await ctx.get("config")
+        messages = ev.get_messages().format_messages(json_schema=json_schema, **kwargs)
+
+        backend_type = None
+        if "backend_type" in conf['models'][conf['used_model']]:
+            backend_type = conf['models'][conf['used_model']]['backend_type']
+        # depending on the backend_type, we choose different ways for constraint decoding
+        if backend_type == "nim":
+            # see: https://docs.nvidia.com/nim/large-language-models/latest/structured-generation.html
+            response = await llm.achat(
+                messages=messages, 
+                extra_body={"nvext": {"guided_json": json_schema}}
+            )
+        # default: Using the llama-index interface for structured output
+        # see: https://docs.llamaindex.ai/en/stable/understanding/extraction/ 
+        else:
+            sllm = llm.as_structured_llm(Claims)
+            response = await sllm.achat(messages=messages)
+
+        response = response.message.content
+        request_dict.update({ev.result_key: response})
+        # request_dict.update({ev.result_key: Claims.model_validate_json(response)})
+        
+        return request_dict
+
+
     @step
     async def start(
         self, ctx: Context, ev: StartEvent
@@ -156,8 +162,6 @@ class PreprocessingWorkflow(Workflow):
         
         await ctx.set("llm", ev.llm)
         await ctx.set("config", ev.config)
-        # print(ev.claim)
-        # print(ev.config['pipeline']['workflow_events'])
         ctx.send_event(DescriptiveAnalysisEvent(
             init_data_dict=ev.config['pipeline']['preprocessing']['workflow_events'],
             request_dict={'claim': ev.claim}
@@ -172,20 +176,29 @@ class PreprocessingWorkflow(Workflow):
         ))
 
     @step
-    async def descriptive_analysis(self, ctx: Context, ev: DescriptiveAnalysisEvent) -> DescriptiveAnalysisEndEvent:
-        print("Analysing descriptive aspects of claim.")
+    async def descriptive_analysis(self, ctx: Context, ev: DescriptiveAnalysisEvent) -> ListDescriptiveClaimsEvent:
+        log_msg("Analysing descriptive aspects of claim.")
         request_dict = await self._prompt_step(ctx, ev, **ev.request_dict)
-        
-        return DescriptiveAnalysisEndEvent(
+        return ListDescriptiveClaimsEvent(
+            init_data_dict=ev.init_data_dict,
             request_dict=request_dict,
-            result=f"Descriptive Analaysis:\n {request_dict[ev.result_key]}",
+            # result=f"Descriptive Analaysis:\n {request_dict[ev.result_key]}",
         )
 
     @step
+    async def list_descriptive_claims(self, ctx: Context, ev: ListDescriptiveClaimsEvent) -> DescriptiveAnalysisEndEvent:
+        json_schema = json.dumps(Claims.model_json_schema(), indent=2)
+        request_dict = await self._constraint_prompt_step(ctx, ev, json_schema, **ev.request_dict)
+        return DescriptiveAnalysisEndEvent(
+            request_dict=request_dict,
+            result=f"Descriptive claims:\n {request_dict[ev.result_key]}",
+        )
+
+
+    @step
     async def normative_analysis(self, ctx: Context, ev: NormativeAnalysisEvent) -> NormativeAnalysisEndEvent:
-        print("Analysing normative aspects of claim.")
+        log_msg("Analysing normative aspects of claim.")
         request_dict = await self._prompt_step(ctx, ev, **ev.request_dict)
-        
         return NormativeAnalysisEndEvent(
             request_dict=request_dict,
             result=f"Normative Analaysis:\n {request_dict[ev.result_key]}",
@@ -193,9 +206,8 @@ class PreprocessingWorkflow(Workflow):
 
     @step
     async def ascriptive_analysis(self, ctx: Context, ev: AscriptiveAnalysisEvent) -> AscriptiveAnalysisEndEvent:
-        print("Analysing ascriptive aspects of claim.")
+        log_msg("Analysing ascriptive aspects of claim.")
         request_dict = await self._prompt_step(ctx, ev, **ev.request_dict)
-        
         return AscriptiveAnalysisEndEvent(
             request_dict=request_dict,
             result=f"Ascriptive Analaysis:\n {request_dict[ev.result_key]}",
@@ -219,18 +231,11 @@ class PreprocessingWorkflow(Workflow):
         # wait until we receive the analysis events
         if collected_events is None:
             return None
-
-        norm_res = collected_events[0]
-        descr_res = collected_events[1]
-        ascr_res = collected_events[2] 
         
         # concatenating all results
         request_dict = dict()
         for ev in collected_events:
             request_dict.update(ev.request_dict)
         
-        # print("#################### Norm Result:  \n", norm_res.result)
-        # print("#################### D Result: \n", descr_res.result)
-        # print("#################### A Result: \n", ascr_res.result)
 
         return StopEvent(result=request_dict)

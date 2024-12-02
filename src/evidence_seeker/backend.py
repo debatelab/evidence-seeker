@@ -12,10 +12,11 @@ def get_openai_llm(
             is_local: bool = False,
             is_function_calling_model: bool = False,
             context_window: int = 32000,
+            max_tokens: int = 1024,
             **kwargs) -> OpenAILike:
     
     if api_key is None and api_key_name is None:
-         raise ValueError("You should provide an api key or an a name of an env variable that holds the api key.")
+         raise ValueError("You should provide an api key or a name of an env variable that holds the api key.")
     if api_key is not None:
         log_msg(f"Instantiating OpenAILike model (model: {model}, base_url: {base_url}).") 
         llm = OpenAILike(
@@ -26,6 +27,7 @@ def get_openai_llm(
             is_local=is_local,
             is_function_calling_model=is_function_calling_model,
             context_window=context_window,
+            max_tokens=max_tokens,
             **kwargs
         )
         return llm
