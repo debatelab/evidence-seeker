@@ -49,7 +49,7 @@ class DictInitializedEvent(Event):
             #print(self.init_data_dict)
             if self.event_key in self.init_data_dict:
                 self._data.update(self.init_data_dict[self.event_key])
-        if self.init_data_dict:
+        elif self.init_data_dict:
             self._data.update(self.init_data_dict)
     
 class DictInitializedPromptEvent(DictInitializedEvent):
