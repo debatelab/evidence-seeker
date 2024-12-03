@@ -2,6 +2,7 @@
 
 import logging
 import os
+from typing import List
 import uuid
 
 from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInference
@@ -10,6 +11,7 @@ from llama_index.core import (
     StorageContext,
     VectorStoreIndex,
 )
+import tenacity
 
 from evidence_seeker.models import CheckedClaim, Document
 
@@ -27,6 +29,22 @@ _INDEX_PERSIST_PATH = "storage/chunk_index"
 
 _DEFAULT_TOP_K = 8
 
+
+class PatientTextEmbeddingsInference(TextEmbeddingsInference):
+
+    @tenacity.retry(stop=tenacity.stop_after_attempt(10), wait=tenacity.wait_exponential(multiplier=1, max=30))
+    def _call_api(self, texts: List[str]) -> List[List[float]]:
+        result = super()._call_api(texts)
+        if "error" in result:
+            raise ValueError(f"Error in API response: {result['error']}")
+        return result
+
+    @tenacity.retry(stop=tenacity.stop_after_attempt(10), wait=tenacity.wait_exponential(multiplier=1, max=30))
+    async def _acall_api(self, texts: List[str]) -> List[List[float]]:
+        result = await super()._acall_api(texts)
+        if "error" in result:
+            raise ValueError(f"Error in API response: {result['error']}")
+        return result
 
 class DocumentRetriever:
     def __init__(self, **kwargs):
@@ -46,7 +64,7 @@ class DocumentRetriever:
         self.index_persist_path = kwargs.get("index_persist_path", _INDEX_PERSIST_PATH)
         self.similarity_top_k = kwargs.get("similarity_top_k", _DEFAULT_TOP_K)
 
-        self.embed_model = TextEmbeddingsInference(
+        self.embed_model = PatientTextEmbeddingsInference(
             **self._get_text_embeddings_inference_kwargs()
         )
         self.index = self.build_index()
