@@ -7,6 +7,7 @@ import pydantic
 class Document(pydantic.BaseModel):
     text: str
     uid: str
+    metadata: dict = {}
 
 class CheckedClaim(pydantic.BaseModel):
     text: str
