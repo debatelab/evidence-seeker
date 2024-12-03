@@ -43,6 +43,10 @@ path = "src/evidence_seeker/__about__.py"
 
 [tool.hatch.envs.default]
 dependencies = [
+  "jupyter",
+  "ipywidgets",
+  "llama-index-callbacks-arize-phoenix",
+  "wrapt<=1.16.0",
   "pytest",
 ]
 
