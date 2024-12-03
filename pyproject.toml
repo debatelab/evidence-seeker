@@ -25,6 +25,7 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
+  "dotenv",
   "llama-index",
   "llama-index-llms-openai-like",
   "llama-index-embeddings-text-embeddings-inference",
