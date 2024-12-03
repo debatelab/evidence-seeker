@@ -1,3 +1,7 @@
+# Tmp folder
+tmp
+TMP
+
 # html outputs from notebooks
 tests/*.html
 
