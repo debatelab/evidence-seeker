@@ -1,6 +1,5 @@
 "retrieval.py"
 
-from __future__ import annotations
 
 from evidence_seeker.models import CheckedClaim, Document
 
