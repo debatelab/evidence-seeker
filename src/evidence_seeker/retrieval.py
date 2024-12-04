@@ -22,7 +22,7 @@ _DEFAULT_EMBED_BASE_URL = (
 _DEFAULT_EMBED_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 _DEFAULT_EMBED_BATCH_SIZE = 32
 
-_DEFAULT_INPUT_FILES = ["./IPCC_AR6_WGI_TS.pdf"]
+_DEFAULT_INPUT_FILES = ["./IPCC_AR6_WGI_TS.pdf"],
 _DEFAULT_WINDOW_SIZE = 3
 _INDEX_ID = "sentence_index"
 _INDEX_PERSIST_PATH = "storage/chunk_index"
@@ -60,6 +60,7 @@ class DocumentRetriever:
         self.document_input_files = kwargs.get(
             "document_input_files", _DEFAULT_INPUT_FILES
         )
+        self.document_file_metadata = kwargs.get("document_file_metadata")
         self.index_id = kwargs.get("index_id", _INDEX_ID)
         self.index_persist_path = kwargs.get("index_persist_path", _INDEX_PERSIST_PATH)
         self.similarity_top_k = kwargs.get("similarity_top_k", _DEFAULT_TOP_K)
@@ -81,7 +82,9 @@ class DocumentRetriever:
 
             logger.debug(f"Reading documents from {self.document_input_files}")
             documents = SimpleDirectoryReader(
-                input_files=self.document_input_files
+                input_files=self.document_input_files,
+                filename_as_id=True,
+                file_metadata=self.document_file_metadata,
             ).load_data()
 
             logger.debug("Parsing nodes...")
