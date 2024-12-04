@@ -11,7 +11,7 @@ class Document(pydantic.BaseModel):
 
 class CheckedClaim(pydantic.BaseModel):
     text: str
-    negation: str
+    negation: str | None = None
     uid: str
     n_evidence: int | None = None
     average_confirmation: float | None = None
