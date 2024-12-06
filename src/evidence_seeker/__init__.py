@@ -1,9 +1,10 @@
- 
+
 from .preprocessing import (
     ClaimPreprocessor,
     DictInitializedEvent,
     DictInitializedPromptEvent,
-    PreprocessingWorkflow,
+    PreprocessingSeparateListingsWorkflow,
+    SimplePreprocessingWorkflow
 )
 
 from .backend import (
@@ -16,7 +17,8 @@ __all__ = [
     "ClaimPreprocessor",
     "DictInitializedEvent",
     "DictInitializedPromptEvent",
-    "PreprocessingWorkflow",
+    "PreprocessingSeparateListingsWorkflow",
     "get_openai_llm",
     "log_msg",
+    "SimplePreprocessingWorkflow"
 ]

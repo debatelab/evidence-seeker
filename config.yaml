@@ -23,7 +23,7 @@ pipeline:
           1. thoroughly discuss whether the claim contains ascriptions, that is, whether the claim ascribes a given statement to a person or organisation (e.g., as something the person has said, believes, acts on etc.) rather than plainly asserting that statement straightaway  -- if so, try to identify which statements are ascribed to whom exactly and in which ways;
           2. watch out for ambiguity and vagueness during your discussion, making alternative interpretations explicit.
         system_prompt: *default_sp
-      list_ascriptive_claims_event:
+      list_ascriptive_claims_event_based_on_ascriptive_analysis:
         name: 'Ascriptive-statements list'
         description: 'List all ascriptive statements.'
         prompt_template: |
@@ -48,15 +48,27 @@ pipeline:
         name: 'Descriptive analysis'
         description: |
           Instruct the assistant to carry out free-text analysis of factual content.
+        # prompt_template: |
+        #   The following claim has been submitted for fact-checking.
+        #   <claim>{claim}</claim>
+        #   Before we proceed with retrieving evidence items, we carefully analyse the claim. Your task is to contribute to this preparatory analysis, as detailed below.
+        #   In particular, you should  
+        #   1. thoroughly discuss whether the claim contains or implies factual or descriptive statements, which can be verified or falsified by empirical observation 
+        #      or scientific analysis and which may include, for example, descriptive reports, historical facts, or scientific claims -- if so, try to identify them 
+        #      and render them in your own words;
+        #   2. watch out for ambiguity and vagueness during your discussion, making alternative interpretations explicit.
         prompt_template: |
           The following claim has been submitted for fact-checking.
           <claim>{claim}</claim>
           Before we proceed with retrieving evidence items, we carefully analyse the claim. Your task is to contribute to this preparatory analysis, as detailed below.
           In particular, you should  
-          1. thoroughly discuss whether the claim contains or implies factual or descriptive statements, which can be verified or falsified by empirical observation or scientific analysis and which may include, for example, descriptive reports, historical facts, or scientific claims -- if so, try to identify them and render them in your own words;
-          2. watch out for ambiguity and vagueness during your discussion, making alternative interpretations explicit.
+          1. watch out for ambiguity and vagueness in claim. Make alternative interpretations explicit.
+          2. Thouroughly discuss for each interpretation whether the interpretations contains or implies factual or descriptive statements, which can be verified or falsified by empirical observation 
+             or scientific analysis and which may include, for example, descriptive reports, historical facts, or scientific claims -- if so, try to identify them 
+             and render them in your own words;
+          End your analysis with a short list of all identified factual or descriptive statements. Formulate each statement in a clear and concise manner.
         system_prompt: *default_sp
-      list_descriptive_claims_event:
+      list_descriptive_claims_event_based_on_descriptive_analysis:
         name: 'Descriptive-statements list'
         description: 'List all factual statements.'
         prompt_template: |
@@ -78,6 +90,32 @@ pipeline:
           Do not include any other text than the JSON object.
           Omit any markdown formatting. Do not include any preamble or explanation.
         system_prompt: *default_sp
+      list_claims_event:
+        name: 'Statements list'
+        description: 'List all factual and ascriptive statements.'
+        prompt_template: |
+          The following claim has been submitted for analysing its descriptive, normative and ascriptive content.
+          <claim>{claim}</claim>
+          The analysis yielded the following results:
+          <results of descripitve analysis>
+          {descriptive_analysis_event}
+          </results of descriptive analysis>
+          <results of ascripitve analysis>
+          {ascriptive_analysis_event}
+          </results of ascriptive analysis>
+          <results of normative analysis>
+          {normative_analysis_event}
+          </results of normative analysis>
+          Building on this analysis, I want you to to identify the factual, and the ascriptive content of the claim. In particular, you should  
+          1. List all factual or descriptive statements, which can be verified or falsified by empirical observation or scientific analysis, contained in the claim;
+          2. List all ascriptions, that is, statements ascribed to a person or organisation, contained in the claim.
+          Format your output as a JSON object according to the following schema:
+          <json-schema>
+          {json_schema}
+          </json-schema>
+          Do not include any other text than the JSON object.
+          Omit any markdown formatting. Do not include any preamble or explanation.
+        system_prompt: *default_sp
       normative_analysis_event:
         name: 'Normative Analysis'
         description: |
@@ -90,7 +128,7 @@ pipeline:
           1. thoroughly discuss whether the claim contains or implies normative statements, such as value judgements, recommendations, or evaluations -- if so, try to identify them and render them in your own words;
           2. watch out for ambiguity and vagueness during your discussion, making alternative interpretations explicit.
         system_prompt: *default_sp
-      list_normative_claims_event:
+      list_normative_claims_event_based_on_normative_analysis:
         name: 'Normative-statements list'
         description: 'List all normative statements.'
         prompt_template: |
