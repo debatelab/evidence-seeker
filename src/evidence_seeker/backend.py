@@ -44,9 +44,9 @@ def get_openai_llm(
                          api_key_name} is not set as env variable.")
     api_key = os.environ.get(api_key_name)
     return get_openai_llm(
-        api_key=api_key, 
-        model=model, 
-        base_url=base_url, 
+        api_key=api_key,
+        model=model,
+        base_url=base_url,
         **kwargs
     )
 
