@@ -5,16 +5,14 @@
 # from __future__ import annotations
 
 import json
-from llama_index.core import ChatPromptTemplate
 from llama_index.core.workflow import (
     StartEvent,
     StopEvent,
     Workflow,
     Context,
     step,
-    Event,
 )
-from typing import Dict, Tuple, List, Any
+from typing import Dict, List, Any
 from pydantic import BaseModel, Field
 import uuid
 from llama_index.llms.openai_like import OpenAILike
