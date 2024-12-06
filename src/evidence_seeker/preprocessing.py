@@ -161,12 +161,28 @@ class PreprocessingWorkflow(Workflow):
         append_input: bool = False,
         **kwargs,
     ) -> Dict[str, Any]:
+        """
+        Asynchronously processes a prompt step by sending messages to a
+        language model and updating the request dictionary with the response.
+        Args:
+            ctx (Context): The context object containing necessary
+                dependencies.
+            ev (DictInitializedPromptEvent): The event object containing
+                the request dictionary and methods to get formatted messages.
+            append_input (bool, optional): If True, appends the input keyword
+                arguments to the request dictionary. Defaults to False.
+            **kwargs: Additional keyword arguments to format the messages.
+        Returns:
+            Dict[str, Any]: The updated request dictionary with the response
+                from the language model.
+        """
         request_dict = ev.request_dict
         llm = await ctx.get("llm")
         messages = ev.get_messages().format_messages(**kwargs)
         response = await llm.achat(messages=messages)
         response = response.message.content
         request_dict.update({ev.result_key: response})
+        # if `append_input`, we update the request dict form the input event
         if append_input:
             request_dict.update(kwargs)
         return request_dict
@@ -174,7 +190,9 @@ class PreprocessingWorkflow(Workflow):
     async def _constraint_prompt_step(
         self, ctx: Context,
         ev: DictInitializedPromptEvent,
-        json_schema: str, **kwargs
+        json_schema: str,
+        append_input: bool = False,
+        **kwargs
     ) -> Dict[str, Any]:
         request_dict = ev.request_dict
         llm = await ctx.get("llm")
@@ -183,6 +201,35 @@ class PreprocessingWorkflow(Workflow):
             json_schema=json_schema,
             **kwargs
         )
+        """
+        Asynchronously handles a constraint prompt step by interacting with
+        a language model and updating the request dictionary with the response.
+        In contrast to the `_prompt_step` method, we aim for constraint
+        decoding as specified by the JSON schema.
+
+        Args:
+            ctx (Context): The context object containing necessary
+                configurations and models.
+            ev (DictInitializedPromptEvent): The event object containing the
+                request dictionary and messages.
+            json_schema (str): The JSON schema to guide the language model's
+                response.
+            append_input (bool, optional): If True, appends the input keyword
+                arguments to the request dictionary. Defaults to False.
+            **kwargs: Additional keyword arguments to format the messages.
+
+        Returns:
+            Dict[str, Any]: The updated request dictionary with the language
+                model's response.
+
+        Notes:
+            - Depending on the backend type specified in the configuration,
+              different methods for constraint decoding are used.
+            - If the backend type is "nim", the NVIDIA guided JSON schema
+              is used.
+            - Otherwise, the default method uses the llama-index interface
+              for structured output.
+        """
 
         backend_type = None
         if "backend_type" in conf["models"][conf["used_model"]]:
@@ -203,9 +250,8 @@ class PreprocessingWorkflow(Workflow):
 
         response = response.message.content
         request_dict.update({ev.result_key: response})
-        # request_dict.update({
-        #     ev.result_key: Claims.model_validate_json(response)
-        # })
+        if append_input:
+            request_dict.update(kwargs)
 
         return request_dict
 
