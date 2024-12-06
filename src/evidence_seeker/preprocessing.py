@@ -89,7 +89,7 @@ class ClaimPreprocessor:
 
 
 class Claim(BaseModel):
-    """A claim or statements."""
+    """A claim or statement."""
 
     claim: str = Field(description="The claim expressed as one sentence.")
 
