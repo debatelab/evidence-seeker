@@ -1,7 +1,8 @@
 "preprocessing.py"
 
-# The __future__ import raises a `WorkflowValidationError: Step signature must have at least one parameter annotated as type Event`
-# in: llama_index/core/workflow/utils.py:97, in validate_step_signature(spec)
+# The __future__ import raises a `WorkflowValidationError: Step signature must
+# have at least one parameter annotated as type Event` in:
+# llama_index/core/workflow/utils.py:97, in validate_step_signature(spec)
 # from __future__ import annotations
 
 import json
@@ -19,10 +20,8 @@ from llama_index.llms.openai_like import OpenAILike
 
 from .models import CheckedClaim
 from .backend import log_msg, get_openai_llm
-from .workflow import (
-    DictInitializedEvent,
-    DictInitializedPromptEvent
-)
+from .workflow import DictInitializedEvent, DictInitializedPromptEvent
+
 
 class ClaimPreprocessor:
     def __init__(self, config: Dict, **kwargs):
@@ -37,14 +36,19 @@ class ClaimPreprocessor:
 
         context_window = 32000
         if "context_window" in config["models"][config["used_model"]]:
-            context_window = config["models"][config["used_model"]]["context_window"]
+            context_window = config["models"][config["used_model"]][
+                "context_window"
+            ]
 
         temperature = 0.1
         if "temperature" in config["models"][config["used_model"]]:
             temperature = config["models"][config["used_model"]]["temperature"]
 
-        log_msg(f"""Init open ai model {model} (from {base_url}) with temperature={temperature}, 
-                max_tokens={max_tokens} and context_window={context_window}""")
+        log_msg(
+            f"Init open ai model {model} (from {base_url}) with"
+            f"temperature={temperature} max_tokens={max_tokens}"
+            f"and context_window={context_window}"
+        )
 
         llm = get_openai_llm(
             api_key_name=api_key_name,
@@ -64,8 +68,12 @@ class ClaimPreprocessor:
     async def __call__(self, claim: str) -> list[CheckedClaim]:
         workflow_result = await self.workflow.run(claim=claim)
         return {
-            "descriptive_claims": workflow_result["descriptive_checked_claims"],
-            "ascriptive_claims": workflow_result["ascriptive_checked_claims"],
+            "descriptive_claims": workflow_result[
+                "descriptive_checked_claims"
+            ],
+            "ascriptive_claims": workflow_result[
+                "ascriptive_checked_claims"
+            ],
         }
         # dummy_clarifications = [
         #     CheckedClaim(
@@ -82,6 +90,7 @@ class ClaimPreprocessor:
         #     ),
         # ]
         # return dummy_clarifications
+
 
 class Claim(BaseModel):
     """A claim or statements."""
@@ -163,21 +172,28 @@ class PreprocessingWorkflow(Workflow):
         return request_dict
 
     async def _constraint_prompt_step(
-        self, ctx: Context, ev: DictInitializedPromptEvent, json_schema: str, **kwargs
+        self, ctx: Context,
+        ev: DictInitializedPromptEvent,
+        json_schema: str, **kwargs
     ) -> Dict[str, Any]:
         request_dict = ev.request_dict
         llm = await ctx.get("llm")
         conf = await ctx.get("config")
-        messages = ev.get_messages().format_messages(json_schema=json_schema, **kwargs)
+        messages = ev.get_messages().format_messages(
+            json_schema=json_schema,
+            **kwargs
+        )
 
         backend_type = None
         if "backend_type" in conf["models"][conf["used_model"]]:
             backend_type = conf["models"][conf["used_model"]]["backend_type"]
-        # depending on the backend_type, we choose different ways for constraint decoding
+        # depending on the backend_type, we choose different ways
+        # for constraint decoding
         if backend_type == "nim":
-            # see: https://docs.nvidia.com/nim/large-language-models/latest/structured-generation.html
+            # https://docs.nvidia.com/nim/large-language-models/latest/structured-generation.html
             response = await llm.achat(
-                messages=messages, extra_body={"nvext": {"guided_json": json_schema}}
+                messages=messages,
+                extra_body={"nvext": {"guided_json": json_schema}}
             )
         # default: Using the llama-index interface for structured output
         # see: https://docs.llamaindex.ai/en/stable/understanding/extraction/
@@ -187,14 +203,20 @@ class PreprocessingWorkflow(Workflow):
 
         response = response.message.content
         request_dict.update({ev.result_key: response})
-        # request_dict.update({ev.result_key: Claims.model_validate_json(response)})
+        # request_dict.update({
+        #     ev.result_key: Claims.model_validate_json(response)
+        # })
 
         return request_dict
 
     @step
     async def start(
         self, ctx: Context, ev: StartEvent
-    ) -> NormativeAnalysisEvent | DescriptiveAnalysisEvent | AscriptiveAnalysisEvent:
+    ) -> (
+        NormativeAnalysisEvent
+        | DescriptiveAnalysisEvent
+        | AscriptiveAnalysisEvent
+    ):
         await ctx.set("llm", self.llm)
         await ctx.set("config", self.config)
         ctx.send_event(
@@ -316,9 +338,11 @@ class PreprocessingWorkflow(Workflow):
     async def step_collect_analyses(
         self,
         ctx: Context,
-        ev: NormativeAnalysisEndEvent
-        | DescriptiveAnalysisEndEvent
-        | AscriptiveAnalysisEndEvent,
+        ev: (
+            NormativeAnalysisEndEvent
+            | DescriptiveAnalysisEndEvent
+            | AscriptiveAnalysisEndEvent
+        ),
         # ) -> StopEvent:
     ) -> NegateClaimEvent:
         log_msg("Collecting clarified claims...")
@@ -343,15 +367,20 @@ class PreprocessingWorkflow(Workflow):
         num_descriptive_claims = len(
             request_dict["list_descriptive_claims_event"].claims
         )
-        num_ascriptive_claims = len(request_dict["list_ascriptive_claims_event"].claims)
-        log_msg(f"Number of claims: {num_ascriptive_claims + num_descriptive_claims}")
+        num_ascriptive_claims = len(
+            request_dict["list_ascriptive_claims_event"].claims
+        )
+        num_claims = num_ascriptive_claims + num_descriptive_claims
+        log_msg(f"Number of claims: {num_claims}")
 
         config = await ctx.get("config")
         await ctx.set(
-            "num_claims_to_negate", num_ascriptive_claims + num_descriptive_claims
+            "num_claims_to_negate", num_claims
         )
         for claim_type in ["descriptive", "ascriptive"]:
-            for claim in request_dict[f"list_{claim_type}_claims_event"].claims:
+            for claim in request_dict[
+                f"list_{claim_type}_claims_event"
+            ].claims:
                 ctx.send_event(
                     NegateClaimEvent(
                         init_data_dict=config["pipeline"]["preprocessing"][
