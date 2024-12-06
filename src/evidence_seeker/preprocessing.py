@@ -365,6 +365,7 @@ class PreprocessingWorkflow(Workflow):
         | AscriptiveAnalysisEndEvent,
         # ) -> StopEvent:
     ) -> NegateClaimEvent:
+        log_msg("Collecting clarified claims...")
         collected_events = ctx.collect_events(
             ev,
             [
@@ -375,6 +376,7 @@ class PreprocessingWorkflow(Workflow):
         )
         # wait until we receive the analysis events
         if collected_events is None:
+            log_msg("Collecting clarified claims... still waiting...")
             return None
 
         # concatenating all results
