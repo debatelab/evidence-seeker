@@ -8,6 +8,8 @@ pipeline:
     You are a helpful assistant and an expert for the categorisation and annotation of texts.
     You read instructions carefully and follow them precisely. You give concise and clear answers.
   preprocessing:
+    timeout: 60
+    verbose: False
     workflow_events:
       ascriptive_analysis_event:
         name: 'Ascriptive analysis'
@@ -99,7 +101,7 @@ pipeline:
           {normative_analysis_event}
           </results>
           Building on this analysis: 
-          - I want you to identify the normative of the claim. In particular, you should list 
+          - I want you to identify the normative content of the claim. In particular, you should list 
             all normative statements, such as value judgements, recommendations, or evaluations, contained in the claim;
           - Include all identified interpretations of the normative content as seperate statements. 
           Format your output as a JSON object according to the following schema:
@@ -109,6 +111,18 @@ pipeline:
           Do not include any other text than the JSON object.
           Omit any markdown formatting. Do not include any preamble or explanation.
         system_prompt: *default_sp
+      negate_claim_event:
+        name: 'Negate statement'
+        description: 'Instruct assistant to negate a claim.'
+        system_prompt: *default_sp
+        prompt_template: |
+          Your task is to provide the opposite of the following statement in clear and unequivocal language. 
+          Do so by generating one statement that expresses the negation.
+          <statement>
+          {statement}
+          </statement>
+          Ommit any comments on your suggestion of negating the input statement. Just answer with the negated statement. 
+
 models:
   model_1:
     name: "Llama-3.1-70B-Instruct"
@@ -118,7 +132,7 @@ models:
     api_key_name: "kideku_toxicity_app_nim"
     backend_type: nim
     # TODO: pass values 
-    max_tokens: 1024
+    max_tokens: 4096 # 2048
     temperature: 0.2
   model_2:
     name: "Mistral-7B-Instruct-v0.2"
