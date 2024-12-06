@@ -22,8 +22,10 @@ def get_openai_llm(
             "an env variable that holds the api key."
         )
     if api_key is not None:
-        log_msg(f"Instantiating OpenAILike model (model: {
-                model}, base_url: {base_url}).")
+        log_msg(
+            f"Instantiating OpenAILike model (model: {model},"
+            f"base_url: {base_url})."
+        )
         llm = OpenAILike(
             model=model,
             api_base=base_url,
@@ -40,8 +42,9 @@ def get_openai_llm(
     log_msg(f"Used api key name: {api_key_name}")
     load_dotenv()
     if os.environ.get(api_key_name) is None:
-        raise ValueError(f"The api key name {
-                         api_key_name} is not set as env variable.")
+        raise ValueError(
+            f"The api key name {api_key_name} is not set as env variable."
+        )
     api_key = os.environ.get(api_key_name)
     return get_openai_llm(
         api_key=api_key,
