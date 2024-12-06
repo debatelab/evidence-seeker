@@ -3,8 +3,13 @@
 from llama_index.core import ChatPromptTemplate
 from llama_index.core.workflow import (
     Event,
+    Workflow,
+    Context
 )
-from typing import Dict
+from typing import Any, Dict, Type
+
+from llama_index.llms.openai_like import OpenAILike
+from pydantic import BaseModel
 
 
 class DictInitializedEvent(Event):
@@ -84,3 +89,111 @@ class DictInitializedPromptEvent(DictInitializedEvent):
             ("user", self.prompt_template),
         ]
         return ChatPromptTemplate.from_messages(chat_prompt_template)
+
+
+class EvidenceSeekerWorkflow(Workflow):
+    async def _prompt_step(
+        self,
+        ctx: Context,
+        ev: DictInitializedPromptEvent,
+        append_input: bool = False,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """
+        Asynchronously processes a prompt step by sending messages to a
+        language model and updating the request dictionary with the response.
+        Args:
+            ctx (Context): The context object containing necessary
+                dependencies.
+            ev (DictInitializedPromptEvent): The event object containing
+                the request dictionary and methods to get formatted messages.
+            append_input (bool, optional): If True, appends the input keyword
+                arguments to the request dictionary. Defaults to False.
+            **kwargs: Additional keyword arguments to format the messages.
+        Returns:
+            Dict[str, Any]: The updated request dictionary with the response
+                from the language model.
+        """
+        request_dict = ev.request_dict
+        llm: OpenAILike = await ctx.get("llm")
+        messages = ev.get_messages().format_messages(**kwargs)
+        response = await llm.achat(messages=messages)
+        response = response.message.content
+        request_dict.update({ev.result_key: response})
+        # if `append_input`, we update the request dict form the input event
+        if append_input:
+            request_dict.update(kwargs)
+        return request_dict
+
+    async def _constraint_prompt_step(
+        self, ctx: Context,
+        ev: DictInitializedPromptEvent,
+        json_schema: str,
+        append_input: bool = False,
+        output_cls: Type[BaseModel] = None,
+        **kwargs
+    ) -> Dict[str, Any]:
+        request_dict = ev.request_dict
+        llm: OpenAILike = await ctx.get("llm")
+        conf = await ctx.get("config")
+        messages = ev.get_messages().format_messages(
+            json_schema=json_schema,
+            **kwargs
+        )
+        """
+        Asynchronously handles a constraint prompt step by interacting with
+        a language model and updating the request dictionary with the response.
+        In contrast to the `_prompt_step` method, we aim for constraint
+        decoding as specified by the JSON schema.
+
+        Args:
+            ctx (Context): The context object containing necessary
+                configurations and models.
+            ev (DictInitializedPromptEvent): The event object containing the
+                request dictionary and messages.
+            json_schema (str): The JSON schema to guide the language model's
+                response.
+            append_input (bool, optional): If True, appends the input keyword
+                arguments to the request dictionary. Defaults to False.
+            **kwargs: Additional keyword arguments to format the messages.
+
+        Returns:
+            Dict[str, Any]: The updated request dictionary with the language
+                model's response.
+
+        Notes:
+            - Depending on the backend type specified in the configuration,
+              different methods for constraint decoding are used.
+            - If the backend type is "nim", the NVIDIA guided JSON schema
+              is used.
+            - Otherwise, the default method uses the llama-index interface
+              for structured output.
+        """
+
+        backend_type = None
+        if "backend_type" in conf["models"][conf["used_model"]]:
+            backend_type = conf["models"][conf["used_model"]]["backend_type"]
+        # depending on the backend_type, we choose different ways
+        # for constraint decoding
+        if backend_type == "nim":
+            # https://docs.nvidia.com/nim/large-language-models/latest/structured-generation.html
+            response = await llm.achat(
+                messages=messages,
+                extra_body={"nvext": {"guided_json": json_schema}}
+            )
+        # default: Using the llama-index interface for structured output
+        # see: https://docs.llamaindex.ai/en/stable/understanding/extraction/
+        else:
+            if output_cls is None:
+                raise ValueError(
+                    "You should provide an output class for structured output."
+                )
+            sllm = llm.as_structured_llm(output_cls)
+            response = await sllm.achat(messages=messages)
+
+        response = response.message.content
+        request_dict.update({ev.result_key: response})
+        if append_input:
+            request_dict.update(kwargs)
+
+        return request_dict
