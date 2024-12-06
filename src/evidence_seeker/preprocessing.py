@@ -61,7 +61,7 @@ class ClaimPreprocessor:
             context_window=context_window,
             temperature=temperature,
         )
-        self.workflow = PreprocessingSeparateListingsWorkflow(
+        self.workflow = SimplePreprocessingWorkflow(
             config=config,
             llm=llm,
             timeout=config["pipeline"]["preprocessing"]["timeout"],
@@ -70,14 +70,7 @@ class ClaimPreprocessor:
 
     async def __call__(self, claim: str) -> list[CheckedClaim]:
         workflow_result = await self.workflow.run(claim=claim)
-        return {
-            "descriptive_claims": workflow_result[
-                "descriptive_checked_claims"
-            ],
-            "ascriptive_claims": workflow_result[
-                "ascriptive_checked_claims"
-            ],
-        }
+        return workflow_result["checked_claims"]
         # dummy_clarifications = [
         #     CheckedClaim(
         #         text=f"{claim}_1",
