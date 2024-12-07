@@ -157,10 +157,6 @@ class PreprocessingSeparateListingsWorkflow(EvidenceSeekerWorkflow):
     of descriptive content (and does not consider the results of the other
     free text analyses).
     """
-    def __init__(self, config: Dict, llm: OpenAILike, **kwargs):
-        super().__init__(**kwargs)
-        self.llm = llm
-        self.config = config
 
     @step
     async def start(
