@@ -103,6 +103,7 @@ class EvidenceSeekerWorkflow(Workflow):
         ctx: Context,
         ev: DictInitializedPromptEvent,
         append_input: bool = False,
+        request_dict: Dict | None = None,
         **kwargs,
     ) -> Dict[str, Any]:
         """
@@ -115,12 +116,15 @@ class EvidenceSeekerWorkflow(Workflow):
                 the request dictionary and methods to get formatted messages.
             append_input (bool, optional): If True, appends the input keyword
                 arguments to the request dictionary. Defaults to False.
+            request_dict (Dict, optional): If None, the request dict of the 
+                input event (`ev.request_dict`) is updated and returned.
             **kwargs: Additional keyword arguments to format the messages.
         Returns:
             Dict[str, Any]: The updated request dictionary with the response
                 from the language model.
         """
-        request_dict = ev.request_dict
+        if request_dict is None:
+            request_dict = ev.request_dict
         llm: OpenAILike = await ctx.get("llm")
         messages = ev.get_messages().format_messages(**kwargs)
         response = await llm.achat(messages=messages)
@@ -136,10 +140,13 @@ class EvidenceSeekerWorkflow(Workflow):
         ev: DictInitializedPromptEvent,
         json_schema: str,
         append_input: bool = False,
+        request_dict: Dict | None = None,
         output_cls: Type[BaseModel] = None,
         **kwargs
     ) -> Dict[str, Any]:
-        request_dict = ev.request_dict
+
+        if request_dict is None:
+            request_dict = ev.request_dict
         llm: OpenAILike = await ctx.get("llm")
         conf = await ctx.get("config")
         messages = ev.get_messages().format_messages(
@@ -161,6 +168,8 @@ class EvidenceSeekerWorkflow(Workflow):
                 response.
             append_input (bool, optional): If True, appends the input keyword
                 arguments to the request dictionary. Defaults to False.
+            request_dict (Dict, optional): If None, the request dict of the 
+                input event (`ev.request_dict`) is updated and returned.
             **kwargs: Additional keyword arguments to format the messages.
 
         Returns:
