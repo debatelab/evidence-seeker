@@ -412,13 +412,10 @@ class ListClaimsEvent(DictInitializedPromptEvent):
 
 class SimplePreprocessingWorkflow(EvidenceSeekerWorkflow):
     """
-    This workflow lists descriptive and ascriptive claims based on all free-text 
-    analyses (in contrast to the PreprocessingSeparateListingsWorkflow).
+    This workflow lists descriptive and ascriptive claims based on all
+    free-text analyses (in contrast to the
+    PreprocessingSeparateListingsWorkflow).
     """
-    def __init__(self, config: Dict, llm: OpenAILike, **kwargs):
-        super().__init__(**kwargs)
-        self.llm = llm
-        self.config = config
 
     @step
     async def start(

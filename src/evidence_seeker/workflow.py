@@ -92,6 +92,12 @@ class DictInitializedPromptEvent(DictInitializedEvent):
 
 
 class EvidenceSeekerWorkflow(Workflow):
+
+    def __init__(self, config: Dict, llm: OpenAILike, **kwargs):
+        super().__init__(**kwargs)
+        self.llm = llm
+        self.config = config
+
     async def _prompt_step(
         self,
         ctx: Context,
