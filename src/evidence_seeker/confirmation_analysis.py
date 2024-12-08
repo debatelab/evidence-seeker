@@ -150,7 +150,6 @@ class SimpleConfirmationAnalysisWorkflow(EvidenceSeekerWorkflow):
             full_response=True,
             **request_dict
         )
-        #print(response)
         # calculate the confirmation score
         options = config["pipeline"][self.workflow_key][
             "workflow_events"
