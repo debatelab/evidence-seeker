@@ -105,6 +105,7 @@ class EvidenceSeekerWorkflow(Workflow):
         append_input: bool = False,
         request_dict: Dict | None = None,
         model_kwargs: Dict = dict(),
+        full_response: bool = False,
         **kwargs,
     ) -> Dict[str, Any]:
         """
@@ -117,8 +118,10 @@ class EvidenceSeekerWorkflow(Workflow):
                 the request dictionary and methods to get formatted messages.
             append_input (bool, optional): If True, appends the input keyword
                 arguments to the request dictionary. Defaults to False.
-            request_dict (Dict, optional): If None, the request dict of the 
+            request_dict (Dict, optional): If None, the request dict of the
                 input event (`ev.request_dict`) is updated and returned.
+            full_response (bool, optional): If `False` only the content of the
+                response will be set in the request dict. Default to `False`.
             **kwargs: Additional keyword arguments to format the messages.
         Returns:
             Dict[str, Any]: The updated request dictionary with the response
@@ -129,7 +132,15 @@ class EvidenceSeekerWorkflow(Workflow):
         llm: OpenAILike = await ctx.get("llm")
         messages = ev.get_messages().format_messages(**kwargs)
         response = await llm.achat(messages=messages, **model_kwargs)
-        response = response.message.content
+        if not full_response:
+            response = response.message.content
+        # TODO: Leads to a type error (py10, pyd 2.9)
+        # TypeError: 'MockValSer' object cannot be converted to 'SchemaSerializer'
+        # perhaps: https://github.com/pydantic/pydantic/issues/7713
+        # So far, we use the ChatResonse instance directly
+        # else:
+        #     # ChatResponse as JSON
+        #     response = response.model_dump()
         request_dict.update({ev.result_key: response})
         # if `append_input`, we update the request dict form the input event
         if append_input:
@@ -145,6 +156,7 @@ class EvidenceSeekerWorkflow(Workflow):
         append_input: bool = False,
         request_dict: Dict | None = None,
         model_kwargs: Dict = dict(),
+        full_response: bool = False,
         **kwargs
     ) -> Dict[str, Any]:
 
@@ -177,6 +189,8 @@ class EvidenceSeekerWorkflow(Workflow):
                 arguments to the request dictionary. Defaults to False.
             request_dict (Dict, optional): If None, the request dict of the
                 input event (`ev.request_dict`) is updated and returned.
+            full_response (bool, optional): If `False` only the content of the
+                response will be set in the request dict. Default to `False`.
             **kwargs: Additional keyword arguments to format the messages.
 
         Returns:
@@ -239,7 +253,16 @@ class EvidenceSeekerWorkflow(Workflow):
                 **model_kwargs
             )
 
-        response = response.message.content
+        if not full_response:
+            response = response.message.content
+        # TODO: Leads to a type error (py10, pyd 2.9)
+        # TypeError: 'MockValSer' object cannot be converted to 'SchemaSerializer'
+        # perhaps: https://github.com/pydantic/pydantic/issues/7713
+        # So far, we use the ChatResonse instance directly
+        # else:
+        #     # ChatResponse as JSON
+        #     response = response.model_dump()
+        
         request_dict.update({ev.result_key: response})
         if append_input:
             request_dict.update(kwargs)
