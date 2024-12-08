@@ -135,7 +135,8 @@ class EvidenceSeekerWorkflow(Workflow):
         if not full_response:
             response = response.message.content
         # TODO: Leads to a type error (py10, pyd 2.9)
-        # TypeError: 'MockValSer' object cannot be converted to 'SchemaSerializer'
+        # TypeError: 'MockValSer' object cannot be converted to
+        # 'SchemaSerializer'
         # perhaps: https://github.com/pydantic/pydantic/issues/7713
         # So far, we use the ChatResonse instance directly
         # else:
@@ -224,7 +225,7 @@ class EvidenceSeekerWorkflow(Workflow):
             )
         # for TGI (e.g., dedicated HF endpoints) we use `response_type`
         # for constraint decoding
-        # see: https://github.com/huggingface/text-generation-inference/pull/2046
+        # https://github.com/huggingface/text-generation-inference/pull/2046
         elif backend_type == "tgi":
             if json_schema is not None and regex_str is not None:
                 raise ValueError(
@@ -258,13 +259,14 @@ class EvidenceSeekerWorkflow(Workflow):
         if not full_response:
             response = response.message.content
         # TODO: Leads to a type error (py10, pyd 2.9)
-        # TypeError: 'MockValSer' object cannot be converted to 'SchemaSerializer'
+        # TypeError: 'MockValSer' object cannot be converted
+        # to 'SchemaSerializer'
         # perhaps: https://github.com/pydantic/pydantic/issues/7713
         # So far, we use the ChatResonse instance directly
         # else:
         #     # ChatResponse as JSON
         #     response = response.model_dump()
-        
+
         request_dict.update({ev.result_key: response})
         if append_input:
             request_dict.update(kwargs)

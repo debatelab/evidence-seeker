@@ -9,6 +9,7 @@ class Document(pydantic.BaseModel):
     uid: str
     metadata: dict = {}
 
+
 class CheckedClaim(pydantic.BaseModel):
     text: str
     negation: str | None = None
