@@ -104,6 +104,7 @@ class EvidenceSeekerWorkflow(Workflow):
         ev: DictInitializedPromptEvent,
         append_input: bool = False,
         request_dict: Dict | None = None,
+        model_kwargs: Dict = dict(),
         **kwargs,
     ) -> Dict[str, Any]:
         """
@@ -127,7 +128,7 @@ class EvidenceSeekerWorkflow(Workflow):
             request_dict = ev.request_dict
         llm: OpenAILike = await ctx.get("llm")
         messages = ev.get_messages().format_messages(**kwargs)
-        response = await llm.achat(messages=messages)
+        response = await llm.achat(messages=messages, **model_kwargs)
         response = response.message.content
         request_dict.update({ev.result_key: response})
         # if `append_input`, we update the request dict form the input event
@@ -138,10 +139,12 @@ class EvidenceSeekerWorkflow(Workflow):
     async def _constraint_prompt_step(
         self, ctx: Context,
         ev: DictInitializedPromptEvent,
-        json_schema: str,
+        json_schema: str = None,
+        output_cls: Type[BaseModel] = None,
+        regex_str: str | None = None,
         append_input: bool = False,
         request_dict: Dict | None = None,
-        output_cls: Type[BaseModel] = None,
+        model_kwargs: Dict = dict(),
         **kwargs
     ) -> Dict[str, Any]:
 
@@ -164,11 +167,15 @@ class EvidenceSeekerWorkflow(Workflow):
                 configurations and models.
             ev (DictInitializedPromptEvent): The event object containing the
                 request dictionary and messages.
-            json_schema (str): The JSON schema to guide the language model's
+            json_schema (str, optional): The JSON schema to guide the language
+                model's response (is given the template as parameter).
+            output_class (Type[Basemodel], optional): Pydantic class to guide
+                the model's response.
+            regex_str (str, optional): A regular expression guiding the model's
                 response.
             append_input (bool, optional): If True, appends the input keyword
                 arguments to the request dictionary. Defaults to False.
-            request_dict (Dict, optional): If None, the request dict of the 
+            request_dict (Dict, optional): If None, the request dict of the
                 input event (`ev.request_dict`) is updated and returned.
             **kwargs: Additional keyword arguments to format the messages.
 
@@ -192,10 +199,33 @@ class EvidenceSeekerWorkflow(Workflow):
         # for constraint decoding
         if backend_type == "nim":
             # https://docs.nvidia.com/nim/large-language-models/latest/structured-generation.html
+            if json_schema is None:
+                raise ValueError(
+                    "You should provide a JSON schema for structured output."
+                )
             response = await llm.achat(
                 messages=messages,
-                extra_body={"nvext": {"guided_json": json_schema}}
+                extra_body={"nvext": {"guided_json": json_schema}},
+                **model_kwargs
             )
+        # for TGI (e.g., dedicated HF endpoints) we use `response_type`
+        # for constraint decoding
+        # see: https://github.com/huggingface/text-generation-inference/pull/2046
+        elif backend_type == "tgi":
+            if json_schema is not None and regex_str is not None:
+                raise ValueError(
+                    "Specify a JSON schema or a regex expression for"
+                    "constraint decoding with a TGI."
+                )
+            response = await llm.achat(
+                messages=messages,
+                response_format={
+                    "type": "json_schema" if json_schema else "regex",
+                    "value": json_schema if json_schema else regex_str
+                },
+                **model_kwargs
+            )
+
         # default: Using the llama-index interface for structured output
         # see: https://docs.llamaindex.ai/en/stable/understanding/extraction/
         else:
@@ -204,7 +234,10 @@ class EvidenceSeekerWorkflow(Workflow):
                     "You should provide an output class for structured output."
                 )
             sllm = llm.as_structured_llm(output_cls)
-            response = await sllm.achat(messages=messages)
+            response = await sllm.achat(
+                messages=messages,
+                **model_kwargs
+            )
 
         response = response.message.content
         request_dict.update({ev.result_key: response})
