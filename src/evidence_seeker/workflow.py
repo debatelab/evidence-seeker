@@ -231,12 +231,14 @@ class EvidenceSeekerWorkflow(Workflow):
                     "Specify a JSON schema or a regex expression for"
                     "constraint decoding with a TGI."
                 )
+            response_format = {
+                "type": "json_schema" if json_schema else "regex",
+                "value": json_schema if json_schema else regex_str
+            }
+            print(f"Response format: {response_format}")
             response = await llm.achat(
                 messages=messages,
-                response_format={
-                    "type": "json_schema" if json_schema else "regex",
-                    "value": json_schema if json_schema else regex_str
-                },
+                response_format=response_format,
                 **model_kwargs
             )
 
