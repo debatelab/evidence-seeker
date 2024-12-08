@@ -4,12 +4,22 @@ from .preprocessing import (
     DictInitializedEvent,
     DictInitializedPromptEvent,
     PreprocessingSeparateListingsWorkflow,
-    SimplePreprocessingWorkflow
+    SimplePreprocessingWorkflow,
+)
+
+from .confirmation_analysis import (
+    ConfirmationAnalyzer,
+    SimpleConfirmationAnalysisWorkflow
 )
 
 from .backend import (
     get_openai_llm,
     log_msg,
+)
+
+from .models import (
+    CheckedClaim,
+    Document
 )
 
 # Use __all__ to let type checkers know what is part of the public API.
@@ -20,5 +30,9 @@ __all__ = [
     "PreprocessingSeparateListingsWorkflow",
     "get_openai_llm",
     "log_msg",
-    "SimplePreprocessingWorkflow"
+    "SimplePreprocessingWorkflow",
+    "ConfirmationAnalyzer",
+    "CheckedClaim",
+    "Document",
+    "SimpleConfirmationAnalysisWorkflow"
 ]
