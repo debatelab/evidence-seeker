@@ -1,6 +1,6 @@
 # `config_version` is used internally to indicate and check whether a config is compatible with the (current) code.
 config_version: 'v0.1'
-used_model: model_3
+used_model: model_1
 description: |
   Erste Version einer Konfiguration für die EvidenceSeeker Boilerplate.
 pipeline:
@@ -226,7 +226,7 @@ models:
     api_key_name: "kideku_toxicity_app_nim"
     backend_type: nim
     # TODO: pass values 
-    max_tokens: 4096 # 2048
+    max_tokens: 2048 # 2048
     temperature: 0.2
   model_2:
     name: "Mistral-7B-Instruct-v0.2"
@@ -246,7 +246,7 @@ models:
     api_key_name: "token_debatelab_hf_endpoints"
     backend_type: tgi
     # TODO: pass values 
-    max_tokens: 1024
+    max_tokens: 2048
     temperature: 0.2
   
 
