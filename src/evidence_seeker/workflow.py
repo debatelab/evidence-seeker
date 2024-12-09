@@ -129,7 +129,7 @@ class EvidenceSeekerWorkflow(Workflow):
         """
         if request_dict is None:
             request_dict = ev.request_dict
-        llm: OpenAILike = await ctx.get("llm")
+        llm: OpenAILike = await ctx.get("llm")  # NOTE: Why not self.llm?
         messages = ev.get_messages().format_messages(**kwargs)
         response = await llm.achat(messages=messages, **model_kwargs)
         if not full_response:
