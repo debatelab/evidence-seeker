@@ -46,6 +46,7 @@ dependencies = [
   "jupyter",
   "ipywidgets",
   "llama-index-callbacks-arize-phoenix",
+  "llama-index-utils-workflow",
   "wrapt<=1.16.0",
   "pytest",
 ]
