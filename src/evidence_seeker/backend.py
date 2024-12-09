@@ -12,7 +12,7 @@ def get_openai_llm(
         is_chat_model: bool = True,
         is_local: bool = False,
         is_function_calling_model: bool = False,
-        context_window: int = 32000,
+        context_window: int = 3900,
         max_tokens: int = 1024,
         **kwargs) -> OpenAILike:
 
