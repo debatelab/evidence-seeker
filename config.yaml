@@ -5,7 +5,7 @@ description: |
   Erste Version einer Konfiguration für die EvidenceSeeker Boilerplate.
 pipeline:
   system_prompt: &default_sp |
-    You are a helpful assistant and an expert for the categorisation and annotation of texts.
+    You are a helpful assistant with outstanding expertise in critical thinking and logico-semantic analysis. You have a background in philosophy and experience in fact checking and debate analysis.
     You read instructions carefully and follow them precisely. You give concise and clear answers.
   preprocessing:
     timeout: 60
@@ -19,23 +19,23 @@ pipeline:
           The following claim has been submitted for fact-checking.
           <claim>{claim}</claim>
           Before we proceed with retrieving evidence items, we carefully analyse the claim. Your task is to contribute to this preparatory analysis, as detailed below.
-          In particular, you should thouroughly discuss whether the claim makes any ascriptions, that is, whether it ascribes a statement to a person or an organisation (e.g., as something the person has said, believes, acts on etc.) rather than plainly asserting that statement straightaway.
+          In particular, you should thoroughly discuss whether the claim makes any ascriptions, that is, whether it ascribes a statement to a person or an organisation (e.g., as something the person has said, believes, acts on etc.) rather than plainly asserting that statement straightaway.
           If so, clarify which statements are ascribed to whom exactly and in which ways.
-          In doing so, watch out for ambiguity and vagueness in claim. Make alternative interpretations explicit.
-          End your analysis with a short list of all identified ascriptions. Formulate each ascription as a clear and concise statement, including to whom it is ascribed.
+          In doing so, watch out for ambiguity and vagueness in the claim. Make alternative interpretations explicit.
+          End your analysis with a short list including all identified ascriptions. Formulate each ascription as a concise statement, such that it is transparent to whom it is attributed.
         system_prompt: *default_sp
       list_ascriptive_claims_event_based_on_ascriptive_analysis:
         name: 'Ascriptive-statements list'
         description: 'List all ascriptive statements based on free-text analysis of ascriptive content.'
         prompt_template: |
-          The following claim has been submitted for analysing its ascriptive content.
+          The following claim has been submitted for ascriptive content analysis.
           <claim>{claim}</claim>
           The analysis yielded the following results:
           <results>
           {ascriptive_analysis_event}
           </results>
-          Building on this analysis: 
-          - I want you to list all identified ascriptions. Formulate each ascription as a clear and concise statement, including to whom it is ascribed.
+          Based on this analysis:
+          - List all identified ascriptions. Clearly state each ascription and specify to whom it is attributed. Only include ascriptions that are attributed to a specific person or organisation.
           Format your (possibly empty) list of statements as a JSON object.
           Do not include any other text than the JSON object.
         system_prompt: *default_sp
@@ -50,7 +50,7 @@ pipeline:
           In particular, you should thoroughly discuss whether the claim contains or implies factual or descriptive statements, which can be verified or falsified by empirical observation or through scientific analysis, and which may include, for example, descriptive reports, historical facts, or scientific claims.
           If so, try to identify them and render them in your own words.
           In doing so, watch out for ambiguity and vagueness in the claim. Make alternative interpretations explicit.
-          End your analysis with a short list of all identified factual or descriptive statements. Formulate each statement in a clear and concise manner.
+          End your analysis with a short list of all identified factual or descriptive statements. Formulate each statement in a concise manner and such that its factual nature stands out clearly.
         system_prompt: *default_sp
       list_descriptive_claims_event_based_on_descriptive_analysis:
         name: 'Descriptive-statements list'
@@ -63,11 +63,8 @@ pipeline:
           {descriptive_analysis_event}
           </results>
           Building on this analysis: 
-          - I want you to identify the descriptive content of the claim. In particular, you should list all factual or descriptive
-            statements, which can be verified or falsified by empirical observation or scientific 
-            analysis, contained in the claim.
-          - Include all identified interpretations of the descriptive content as separate statements. 
-          Format your these statements as a JSON object.
+          - I want you to list all identified factual or descriptive statements.
+          Format your (possibly empty) list of statements as a JSON object.
           Do not include any other text than the JSON object.
         system_prompt: *default_sp
       list_claims_event:
@@ -104,24 +101,24 @@ pipeline:
           The following claim has been submitted for fact-checking.
           <claim>{claim}</claim>
           Before we proceed with retrieving evidence items, we carefully analyse the claim. Your task is to contribute to this preparatory analysis, as detailed below.
-          In particular, you should thouroughly discuss whether the claim contains or implies normative statements, such as value judgements, recommendations, or evaluations.
+          In particular, you should thoroughly discuss whether the claim contains or implies normative statements, such as value judgements, recommendations, or evaluations.
           If so, try to identify them and render them in your own words.
           In doing so, watch out for ambiguity and vagueness in the claim. Make alternative interpretations explicit.
-          End your analysis with a short list of all identified normative statements. Formulate each statement in a clear and concise manner.
+          End your analysis with a short list of all identified normative statements. Formulate each statement in a concise manner and such that its normative nature stands out clearly.
         system_prompt: *default_sp
       list_normative_claims_event_based_on_normative_analysis:
         name: 'Normative-statements list'
         description: 'List all normative statements based on free-text analysis of normative content.'
         prompt_template: |
-          The following claim has been submitted for analysing its normative content.
+          The following claim has been submitted for normative content analysis.
           <claim>{claim}</claim>
           The analysis yielded the following results:
           <results>
           {normative_analysis_event}
           </results>
-          Building on this analysis: 
-          - I want you to list all normative statements contained in the claim (e.g, such as value judgements, recommendations, or evaluations);
-          Format this list of claims as a valid JSON object.
+          Based on this analysis:
+          - List all identified normative statements (e.g., value judgements, recommendations, or evaluations).
+          Format your (possibly empty) list of statements as a JSON object.
           Do not include any other text than the JSON object.
         system_prompt: *default_sp
       negate_claim_event:
