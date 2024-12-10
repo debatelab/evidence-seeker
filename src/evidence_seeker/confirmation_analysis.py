@@ -11,7 +11,7 @@ from llama_index.core.workflow import (
     step,
 )
 from llama_index.core.llms import ChatResponse
-from typing import List
+from typing import Dict, List
 
 from .models import CheckedClaim
 from .workflow import (
@@ -24,24 +24,43 @@ from .backend import (
 
 
 class ConfirmationAnalyzer:
-    async def degree_of_confirmation(
-        self,
-        claim_text: str,
-        negation: str,
-        document_text: str,
-        document_id: str
-    ) -> tuple[str, float]:
-        dummy_confirmation = random.random()
-        return (document_id, dummy_confirmation)
+
+    def __init__(self, config_file: str, **kwargs):
+
+        self.workflow = SimpleConfirmationAnalysisWorkflow(
+            config_file=config_file,
+        )
+
+    # async def degree_of_confirmation(
+    #     self,
+    #     claim_text: str,
+    #     negation: str,
+    #     document_text: str,
+    #     document_id: str
+    # ) -> tuple[str, float]:
+
+    #     dummy_confirmation = random.random()
+    #     return (document_id, dummy_confirmation)
 
     async def __call__(self, claim: CheckedClaim) -> CheckedClaim:
+        # coros = [
+        #     self.degree_of_confirmation(
+        #         claim.text, claim.negation, document.text, document.uid
+        #     )
+        #     for document in claim.documents
+        # ]
         coros = [
-            self.degree_of_confirmation(
-                claim.text, claim.negation, document.text, document.uid
+            (
+                document.uid,
+                await self.workflow.run(
+                    clarified_claim=claim,
+                    evidence_item=document.text
+                )
             )
             for document in claim.documents
         ]
-        claim.confirmation_by_document = dict(await asyncio.gather(*coros))
+        #claim.confirmation_by_document = dict(await asyncio.gather(*coros))
+        claim.confirmation_by_document = {key: value['confirmation'] for key, value in coros}
 
         return claim
 
@@ -53,16 +72,19 @@ class FreetextConfirmationAnalysisEvent(DictInitializedPromptEvent):
 class MultipleChoiceConfirmationAnalysisEvent(DictInitializedPromptEvent):
     event_key: str = "multiple_choice_confirmation_analysis_event"
 
+class CollectAnalysesEvent(DictInitializedPromptEvent):
+    """Marks aggregation of confirmation analyses for the claim and its negation."""
 
 class SimpleConfirmationAnalysisWorkflow(EvidenceSeekerWorkflow):
     # static class variables (used for finding the right config entries)
     workflow_key: str = "simple_confirmation_analysis"
-    
+
     @step
     async def start(
         self, ctx: Context, ev: StartEvent
     ) -> FreetextConfirmationAnalysisEvent:
 
+        # Analysis for the claim
         ctx.send_event(
             FreetextConfirmationAnalysisEvent(
                 init_data_dict=self.config[
@@ -70,11 +92,13 @@ class SimpleConfirmationAnalysisWorkflow(EvidenceSeekerWorkflow):
                 ][self.workflow_key]["workflow_events"],
                 request_dict={
                     "statement": ev.clarified_claim.text,
-                    "statement_negation": ev.clarified_claim.negation,
                     "evidence_item": ev.evidence_item
                 },
+                # passing tag to indicate workflow branch
+                branch="claim",
             )
         )
+        # Analysis for the claim's negation
         ctx.send_event(
             FreetextConfirmationAnalysisEvent(
                 init_data_dict=self.config[
@@ -84,7 +108,8 @@ class SimpleConfirmationAnalysisWorkflow(EvidenceSeekerWorkflow):
                     "statement": ev.clarified_claim.negation,
                     "evidence_item": ev.evidence_item
                 },
-                result_key="freetext_confirmation_analysis_event_negation"
+                # passing tag to indicate workflow branch
+                branch="negation",
             )
         )
 
@@ -98,23 +123,15 @@ class SimpleConfirmationAnalysisWorkflow(EvidenceSeekerWorkflow):
         return MultipleChoiceConfirmationAnalysisEvent(
             init_data_dict=ev.init_data_dict,
             request_dict=request_dict,
+            # repassing branch tag to indicate workflow branch
+            branch=ev.branch,
         )
 
     @step
-    async def collect_freetext_analyses(
+    async def multiple_choice(
         self, ctx: Context, ev: MultipleChoiceConfirmationAnalysisEvent
-    ) -> StopEvent:
-        collected_events = ctx.collect_events(
-            ev,
-            [MultipleChoiceConfirmationAnalysisEvent]*2
-        )
-        # wait until we receive the both events
-        if collected_events is None:
-            return None
-        # concatenating all results
-        request_dict = dict()
-        for ev in collected_events:
-            request_dict.update(ev.request_dict)
+    ) -> CollectAnalysesEvent:
+
         # construct regex for constraint decoding
         regex_str = (
             "[" +
@@ -124,6 +141,7 @@ class SimpleConfirmationAnalysisWorkflow(EvidenceSeekerWorkflow):
             "]"
         )
         log_msg(f"Used regex in {ev.event_key}: {regex_str}")
+
         # multiple choice prompt
         # request_dict = await self._prompt_step(
         #     ctx=ctx,
@@ -138,48 +156,79 @@ class SimpleConfirmationAnalysisWorkflow(EvidenceSeekerWorkflow):
         # )
         request_dict = await self._constraint_prompt_step(
             ctx=ctx,
-            ev=collected_events[0],
+            ev=ev,
             regex_str=regex_str,
-            request_dict=request_dict,
+            request_dict=ev.request_dict,
             model_kwargs={
                 'logprobs': True,
                 'top_logprobs': 5,
             },
             full_response=True,
-            **request_dict
+            **ev.request_dict
         )
+        return CollectAnalysesEvent(
+            init_data_dict=ev.init_data_dict,
+            request_dict=request_dict,
+            options=self.config["pipeline"][self.workflow_key][
+                "workflow_events"][ev.event_key]["options"],
+            claim_option=self.config["pipeline"][self.workflow_key][
+                "workflow_events"][ev.event_key]["claim_option"],
+            # repassing branch tag to indicate workflow branch
+            branch=ev.branch
+        )
+
+    @step
+    async def collect_analyses(
+        self, ctx: Context, ev: CollectAnalysesEvent
+    ) -> StopEvent:
+
+        collected_events = ctx.collect_events(
+            ev,
+            [CollectAnalysesEvent]*2
+        )
+        # wait until we receive the both events
+        if collected_events is None:
+            return None
+        request_dict = dict()
+        prob_claim = None
+        prob_negation_claim = None
+        for ev in collected_events:
+            # concatenating all results
+            request_dict.update(ev.request_dict)
+            probs_dict = _answer_probs(
+                options=ev.options,
+                claim_option=ev.claim_option,
+                chat_response=ev.request_dict['multiple_choice_confirmation_analysis_event']
+            )
+            log_msg(f"Returned probabilities (MC branch '{ev.branch}' ): {probs_dict}")
+            if ev.branch == "claim":
+                # here, the claim_option corresponds to the claim
+                prob_claim = probs_dict[ev.claim_option]
+            elif ev.branch == "negation":
+                # here, the claim_option corresponds to the claim's negation
+                prob_negation_claim = probs_dict[ev.claim_option]
+
         # calculate the confirmation score
-        options = self.config["pipeline"][self.workflow_key][
-            "workflow_events"
-            ][ev.event_key]["options"]
-        claim_option = self.config["pipeline"][self.workflow_key][
-            "workflow_events"
-            ][ev.event_key]["claim_option"]
-        confirmation, _ = _confirmation(
-            options=options,
-            claim_option=claim_option,
-            chat_response=request_dict[ev.result_key]
-        )
+        confirmation = prob_claim - prob_negation_claim
+
         request_dict["confirmation"] = confirmation
         return StopEvent(
             result=request_dict,
         )
 
-
-def _confirmation(
+def _answer_probs(
         options: List,
         claim_option: str,
-        chat_response: ChatResponse) -> float:
+        chat_response: ChatResponse) -> Dict[str, float]:
     """
-    Calculate the confirmation score for a given claim option based
-    on the chat response.
+    Returns the probabilites of answer options claim option based
+    on the chat response of a `MultipleChoiceConfirmationAnalysisEvent`.
     Args:
         options (List): A list of the possible response options.
         claim_option (str): The claim option to evaluate.
         chat_response (ChatResponse): The chat response object
             containing raw log probabilities.
     Returns:
-        float: The confirmation score for the claim option.
         dict: A dictionary with normalized probabilities for each option.
     Raises:
         ValueError: If the claim option is not in the list of options.
@@ -196,7 +245,7 @@ def _confirmation(
             "in the list of options."
         )
 
-    neg_claim_option = (set(options) - set([claim_option])).pop()
+    # neg_claim_option = (set(options) - set([claim_option])).pop()
     top_logprobs = chat_response.raw.choices[0].logprobs.content
     first_token_top_logprobs = top_logprobs[0].top_logprobs
     tokens = [token.token for token in first_token_top_logprobs]
@@ -223,7 +272,8 @@ def _confirmation(
         token in first_token_top_logprobs if
         token.token in options
     }
+    # if necessary, normalize probs
     probs_sum = sum(probs_dict.values())
     probs_dict = {token: prob/probs_sum for token, prob in probs_dict.items()}
-    confirmation = probs_dict[claim_option]-probs_dict[neg_claim_option]
-    return confirmation, probs_dict
+
+    return probs_dict

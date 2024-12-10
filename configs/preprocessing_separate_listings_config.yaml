@@ -2,7 +2,6 @@
 # whether a config is compatible with the (current) code.
 # (Currently hardset in `workflow.py`.)
 config_version: 'v0.1'
-used_model_key: model_2
 description: |
   Erste Version einer Konfiguration für die EvidenceSeeker Boilerplate.
 pipeline:
@@ -12,7 +11,7 @@ pipeline:
   preprocessing_separate_listings:
     timeout: 60
     verbose: False
-    used_model_key: model_3
+    used_model_key: model_1
     workflow_events:
       ascriptive_analysis_event:
         name: 'Ascriptive analysis'
