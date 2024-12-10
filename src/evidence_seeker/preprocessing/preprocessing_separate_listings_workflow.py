@@ -258,13 +258,17 @@ class PreprocessingSeparateListingsWorkflow(EvidenceSeekerWorkflow):
         num_ascriptive_claims = len(
             request_dict["list_ascriptive_claims_event_based_on_ascriptive_analysis"].claims
         )
-        num_claims = num_ascriptive_claims + num_descriptive_claims
+        num_normative_claims = len(
+            request_dict["list_normative_claims_event_based_on_normative_analysis"].claims
+        )
+
+        num_claims = num_ascriptive_claims + num_descriptive_claims + num_normative_claims
         log_msg(f"Number of claims: {num_claims}")
 
         await ctx.set(
             "num_claims_to_negate", num_claims
         )
-        for claim_type in ["descriptive", "ascriptive"]:
+        for claim_type in ["descriptive", "ascriptive", "normative"]:
             for claim in request_dict[
                 f"list_{claim_type}_claims_event_based_on_{claim_type}_analysis"
             ].claims:
