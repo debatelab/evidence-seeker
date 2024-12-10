@@ -140,7 +140,8 @@ class EvidenceSeekerWorkflow(Workflow):
         if not self.workflow_model_key:
             self.workflow_model_key = self.config['pipeline'][self.workflow_key].get(
                 'used_model_key',
-                self.config['used_model_key'])
+                self.config.get('used_model_key', None)
+            )
         # inititate workflow model
         self._init_llm(self.workflow_model_key)
 
