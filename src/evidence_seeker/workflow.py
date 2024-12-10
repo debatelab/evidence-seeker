@@ -106,7 +106,8 @@ class DictInitializedPromptEvent(DictInitializedEvent):
         ]
         return ChatPromptTemplate.from_messages(chat_prompt_template)
 
-
+# TODO: Adding logic to conveniently trace results from different branches
+#   with the identical event classes
 class EvidenceSeekerWorkflow(Workflow):
 
     workflow_model_key: str = None
