@@ -59,8 +59,10 @@ class ConfirmationAnalyzer:
             )
             for document in claim.documents
         ]
-        #claim.confirmation_by_document = dict(await asyncio.gather(*coros))
-        claim.confirmation_by_document = {key: value['confirmation'] for key, value in coros}
+        # claim.confirmation_by_document = dict(await asyncio.gather(*coros))
+        claim.confirmation_by_document = {
+            uid: wf_result['confirmation'] for uid, wf_result in coros
+        }
 
         return claim
 
