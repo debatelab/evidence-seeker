@@ -5,7 +5,7 @@ description: |
   Erste Version einer Konfiguration für die EvidenceSeeker Boilerplate.
 pipeline:
   system_prompt: &default_sp |
-    You are a helpful assistant with outstanding expertise in critical thinking and logico-semantic analysis. You have a background in philosophy and experience in fact checking and debate analysis.
+    You are a helpful assistant with outstanding expertise in critical thinking and logico-semantic analysis. You have a background in philosophy, and have practical experience in fact checking and debate analysis.
     You read instructions carefully and follow them precisely. You give concise and clear answers.
   preprocessing:
     timeout: 60
@@ -19,7 +19,7 @@ pipeline:
           The following claim has been submitted for fact-checking.
           <claim>{claim}</claim>
           Before we proceed with retrieving evidence items, we carefully analyse the claim. Your task is to contribute to this preparatory analysis, as detailed below.
-          In particular, you should thoroughly discuss whether the claim makes any ascriptions, that is, whether it ascribes a statement to a person or an organisation (e.g., as something the person has said, believes, acts on etc.) rather than plainly asserting that statement straightaway.
+          In particular, you should thoroughly discuss whether the claim makes any explicit ascriptions, that is, whether it explicitly ascribes a statement to a person or an organisation (e.g., as something the person has said, believes, acts on etc.) rather than plainly asserting that statement straightaway.
           If so, clarify which statements are ascribed to whom exactly and in which ways.
           In doing so, watch out for ambiguity and vagueness in the claim. Make alternative interpretations explicit.
           End your analysis with a short list including all identified ascriptions. Formulate each ascription as a concise statement, such that it is transparent to whom it is attributed.
@@ -35,7 +35,7 @@ pipeline:
           {ascriptive_analysis_event}
           </results>
           Based on this analysis:
-          - List all identified ascriptions. Clearly state each ascription and specify to whom it is attributed. Only include ascriptions that are attributed to a specific person or organisation.
+          - List all identified ascriptions. Clearly state each ascription as a concise statement, such that it is transparent to whom it is attributed. Only include ascriptions that are explicitly attributed to a specific person or organisation.
           Format your (possibly empty) list of statements as a JSON object.
           Do not include any other text than the JSON object.
         system_prompt: *default_sp
@@ -63,7 +63,7 @@ pipeline:
           {descriptive_analysis_event}
           </results>
           Building on this analysis: 
-          - I want you to list all identified factual or descriptive statements.
+          - I want you to list all identified factual or descriptive statements. Only include clear cases, i.e. statements that are unambiguously factual or descriptive.   
           Format your (possibly empty) list of statements as a JSON object.
           Do not include any other text than the JSON object.
         system_prompt: *default_sp
@@ -101,7 +101,7 @@ pipeline:
           The following claim has been submitted for fact-checking.
           <claim>{claim}</claim>
           Before we proceed with retrieving evidence items, we carefully analyse the claim. Your task is to contribute to this preparatory analysis, as detailed below.
-          In particular, you should thoroughly discuss whether the claim contains or implies normative statements, such as value judgements, recommendations, or evaluations.
+          In particular, you should thoroughly discuss whether the claim contains or implies normative statements, such as value judgements, recommendations, or evaluations. However, avoid reading normative content into the claim without textual evidence.
           If so, try to identify them and render them in your own words.
           In doing so, watch out for ambiguity and vagueness in the claim. Make alternative interpretations explicit.
           End your analysis with a short list of all identified normative statements. Formulate each statement in a concise manner and such that its normative nature stands out clearly.
@@ -126,12 +126,12 @@ pipeline:
         description: 'Instruct assistant to negate a claim.'
         system_prompt: *default_sp
         prompt_template: |
-          Your task is to provide the opposite of the following statement in clear and unequivocal language. 
-          Do so by generating one statement that expresses the negation.
+          Your task is to express the opposite of the following statement in plain and unequivocal language. 
+          Please generate a single sentence that clearly states the negation.
           <statement>
           {statement}
           </statement>
-          Ommit any comments on your suggestion of negating the input statement. Just answer with the negated statement. 
+          Provide only the negated statement without any additional comments. 
   confirmation_analysis:
     timeout: 60
     verbose: False
