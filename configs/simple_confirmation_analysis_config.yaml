@@ -2,7 +2,6 @@
 # whether a config is compatible with the (current) code.
 # (Currently hardset in `workflow.py`.)
 config_version: 'v0.1'
-used_model_key: model_2
 description: |
   Erste Version einer Konfiguration für die EvidenceSeeker Boilerplate.
 pipeline:
@@ -38,32 +37,22 @@ pipeline:
         description: |
           Instruct the assistant to decide whether the text confirms or disconfirms the claim.
         prompt_template: |
-          The following claim and its negation has been submitted for analysing whether 
+          The following claim has been submitted for analysing whether 
           the following text confirms or disconfirm the claim.
           
           <claim>
           {statement}
           </claim>
           
-          <negation of claim>
-          {statement_negation}
-          </negation of claim>
-          
           <text>
           {evidence_item}
           </text>
           
-          With regard to the claim, the analysis yielded the following result:
+          The analysis yielded the following result:
           
-          <result w.r.t. the claim>
+          <result>
           {freetext_confirmation_analysis_event}
-          </result w.r.t. the claim>
-          
-          With regard to the negation of the claim, the analysis yielded the following result:
-          
-          <result w.r.t. the negation of the claim>
-          {freetext_confirmation_analysis_event_negation}
-          </result w.r.t. the negation of the claim>
+          </result>
           
           Based on these results, please decide between the following two options:
           
@@ -106,7 +95,7 @@ models:
   model_4:
     name: "Spätzle 8B"
     description: "Kriton@DebateLab"
-    #base_url: "http://kriton.philosophie.kit.edu:8080/v1/chat/completions"
+    #base_url: "http://kriton.philosophie.kit.edu:8080/v1/chat/completions/"
     base_url: "http://kriton.philosophie.kit.edu:8080/v1/"
     model: "tgi"
     api_key: "no-key-required"
