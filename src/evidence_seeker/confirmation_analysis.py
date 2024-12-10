@@ -55,19 +55,19 @@ class MultipleChoiceConfirmationAnalysisEvent(DictInitializedPromptEvent):
 
 
 class SimpleConfirmationAnalysisWorkflow(EvidenceSeekerWorkflow):
-    workflow_key: str = "confirmation_analysis"
-
+    # static class variables (used for finding the right config entries)
+    workflow_key: str = "simple_confirmation_analysis"
+    
     @step
     async def start(
         self, ctx: Context, ev: StartEvent
     ) -> FreetextConfirmationAnalysisEvent:
-        await ctx.set("llm", self.llm)
-        await ctx.set("config", self.config)
+
         ctx.send_event(
             FreetextConfirmationAnalysisEvent(
                 init_data_dict=self.config[
                     "pipeline"
-                ]["confirmation_analysis"]["workflow_events"],
+                ][self.workflow_key]["workflow_events"],
                 request_dict={
                     "statement": ev.clarified_claim.text,
                     "statement_negation": ev.clarified_claim.negation,
@@ -79,7 +79,7 @@ class SimpleConfirmationAnalysisWorkflow(EvidenceSeekerWorkflow):
             FreetextConfirmationAnalysisEvent(
                 init_data_dict=self.config[
                     "pipeline"
-                ]["confirmation_analysis"]["workflow_events"],
+                ][self.workflow_key]["workflow_events"],
                 request_dict={
                     "statement": ev.clarified_claim.negation,
                     "evidence_item": ev.evidence_item
@@ -108,8 +108,6 @@ class SimpleConfirmationAnalysisWorkflow(EvidenceSeekerWorkflow):
             ev,
             [MultipleChoiceConfirmationAnalysisEvent]*2
         )
-        # check in config whether we have a tgi model
-        config = await ctx.get("config")
         # wait until we receive the both events
         if collected_events is None:
             return None
@@ -120,7 +118,7 @@ class SimpleConfirmationAnalysisWorkflow(EvidenceSeekerWorkflow):
         # construct regex for constraint decoding
         regex_str = (
             "[" +
-            "".join(config["pipeline"][self.workflow_key]["workflow_events"][
+            "".join(self.config["pipeline"][self.workflow_key]["workflow_events"][
                 ev.event_key
                 ]["options"]) +
             "]"
@@ -151,10 +149,10 @@ class SimpleConfirmationAnalysisWorkflow(EvidenceSeekerWorkflow):
             **request_dict
         )
         # calculate the confirmation score
-        options = config["pipeline"][self.workflow_key][
+        options = self.config["pipeline"][self.workflow_key][
             "workflow_events"
             ][ev.event_key]["options"]
-        claim_option = config["pipeline"][self.workflow_key][
+        claim_option = self.config["pipeline"][self.workflow_key][
             "workflow_events"
             ][ev.event_key]["claim_option"]
         confirmation, _ = _confirmation(
@@ -162,7 +160,7 @@ class SimpleConfirmationAnalysisWorkflow(EvidenceSeekerWorkflow):
             claim_option=claim_option,
             chat_response=request_dict[ev.result_key]
         )
-        request_dict[ev.result_key] = confirmation
+        request_dict["confirmation"] = confirmation
         return StopEvent(
             result=request_dict,
         )

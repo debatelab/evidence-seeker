@@ -2,16 +2,17 @@
 # whether a config is compatible with the (current) code.
 # (Currently hardset in `workflow.py`.)
 config_version: 'v0.1'
-used_model_key: model_1
+used_model_key: model_2
 description: |
   Erste Version einer Konfiguration für die EvidenceSeeker Boilerplate.
 pipeline:
   system_prompt: &default_sp |
     You are a helpful assistant with outstanding expertise in critical thinking and logico-semantic analysis. You have a background in philosophy, and have practical experience in fact checking and debate analysis.
     You read instructions carefully and follow them precisely. You give concise and clear answers.
-  preprocessing:
+  preprocessing_separate_listings:
     timeout: 60
     verbose: False
+    used_model_key: model_3
     workflow_events:
       ascriptive_analysis_event:
         name: 'Ascriptive analysis'
@@ -69,32 +70,6 @@ pipeline:
           Format your (possibly empty) list of statements as a JSON object.
           Do not include any other text than the JSON object.
         system_prompt: *default_sp
-      list_claims_event:
-        name: 'Statements list'
-        description: 'List all factual and ascriptive statements based on all free-text analyses.'
-        prompt_template: |
-          The following claim has been submitted for analysing its descriptive, normative and ascriptive content.
-          <claim>{claim}</claim>
-          The analysis yielded the following results:
-          <results of descripitve analysis>
-          {descriptive_analysis_event}
-          </results of descriptive analysis>
-          <results of ascripitve analysis>
-          {ascriptive_analysis_event}
-          </results of ascriptive analysis>
-          <results of normative analysis>
-          {normative_analysis_event}
-          </results of normative analysis>
-          Building on this analysis, I want you to to identify the factual, and the ascriptive content of the claim. In particular, you should  
-          1. List all factual or descriptive statements, which can be verified or falsified by empirical observation or scientific analysis, contained in the claim;
-          2. List all ascriptions, that is, statements ascribed to a person or organisation, contained in the claim.
-          Format your output as a JSON object according to the following schema:
-          <json-schema>
-          {json_schema}
-          </json-schema>
-          Do not include any other text than the JSON object.
-          Omit any markdown formatting. Do not include any preamble or explanation.
-        system_prompt: *default_sp
       normative_analysis_event:
         name: 'Normative Analysis'
         description: |
@@ -134,67 +109,6 @@ pipeline:
           {statement}
           </statement>
           Provide only the negated statement without any additional comments. 
-  confirmation_analysis:
-    timeout: 60
-    verbose: False
-    workflow_events:
-      freetext_confirmation_analysis_event:
-        name: 'Freetext confirmation analysis'
-        description: |
-          Instruct the assistant to carry out free-text analysis of whether a document (text snippet)
-          contains evidence for the claim in question.
-        prompt_template: |
-          The following claim has been submitted for fact-checking.
-          <claim>{statement}</claim>
-          You task is to analyse whether the following text confirms or disconfirms the claim.
-          <text>
-          {evidence_item}
-          </text>
-          In particular, you should analyse
-          1. whether the text entails the claim or is inconsistent with the claim;
-          2. whether the text describes empirical evidence in favour or against the claim;
-          3. whether the text cites trustworthy parties (such as experts) that speak in favour for the claim.
-          Explain the results of your analysis.
-        system_prompt: *default_sp
-      multiple_choice_confirmation_analysis_event:
-        name: 'Multiple choise confirmation analysis'
-        description: |
-          Instruct the assistant to decide whether the text confirms or disconfirms the claim.
-        prompt_template: |
-          The following claim and its negation has been submitted for analysing whether 
-          the following text confirms or disconfirm the claim.
-          
-          <claim>
-          {statement}
-          </claim>
-          
-          <negation of claim>
-          {statement_negation}
-          </negation of claim>
-          
-          <text>
-          {evidence_item}
-          </text>
-          
-          With regard to the claim, the analysis yielded the following result:
-          
-          <result w.r.t. the claim>
-          {freetext_confirmation_analysis_event}
-          </result w.r.t. the claim>
-          
-          With regard to the negation of the claim, the analysis yielded the following result:
-          
-          <result w.r.t. the negation of the claim>
-          {freetext_confirmation_analysis_event_negation}
-          </result w.r.t. the negation of the claim>
-          
-          Based on these results, please decide between the following two options:
-          
-          (A) The text confirms the claim.
-          (B) The text disconfirms the claim.
-        options: [A, B]
-        claim_option: A
-        system_prompt: *default_sp
 models:
   model_1:
     name: "Llama-3.1-70B-Instruct"

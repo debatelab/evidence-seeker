@@ -1,0 +1,118 @@
+# `config_version` is used internally to indicate and check 
+# whether a config is compatible with the (current) code.
+# (Currently hardset in `workflow.py`.)
+config_version: 'v0.1'
+used_model_key: model_2
+description: |
+  Erste Version einer Konfiguration für die EvidenceSeeker Boilerplate.
+pipeline:
+  system_prompt: &default_sp |
+    You are a helpful assistant with outstanding expertise in critical thinking and logico-semantic analysis. You have a background in philosophy and experience in fact checking and debate analysis.
+    You read instructions carefully and follow them precisely. You give concise and clear answers.
+  simple_confirmation_analysis:
+    timeout: 60
+    verbose: False
+    used_model_key: model_1
+    workflow_events:
+      freetext_confirmation_analysis_event:
+        name: 'Freetext confirmation analysis'
+        description: |
+          Instruct the assistant to carry out free-text analysis of whether a document (text snippet)
+          contains evidence for the claim in question.
+        prompt_template: |
+          The following claim has been submitted for fact-checking.
+          <claim>{statement}</claim>
+          You task is to analyse whether the following text confirms or disconfirms the claim.
+          <text>
+          {evidence_item}
+          </text>
+          In particular, you should analyse
+          1. whether the text entails the claim or is inconsistent with the claim;
+          2. whether the text describes empirical evidence in favour or against the claim;
+          3. whether the text cites trustworthy parties (such as experts) that speak in favour for the claim.
+          Explain the results of your analysis.
+        system_prompt: *default_sp
+      multiple_choice_confirmation_analysis_event:
+        used_model_key: model_3
+        name: 'Multiple choise confirmation analysis'
+        description: |
+          Instruct the assistant to decide whether the text confirms or disconfirms the claim.
+        prompt_template: |
+          The following claim and its negation has been submitted for analysing whether 
+          the following text confirms or disconfirm the claim.
+          
+          <claim>
+          {statement}
+          </claim>
+          
+          <negation of claim>
+          {statement_negation}
+          </negation of claim>
+          
+          <text>
+          {evidence_item}
+          </text>
+          
+          With regard to the claim, the analysis yielded the following result:
+          
+          <result w.r.t. the claim>
+          {freetext_confirmation_analysis_event}
+          </result w.r.t. the claim>
+          
+          With regard to the negation of the claim, the analysis yielded the following result:
+          
+          <result w.r.t. the negation of the claim>
+          {freetext_confirmation_analysis_event_negation}
+          </result w.r.t. the negation of the claim>
+          
+          Based on these results, please decide between the following two options:
+          
+          (A) The text confirms the claim.
+          (B) The text disconfirms the claim.
+        options: [A, B]
+        claim_option: A
+        system_prompt: *default_sp
+models:
+  model_1:
+    name: "Llama-3.1-70B-Instruct"
+    description: "NVIDEA NIM API (kostenpflichtig über DebateLab Account)"
+    base_url: "https://huggingface.co/api/integrations/dgx/v1"
+    model: "meta-llama/Llama-3.1-70B-Instruct"
+    api_key_name: "kideku_toxicity_app_nim"
+    backend_type: nim
+    # TODO: pass values 
+    max_tokens: 2048 # 2048
+    temperature: 0.2
+  model_2:
+    name: "Mistral-7B-Instruct-v0.2"
+    description: "HF inference API"
+    base_url: "https://api-inference.huggingface.co/v1/"
+    model: "mistralai/Mistral-7B-Instruct-v0.2"
+    api_key_name: "HF_TOKEN_KIDEKU_INFERENCE"
+    backend_type: openai
+    # TODO: pass values 
+    max_tokens: 1024
+    temperature: 0.2
+  model_3:
+    name: "Llama-3.2-3B-Instruct"
+    description: "HF dedicated endpoint (debatelab)"
+    base_url: "https://dchi8b9swca6gxbe.eu-west-1.aws.endpoints.huggingface.cloud/v1/"
+    model: "meta-llama/Llama-3.2-3B-Instruct"
+    api_key_name: "token_debatelab_hf_endpoints"
+    backend_type: tgi
+    # TODO: pass values 
+    max_tokens: 2048
+    temperature: 0.2
+  model_4:
+    name: "Spätzle 8B"
+    description: "Kriton@DebateLab"
+    #base_url: "http://kriton.philosophie.kit.edu:8080/v1/chat/completions"
+    base_url: "http://kriton.philosophie.kit.edu:8080/v1/"
+    model: "tgi"
+    api_key: "no-key-required"
+    backend_type: tgi
+    # TODO: pass values 
+    max_tokens: 2048
+    temperature: 0.2
+  
+

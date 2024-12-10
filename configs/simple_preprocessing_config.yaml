@@ -9,7 +9,7 @@ pipeline:
   system_prompt: &default_sp |
     You are a helpful assistant with outstanding expertise in critical thinking and logico-semantic analysis. You have a background in philosophy, and have practical experience in fact checking and debate analysis.
     You read instructions carefully and follow them precisely. You give concise and clear answers.
-  preprocessing:
+  simple_preprocessing:
     timeout: 60
     verbose: False
     workflow_events:
@@ -26,21 +26,6 @@ pipeline:
           In doing so, watch out for ambiguity and vagueness in the claim. Make alternative interpretations explicit.
           End your analysis with a short list including all identified ascriptions. Formulate each ascription as a concise statement, such that it is transparent to whom it is attributed.
         system_prompt: *default_sp
-      list_ascriptive_claims_event_based_on_ascriptive_analysis:
-        name: 'Ascriptive-statements list'
-        description: 'List all ascriptive statements based on free-text analysis of ascriptive content.'
-        prompt_template: |
-          The following claim has been submitted for ascriptive content analysis.
-          <claim>{claim}</claim>
-          The analysis yielded the following results:
-          <results>
-          {ascriptive_analysis_event}
-          </results>
-          Based on this analysis:
-          - List all identified ascriptions. Clearly state each ascription as a concise statement, such that it is transparent to whom it is attributed. Only include ascriptions that are explicitly attributed to a specific person or organisation.
-          Format your (possibly empty) list of statements as a JSON object.
-          Do not include any other text than the JSON object.
-        system_prompt: *default_sp
       descriptive_analysis_event:
         name: 'Descriptive analysis'
         description: |
@@ -53,21 +38,6 @@ pipeline:
           If so, try to identify them and render them in your own words.
           In doing so, watch out for ambiguity and vagueness in the claim. Make alternative interpretations explicit.
           End your analysis with a short list of all identified factual or descriptive statements. Formulate each statement in a concise manner and such that its factual nature stands out clearly.
-        system_prompt: *default_sp
-      list_descriptive_claims_event_based_on_descriptive_analysis:
-        name: 'Descriptive-statements list'
-        description: 'List all descriptive statements based on free-text analysis of descriptive content.'
-        prompt_template: |
-          The following claim has been submitted for analysing its descriptive content.
-          <claim>{claim}</claim>
-          The analysis yielded the following results:
-          <results>
-          {descriptive_analysis_event}
-          </results>
-          Building on this analysis: 
-          - I want you to list all identified factual or descriptive statements. Only include clear cases, i.e. statements that are unambiguously factual or descriptive.   
-          Format your (possibly empty) list of statements as a JSON object.
-          Do not include any other text than the JSON object.
         system_prompt: *default_sp
       list_claims_event:
         name: 'Statements list'
@@ -108,21 +78,6 @@ pipeline:
           In doing so, watch out for ambiguity and vagueness in the claim. Make alternative interpretations explicit.
           End your analysis with a short list of all identified normative statements. Formulate each statement in a concise manner and such that its normative nature stands out clearly.
         system_prompt: *default_sp
-      list_normative_claims_event_based_on_normative_analysis:
-        name: 'Normative-statements list'
-        description: 'List all normative statements based on free-text analysis of normative content.'
-        prompt_template: |
-          The following claim has been submitted for normative content analysis.
-          <claim>{claim}</claim>
-          The analysis yielded the following results:
-          <results>
-          {normative_analysis_event}
-          </results>
-          Based on this analysis:
-          - List all identified normative statements (e.g., value judgements, recommendations, or evaluations).
-          Format your (possibly empty) list of statements as a JSON object.
-          Do not include any other text than the JSON object.
-        system_prompt: *default_sp
       negate_claim_event:
         name: 'Negate statement'
         description: 'Instruct assistant to negate a claim.'
@@ -134,67 +89,6 @@ pipeline:
           {statement}
           </statement>
           Provide only the negated statement without any additional comments. 
-  confirmation_analysis:
-    timeout: 60
-    verbose: False
-    workflow_events:
-      freetext_confirmation_analysis_event:
-        name: 'Freetext confirmation analysis'
-        description: |
-          Instruct the assistant to carry out free-text analysis of whether a document (text snippet)
-          contains evidence for the claim in question.
-        prompt_template: |
-          The following claim has been submitted for fact-checking.
-          <claim>{statement}</claim>
-          You task is to analyse whether the following text confirms or disconfirms the claim.
-          <text>
-          {evidence_item}
-          </text>
-          In particular, you should analyse
-          1. whether the text entails the claim or is inconsistent with the claim;
-          2. whether the text describes empirical evidence in favour or against the claim;
-          3. whether the text cites trustworthy parties (such as experts) that speak in favour for the claim.
-          Explain the results of your analysis.
-        system_prompt: *default_sp
-      multiple_choice_confirmation_analysis_event:
-        name: 'Multiple choise confirmation analysis'
-        description: |
-          Instruct the assistant to decide whether the text confirms or disconfirms the claim.
-        prompt_template: |
-          The following claim and its negation has been submitted for analysing whether 
-          the following text confirms or disconfirm the claim.
-          
-          <claim>
-          {statement}
-          </claim>
-          
-          <negation of claim>
-          {statement_negation}
-          </negation of claim>
-          
-          <text>
-          {evidence_item}
-          </text>
-          
-          With regard to the claim, the analysis yielded the following result:
-          
-          <result w.r.t. the claim>
-          {freetext_confirmation_analysis_event}
-          </result w.r.t. the claim>
-          
-          With regard to the negation of the claim, the analysis yielded the following result:
-          
-          <result w.r.t. the negation of the claim>
-          {freetext_confirmation_analysis_event_negation}
-          </result w.r.t. the negation of the claim>
-          
-          Based on these results, please decide between the following two options:
-          
-          (A) The text confirms the claim.
-          (B) The text disconfirms the claim.
-        options: [A, B]
-        claim_option: A
-        system_prompt: *default_sp
 models:
   model_1:
     name: "Llama-3.1-70B-Instruct"

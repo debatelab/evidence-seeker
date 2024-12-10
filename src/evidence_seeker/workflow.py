@@ -10,7 +10,14 @@ from typing import Any, Dict, Type
 
 from llama_index.llms.openai_like import OpenAILike
 from pydantic import BaseModel
+import yaml
 
+from evidence_seeker.backend import get_openai_llm, log_msg
+
+
+_CONFIG_VERSION = "v0.1"
+_TIMEOUT_DEFAULT=120
+_VERBOSE_DEFAULT=False
 
 class DictInitializedEvent(Event):
     """
@@ -27,6 +34,12 @@ class DictInitializedEvent(Event):
             (i.e., nothing happens).
         event_key (str): A key to specify the relevant initialziation data
             with the given `init_data_dict`.
+
+    Important:
+        Fields defined via the `init_data_dict` are always "overwritten" by
+        fields defined in the event class itself. This means that default
+        value that are supposed to be overwritable by the `init_data_dict`
+        should be set via customizing the `model_post_init` method.
     """
 
     init_data_dict: Dict = None
@@ -35,12 +48,15 @@ class DictInitializedEvent(Event):
     # Initizalizing field values based on the given dict by the
     # key `event_key`.
     def model_post_init(self, *args, **kwargs):
-        if self.init_data_dict and self.event_key:
-            # print(self.init_data_dict)
-            if self.event_key in self.init_data_dict:
-                self._data.update(self.init_data_dict[self.event_key])
-        elif self.init_data_dict:
-            self._data.update(self.init_data_dict)
+        if self.init_data_dict:
+            if self.event_key and self.event_key in self.init_data_dict:
+                init_data = self.init_data_dict[self.event_key]
+            else:
+                init_data = self.init_data_dict
+            # check if used model key is defined in the init data; otherwise
+            # set it to None
+            init_data["used_model_key"] = init_data.get("used_model_key", None)
+            self._data.update(init_data)
 
 
 class DictInitializedPromptEvent(DictInitializedEvent):
@@ -93,10 +109,65 @@ class DictInitializedPromptEvent(DictInitializedEvent):
 
 class EvidenceSeekerWorkflow(Workflow):
 
-    def __init__(self, config: Dict, llm: OpenAILike, **kwargs):
-        super().__init__(**kwargs)
-        self.llm = llm
-        self.config = config
+    workflow_model_key: str = None
+
+    def __init__(self, config_file: str, **kwargs):
+        # parsing yaml config
+        log_msg(f"Loading config from {config_file}")
+        with open(config_file, 'r') as file:
+            self.config = yaml.safe_load(file)
+            if self.config['config_version'] != _CONFIG_VERSION:
+                raise ValueError(
+                    "The version of the config file does not "
+                    f"match the used version ({_CONFIG_VERSION})"
+                )
+        # TODO: Check first whether these param are given in 
+        super().__init__(
+            timeout=self.config['pipeline'][self.workflow_key].get(
+                'timeout', _TIMEOUT_DEFAULT
+            ),
+            verbose=self.config['pipeline'][self.workflow_key].get(
+                'verbose', _VERBOSE_DEFAULT
+            ),
+            **kwargs
+        )
+
+        # Dict[model_key:str, llm: OpenAILike] to store llms
+        self._llms = dict()
+        # determin model_keys for workflow:
+        # if not set in class, use config file
+        if not self.workflow_model_key:
+            self.workflow_model_key = self.config['pipeline'][self.workflow_key].get(
+                'used_model_key',
+                self.config['used_model_key'])
+        # inititate workflow model
+        self._init_llm(self.workflow_model_key)
+
+    def _init_llm(self, used_model_key: str):
+        # instantiate llm based on used model key
+        if used_model_key not in self.config['models']:
+            raise ValueError(f"Model {used_model_key} not found in config.")
+
+        model_config = self.config['models'][used_model_key]
+        llm = get_openai_llm(**model_config)
+        self._llms[used_model_key] = llm
+
+    def get_used_model_key(self, event: DictInitializedEvent) -> str:
+        # event-specific llm if defined
+        if event.used_model_key:
+            log_msg(f"Using event specific model: {event.used_model_key} for {event.event_key}")
+            return event.used_model_key
+        # workflow-specific llm
+        else:
+            log_msg(f"Using workflow model: {self.workflow_model_key} for {event.event_key}")
+            return self.workflow_model_key
+
+    def get_llm(self, event: DictInitializedEvent) -> OpenAILike:
+        used_model_key = self.get_used_model_key(event)
+        # if not yet initialized, do so
+        if used_model_key not in self._llms:
+            self._init_llm(used_model_key)
+        return self._llms[used_model_key]
 
     async def _prompt_step(
         self,
@@ -129,7 +200,7 @@ class EvidenceSeekerWorkflow(Workflow):
         """
         if request_dict is None:
             request_dict = ev.request_dict
-        llm: OpenAILike = await ctx.get("llm")  # NOTE: Why not self.llm?
+        llm: OpenAILike = self.get_llm(ev)
         messages = ev.get_messages().format_messages(**kwargs)
         response = await llm.achat(messages=messages, **model_kwargs)
         if not full_response:
@@ -149,7 +220,8 @@ class EvidenceSeekerWorkflow(Workflow):
         return request_dict
 
     async def _constraint_prompt_step(
-        self, ctx: Context,
+        self,
+        ctx: Context,
         ev: DictInitializedPromptEvent,
         json_schema: str = None,
         output_cls: Type[BaseModel] = None,
@@ -163,8 +235,8 @@ class EvidenceSeekerWorkflow(Workflow):
 
         if request_dict is None:
             request_dict = ev.request_dict
-        llm: OpenAILike = await ctx.get("llm")
-        conf = await ctx.get("config")
+        llm: OpenAILike = self.get_llm(ev)
+        conf = self.config
         messages = ev.get_messages().format_messages(
             json_schema=json_schema,
             **kwargs
@@ -208,8 +280,9 @@ class EvidenceSeekerWorkflow(Workflow):
         """
 
         backend_type = None
-        if "backend_type" in conf["models"][conf["used_model"]]:
-            backend_type = conf["models"][conf["used_model"]]["backend_type"]
+        used_model_key = self.get_used_model_key(ev)
+        backend_type = conf["models"][used_model_key].get("backend_type", None)
+
         # depending on the backend_type, we choose different ways
         # for constraint decoding
         if backend_type == "nim":
@@ -233,10 +306,9 @@ class EvidenceSeekerWorkflow(Workflow):
                     "constraint decoding with a TGI."
                 )
             response_format = {
-                "type": "json_schema" if json_schema else "regex",
+                "type": "json_object" if json_schema else "regex",
                 "value": json_schema if json_schema else regex_str
             }
-            print(f"Response format: {response_format}")
             response = await llm.achat(
                 messages=messages,
                 response_format=response_format,

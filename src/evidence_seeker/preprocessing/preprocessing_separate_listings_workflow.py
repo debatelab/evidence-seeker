@@ -81,7 +81,7 @@ class NegateClaimEvent(DictInitializedPromptEvent):
     event_key: str = "negate_claim_event"
 
 
-class CollectCheckedClaimsEvent(DictInitializedEvent):
+class CollectClarifiedClaimsEvent(DictInitializedEvent):
     """Event of collecting statement-negation pairs."""
 
 
@@ -93,6 +93,9 @@ class PreprocessingSeparateListingsWorkflow(EvidenceSeekerWorkflow):
     free text analyses).
     """
 
+    # static class variables (used for finding the right config entries)
+    workflow_key: str = "preprocessing_separate_listings"
+
     @step
     async def start(
         self, ctx: Context, ev: StartEvent
@@ -101,11 +104,9 @@ class PreprocessingSeparateListingsWorkflow(EvidenceSeekerWorkflow):
         | DescriptiveAnalysisEvent
         | AscriptiveAnalysisEvent
     ):
-        await ctx.set("llm", self.llm)
-        await ctx.set("config", self.config)
         ctx.send_event(
             DescriptiveAnalysisEvent(
-                init_data_dict=self.config["pipeline"]["preprocessing"][
+                init_data_dict=self.config["pipeline"][self.workflow_key][
                     "workflow_events"
                 ],
                 request_dict={"claim": ev.claim},
@@ -113,7 +114,7 @@ class PreprocessingSeparateListingsWorkflow(EvidenceSeekerWorkflow):
         )
         ctx.send_event(
             NormativeAnalysisEvent(
-                init_data_dict=self.config["pipeline"]["preprocessing"][
+                init_data_dict=self.config["pipeline"][self.workflow_key][
                     "workflow_events"
                 ],
                 request_dict={"claim": ev.claim},
@@ -121,7 +122,7 @@ class PreprocessingSeparateListingsWorkflow(EvidenceSeekerWorkflow):
         )
         ctx.send_event(
             AscriptiveAnalysisEvent(
-                init_data_dict=self.config["pipeline"]["preprocessing"][
+                init_data_dict=self.config["pipeline"][self.workflow_key][
                     "workflow_events"
                 ],
                 request_dict={"claim": ev.claim},
@@ -260,7 +261,6 @@ class PreprocessingSeparateListingsWorkflow(EvidenceSeekerWorkflow):
         num_claims = num_ascriptive_claims + num_descriptive_claims
         log_msg(f"Number of claims: {num_claims}")
 
-        config = await ctx.get("config")
         await ctx.set(
             "num_claims_to_negate", num_claims
         )
@@ -270,7 +270,7 @@ class PreprocessingSeparateListingsWorkflow(EvidenceSeekerWorkflow):
             ].claims:
                 ctx.send_event(
                     NegateClaimEvent(
-                        init_data_dict=config["pipeline"]["preprocessing"][
+                        init_data_dict=self.config["pipeline"][self.workflow_key][
                             "workflow_events"
                         ],
                         request_dict=request_dict,
@@ -284,55 +284,46 @@ class PreprocessingSeparateListingsWorkflow(EvidenceSeekerWorkflow):
     @step(num_workers=10)
     async def negate_claim(
         self, ctx: Context, ev: NegateClaimEvent
-    ) -> CollectCheckedClaimsEvent:
+    ) -> CollectClarifiedClaimsEvent:
         log_msg("Negating claim.")
 
         request_dict = await self._prompt_step(
             ctx, ev, statement=ev.statement, **ev.request_dict
         )
         # we init a backed claim and add it to the result dict
-        checked_claim = CheckedClaim(
+        clarified_claim = CheckedClaim(
             text=ev.statement,
             negation=request_dict[ev.result_key],
             uid=str(uuid.uuid4()),
+            metadata={'statement_type': ev.statement_type}
         )
-        return CollectCheckedClaimsEvent(
+        return CollectClarifiedClaimsEvent(
             init_data_dict=ev.init_data_dict,
             request_dict=request_dict,
             result={
-                "checked_claim": checked_claim,
-                "checked_claim_type": ev.statement_type,
+                "clarified_claim": clarified_claim,
             },
         )
 
     @step
-    async def collect_checked_claims(
-        self, ctx: Context, ev: CollectCheckedClaimsEvent
+    async def collect_clarified_claims(
+        self, ctx: Context, ev: CollectClarifiedClaimsEvent
     ) -> StopEvent:
         claims_to_collect = await ctx.get("num_claims_to_negate")
         results = ctx.collect_events(
-            ev, [CollectCheckedClaimsEvent] * claims_to_collect
+            ev, [CollectClarifiedClaimsEvent] * claims_to_collect
         )
         if results is None:
             return None
-        descriptive_checked_claims = []
-        ascriptive_checked_claims = []
+
+        clarified_claims = []
 
         for res in results:
-            if res.result["checked_claim_type"] == "descriptive":
-                descriptive_checked_claims.append(res.result["checked_claim"])
-            if res.result["checked_claim_type"] == "ascriptive":
-                ascriptive_checked_claims.append(res.result["checked_claim"])
+            clarified_claims.append(res.result["clarified_claim"])
 
         request_dict = ev.request_dict
-        request_dict.update(
-            {
-                "descriptive_checked_claims": descriptive_checked_claims,
-                "ascriptive_checked_claims": ascriptive_checked_claims,
-            }
-        )
+        request_dict['clarified_claims'] = clarified_claims
 
         return StopEvent(
             result=request_dict,
         )
-
