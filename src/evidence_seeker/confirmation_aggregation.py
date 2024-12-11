@@ -26,7 +26,7 @@ class ConfirmationAggregator:
         return "The claim is neither confirmed nor disconfirmed."
 
     async def __call__(self, claim: CheckedClaim) -> CheckedClaim:
-        claim.n_evidence = len([c for c in claim.confirmation_by_document if abs(c) > _CONFIRMATION_THRESHOLD])
+        claim.n_evidence = len([c for c in claim.confirmation_by_document.values() if abs(c) > _CONFIRMATION_THRESHOLD])
         claim.average_confirmation = sum(
             claim.confirmation_by_document.values()
         ) / len(claim.confirmation_by_document)
