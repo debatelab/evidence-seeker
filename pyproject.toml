@@ -28,7 +28,7 @@ dependencies = [
   "python-dotenv",
   "llama-index",
   "llama-index-llms-openai-like",
-  "llama-index-embeddings-text-embeddings-inference",
+  "llama-index-embeddings-text-embeddings-inference==0.3.0",
   "numpy",
   "pydantic",
 ]
