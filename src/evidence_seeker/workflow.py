@@ -11,13 +11,14 @@ from typing import Any, Dict, Type
 from llama_index.llms.openai_like import OpenAILike
 from pydantic import BaseModel
 import yaml
+import tenacity
 
 from evidence_seeker.backend import get_openai_llm, log_msg
 
 
 _CONFIG_VERSION = "v0.1"
-_TIMEOUT_DEFAULT=120
-_VERBOSE_DEFAULT=False
+_TIMEOUT_DEFAULT = 120
+_VERBOSE_DEFAULT = False
 
 class DictInitializedEvent(Event):
     """
@@ -171,6 +172,7 @@ class EvidenceSeekerWorkflow(Workflow):
             self._init_llm(used_model_key)
         return self._llms[used_model_key]
 
+    @tenacity.retry(stop=tenacity.stop_after_attempt(5), wait=tenacity.wait_exponential(multiplier=1, max=30))
     async def _prompt_step(
         self,
         ctx: Context,
@@ -221,6 +223,7 @@ class EvidenceSeekerWorkflow(Workflow):
             request_dict.update(kwargs)
         return request_dict
 
+    @tenacity.retry(stop=tenacity.stop_after_attempt(5), wait=tenacity.wait_exponential(multiplier=1, max=30))
     async def _constraint_prompt_step(
         self,
         ctx: Context,
