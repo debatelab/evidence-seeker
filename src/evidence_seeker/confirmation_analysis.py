@@ -199,7 +199,6 @@ class SimpleConfirmationAnalysisWorkflow(EvidenceSeekerWorkflow):
             request_dict.update(ev.request_dict)
             probs_dict = _answer_probs(
                 options=ev.options,
-                claim_option=ev.claim_option,
                 chat_response=ev.request_dict['multiple_choice_confirmation_analysis_event']
             )
             log_msg(f"Returned probabilities (MC branch '{ev.branch}' ): {probs_dict}")
@@ -220,14 +219,12 @@ class SimpleConfirmationAnalysisWorkflow(EvidenceSeekerWorkflow):
 
 def _answer_probs(
         options: List,
-        claim_option: str,
         chat_response: ChatResponse) -> Dict[str, float]:
     """
-    Returns the probabilites of answer options claim option based
+    Returns the probabilites of answer options based
     on the chat response of a `MultipleChoiceConfirmationAnalysisEvent`.
     Args:
         options (List): A list of the possible response options.
-        claim_option (str): The claim option to evaluate.
         chat_response (ChatResponse): The chat response object
             containing raw log probabilities.
     Returns:
@@ -240,12 +237,6 @@ def _answer_probs(
         Logs a warning if the list of alternative first tokens is not
             equal to the given response choices.
     """
-
-    if claim_option not in options:
-        raise ValueError(
-            f"The claim option '{claim_option}' is not"
-            "in the list of options."
-        )
 
     # neg_claim_option = (set(options) - set([claim_option])).pop()
     top_logprobs = chat_response.raw.choices[0].logprobs.content
