@@ -134,14 +134,7 @@ class SimpleConfirmationAnalysisWorkflow(EvidenceSeekerWorkflow):
         self, ctx: Context, ev: MultipleChoiceConfirmationAnalysisEvent
     ) -> CollectAnalysesEvent:
 
-        # construct regex for constraint decoding
-        regex_str = (
-            "[" +
-            "|".join(self.config["pipeline"][self.workflow_key]["workflow_events"][
-                ev.event_key
-                ]["options"]) +
-            "]"
-        )
+        regex_str = self.config["pipeline"][self.workflow_key]["workflow_events"][ev.event_key]["regex_str"]
         log_msg(f"Used regex in {ev.event_key}: {regex_str}")
 
         # multiple choice prompt
@@ -232,8 +225,6 @@ def _answer_probs(
     Raises:
         ValueError: If the claim option is not in the list of options.
     Warnings:
-        Logs a warning if the number of alternative first tokens is
-            higher than the number of given response choices.
         Logs a warning if the list of alternative first tokens is not
             equal to the given response choices.
     """
@@ -242,16 +233,10 @@ def _answer_probs(
     top_logprobs = chat_response.raw.choices[0].logprobs.content
     first_token_top_logprobs = top_logprobs[0].top_logprobs
     tokens = [token.token for token in first_token_top_logprobs]
-    if len(tokens) > len(options):
+    if not set(tokens) == set(options):
         log_msg(
-            "WARNING: The number of alternative first token is "
-            "higher than the number of given response choices. "
-            "Perhaps, the constraint decoding does not work as expected."
-        )
-    if not set(tokens).issubset(set(options)):
-        log_msg(
-            "WARNING: The list of alternative first token is "
-            "not equal to the given response choices. "
+            f"WARNING: The list of alternative first tokens ({tokens}) is "
+            f"not equal to the given response choices ({options}). "
             "Perhaps, the constraint decoding does not work as expected."
         )
     if not set(options).issubset(set(tokens)):

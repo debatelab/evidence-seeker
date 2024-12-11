@@ -64,6 +64,7 @@ pipeline:
 #          (C) Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS.
         options: [(A, (B, (C]
         claim_option: (A
+        regex_str: '(\(A)|(\(B|\(C)'
         system_prompt: *default_sp
 models:
   model_1:
