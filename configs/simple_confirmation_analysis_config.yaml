@@ -17,49 +17,53 @@ pipeline:
         name: 'Freetext confirmation analysis'
         description: |
           Instruct the assistant to carry out free-text analysis of whether a document (text snippet)
-          contains evidence for the claim in question.
+          entails the claim in question.
         prompt_template: |
-          The following claim has been submitted for fact-checking.
-          <claim>{statement}</claim>
-          You task is to analyse whether the following text confirms or disconfirms the claim.
-          <text>
-          {evidence_item}
-          </text>
-          In particular, you should analyse
-          1. whether the text entails the claim or is inconsistent with the claim;
-          2. whether the text describes empirical evidence in favour or against the claim;
-          3. whether the text cites trustworthy parties (such as experts) that speak in favour for the claim.
-          Explain the results of your analysis.
+          Determine the relationship between the following two texts:
+
+          <TEXT>{evidence_item}</TEXT>
+          
+          <HYPOTHESIS>{statement}</HYPOTHESIS>
+
+          Does the TEXT entail, contradict, or neither entail nor contradict the HYPOTHESIS?
+
+          Classify the relationship as one of the following:
+
+          Entailment: The TEXT provides sufficient evidence to support the HYPOTHESIS.
+          Contradiction: The TEXT provides evidence that contradicts the HYPOTHESIS.
+          Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS.
+
+          Please discuss this question thoroughly before providing your final answer.
         system_prompt: *default_sp
       multiple_choice_confirmation_analysis_event:
         used_model_key: model_3
-        name: 'Multiple choise confirmation analysis'
+        name: 'Multiple choice confirmation analysis'
         description: |
           Instruct the assistant to decide whether the text confirms or disconfirms the claim.
         prompt_template: |
-          The following claim has been submitted for analysing whether 
-          the following text confirms or disconfirm the claim.
+          Your task is to sum up the results of a rich textual entailment analysis.
           
-          <claim>
-          {statement}
-          </claim>
+          <TEXT>{evidence_item}</TEXT>
           
-          <text>
-          {evidence_item}
-          </text>
+          <HYPOTHESIS>{statement}</HYPOTHESIS>
           
-          The analysis yielded the following result:
+          Our previous analysis has yielded the following result:
           
-          <result>
+          <RESULT>
           {freetext_confirmation_analysis_event}
-          </result>
+          </RESULT>
           
-          Based on these results, please decide between the following two options:
+          Please sum up this result by deciding which of the following choices is correct. Just answer with the label of the correct choice.
           
-          (A) The text confirms the claim.
-          (B) The text disconfirms the claim.
-        options: [A, B]
-        claim_option: A
+          (A) Entailment: The TEXT provides sufficient evidence to support the HYPOTHESIS.
+          (B) Contradiction: The TEXT provides evidence that contradicts the HYPOTHESIS.
+          (C) Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS.
+# Alternative:
+#          (A) The TEXT entails (i.e., provides sufficient evidence to support) the HYPOTHESIS.
+#          (B) The TEXT contradicts (i.e., provides evidence that contradicts) the HYPOTHESIS.
+#          (C) Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS.
+        options: [(A, (B, (C]
+        claim_option: (A
         system_prompt: *default_sp
 models:
   model_1:

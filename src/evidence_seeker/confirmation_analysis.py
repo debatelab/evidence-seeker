@@ -137,7 +137,7 @@ class SimpleConfirmationAnalysisWorkflow(EvidenceSeekerWorkflow):
         # construct regex for constraint decoding
         regex_str = (
             "[" +
-            "".join(self.config["pipeline"][self.workflow_key]["workflow_events"][
+            "|".join(self.config["pipeline"][self.workflow_key]["workflow_events"][
                 ev.event_key
                 ]["options"]) +
             "]"
