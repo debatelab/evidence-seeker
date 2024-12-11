@@ -26,6 +26,7 @@ classifiers = [
 ]
 dependencies = [
   "python-dotenv",
+  "loguru",
   "llama-index",
   "llama-index-llms-openai-like",
   "llama-index-embeddings-text-embeddings-inference",

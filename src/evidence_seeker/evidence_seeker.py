@@ -13,10 +13,28 @@ from evidence_seeker.retrieval import DocumentRetriever
 class EvidenceSeeker:
 
     def __init__(self, **kwargs):
-        # TODO: Configure API endpoints and other kwargs for the components 
-        self.preprocessor = ClaimPreprocessor()
-        self.retriever = DocumentRetriever()
-        self.analyzer = ConfirmationAnalyzer()
+
+        if "preprocessing_config" in kwargs:
+            self.preprocessor = ClaimPreprocessor(**kwargs["preprocessing_config"])
+        elif "preprocessing_config_file" in kwargs:
+            self.preprocessor = ClaimPreprocessor.from_config_file(kwargs["preprocessing_config_file"])
+        else:
+            self.preprocessor = ClaimPreprocessor()
+
+        if "retrieval_config" in kwargs:
+            self.retriever = DocumentRetriever(**kwargs["retrieval_config"])
+        elif "retrieval_config_file" in kwargs:
+            self.retriever = DocumentRetriever.from_config_file(kwargs["retrieval_config_file"])
+        else:
+            self.retriever = DocumentRetriever()
+
+        if "confirmation_analysis_config" in kwargs:
+            self.analyzer = ConfirmationAnalyzer(**kwargs["confirmation_analysis_config"])
+        elif "confirmation_analysis_config_file" in kwargs:
+            self.analyzer = ConfirmationAnalyzer.from_config_file(kwargs["confirmation_analysis_config_file"])
+        else:
+            self.analyzer = ConfirmationAnalyzer()
+
         self.aggregator = ConfirmationAggregator()
 
     async def execute_pipeline(self, claim: str) -> list[CheckedClaim]:

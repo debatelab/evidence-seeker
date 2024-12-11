@@ -1,4 +1,4 @@
-"confirmation_aggregation.py"
+"confirmation_aggregation"
 
 
 import numpy as np

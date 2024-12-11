@@ -1,21 +1,27 @@
 "preprocessing.py"
 
+import pathlib
+import yaml
 
 from evidence_seeker.models import CheckedClaim
-from evidence_seeker.backend import log_msg
-from evidence_seeker.preprocessing.simple_preprocessing_workflow import SimplePreprocessingWorkflow
-from evidence_seeker.preprocessing.preprocessing_separate_listings_workflow import PreprocessingSeparateListingsWorkflow
+from evidence_seeker.preprocessing.workflows import PreprocessingWorkflow
+from evidence_seeker.preprocessing.config import ClaimPreprocessingConfig
 
 
 class ClaimPreprocessor:
 
-    def __init__(self, config_file: str, **kwargs):
+    def __init__(self, config: ClaimPreprocessingConfig, **kwargs):
 
-        self.workflow = PreprocessingSeparateListingsWorkflow(
-            config_file=config_file,
+        self.workflow = PreprocessingWorkflow(
+            config=config, **kwargs
         )
 
     async def __call__(self, claim: str) -> list[CheckedClaim]:
         workflow_result = await self.workflow.run(claim=claim)
-        return workflow_result["clarified_claims"]
+        return workflow_result
 
+    @staticmethod
+    def from_config_file(config_file: str):
+        path = pathlib.Path(config_file)
+        config = ClaimPreprocessingConfig(**yaml.safe_load(path.read_text()))
+        return ClaimPreprocessor(config=config)
