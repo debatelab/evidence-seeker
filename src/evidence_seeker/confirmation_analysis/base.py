@@ -3,7 +3,7 @@
 import pathlib
 import yaml
 
-from evidence_seeker.models import CheckedClaim
+from evidence_seeker.datamodels import CheckedClaim
 
 from .config import ConfirmationAnalyzerConfig
 from .workflows import SimpleConfirmationAnalysisWorkflow

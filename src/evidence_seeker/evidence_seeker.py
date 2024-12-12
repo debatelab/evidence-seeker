@@ -7,7 +7,7 @@ from loguru import logger
 
 from evidence_seeker.confirmation_aggregation import ConfirmationAggregator
 from evidence_seeker.confirmation_analysis import ConfirmationAnalyzer
-from evidence_seeker.models import CheckedClaim
+from evidence_seeker.datamodels import CheckedClaim
 from evidence_seeker.preprocessing import ClaimPreprocessor
 from evidence_seeker.retrieval import DocumentRetriever
 

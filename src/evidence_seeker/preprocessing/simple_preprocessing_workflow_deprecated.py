@@ -12,7 +12,7 @@ from typing import List
 from pydantic import BaseModel, Field
 import uuid
 
-from evidence_seeker.models import CheckedClaim
+from evidence_seeker.datamodels import CheckedClaim
 from evidence_seeker.backend import log_msg
 from evidence_seeker.workflow import (
     DictInitializedEvent,
