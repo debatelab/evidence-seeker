@@ -13,6 +13,7 @@ class PipelineStepConfig(pydantic.BaseModel):
     system_prompt: str | None = None
     options: List[str] | None = None
     claim_option: str | None = None
+    regex_str: str | None = None
 
 
 class ConfirmationAnalyzerConfig(pydantic.BaseModel):
@@ -69,8 +70,9 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
                     "(B) Contradiction: The TEXT provides evidence that contradicts the HYPOTHESIS.\n"
                     "(C) Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS."
                 ),
-                options=["A", "B", "C"],
-                claim_option="A",
+                options=["(A", "(B", "(C"],
+                claim_option="(A",
+                regex_str=r"(\(A)|(\(B)|(\(C)",
             ),
     )
     models: Dict[str, Dict[str, Any]] = pydantic.Field(

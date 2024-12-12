@@ -1,12 +1,22 @@
 config_version: v0.1
 description: "Erste Version einer Konfiguration f\xFCr den ConfirmationAnalyzerConfig\
   \ der EvidenceSeeker Boilerplate."
+system_prompt: 'You are a helpful assistant with outstanding expertise in critical
+  thinking and logico-semantic analysis. You have a background in philosophy and experience
+  in fact checking and debate analysis.
+
+  You read instructions carefully and follow them precisely. You give concise and
+  clear answers.'
+timeout: 60
+used_model_key: model_1
+verbose: false
 freetext_confirmation_analysis:
   claim_option: null
   description: Instruct the assistant to carry out free-text RTE analysis.
   name: freetext_confirmation_analysis
   options: null
-  prompt_template: 'Determine the relationship between the following two texts:
+  prompt_template: | 
+    Determine the relationship between the following two texts:
 
     <TEXT>{evidence_item}</TEXT>
 
@@ -23,9 +33,50 @@ freetext_confirmation_analysis:
 
     Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS.
 
-    Please discuss this question thoroughly before providing your final answer.'
+    Please discuss this question thoroughly before providing your final answer.
   system_prompt: null
   used_model_key: null
+multiple_choice_confirmation_analysis:
+  claim_option: (A
+  description: Multiple choice RTE task given CoT trace.
+  name: multiple_choice_confirmation_analysis
+  options:
+  - (A
+  - (B
+  - (C
+  regex_str: '(\(A)|(\(B)|(\(C)'
+  prompt_template: | 
+    Your task is to sum up the results of a rich textual entailment
+    analysis.
+
+
+    <TEXT>{evidence_item}</TEXT>
+
+
+    <HYPOTHESIS>{statement}</HYPOTHESIS>
+
+
+    Our previous analysis has yielded the following result:
+
+
+    <RESULT>
+
+    {freetext_confirmation_analysis}
+
+    </RESULT>
+
+
+    Please sum up this result by deciding which of the following choices is correct.
+    Just answer with the label of the correct choice.
+
+
+    (A) Entailment: The TEXT provides sufficient evidence to support the HYPOTHESIS.
+
+    (B) Contradiction: The TEXT provides evidence that contradicts the HYPOTHESIS.
+
+    (C) Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS.
+  system_prompt: null
+  used_model_key: model_3
 models:
   model_1:
     api_key_name: HF_TOKEN_EVIDENCE_SEEKER
@@ -63,51 +114,3 @@ models:
     model: tgi
     name: "Sp\xE4tzle 8B"
     temperature: 0.2
-multiple_choice_confirmation_analysis:
-  claim_option: A
-  description: Multiple choice RTE task given CoT trace.
-  name: multiple_choice_confirmation_analysis
-  options:
-  - A
-  - B
-  - C
-  prompt_template: 'Your task is to sum up the results of a rich textual entailment
-    analysis.
-
-
-    <TEXT>{evidence_item}</TEXT>
-
-
-    <HYPOTHESIS>{statement}</HYPOTHESIS>
-
-
-    Our previous analysis has yielded the following result:
-
-
-    <RESULT>
-
-    {freetext_confirmation_analysis}
-
-    </RESULT>
-
-
-    Please sum up this result by deciding which of the following choices is correct.
-    Just answer with the label of the correct choice.
-
-
-    (A) Entailment: The TEXT provides sufficient evidence to support the HYPOTHESIS.
-
-    (B) Contradiction: The TEXT provides evidence that contradicts the HYPOTHESIS.
-
-    (C) Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS.'
-  system_prompt: null
-  used_model_key: model_3
-system_prompt: 'You are a helpful assistant with outstanding expertise in critical
-  thinking and logico-semantic analysis. You have a background in philosophy and experience
-  in fact checking and debate analysis.
-
-  You read instructions carefully and follow them precisely. You give concise and
-  clear answers.'
-timeout: 60
-used_model_key: model_1
-verbose: false

@@ -95,10 +95,7 @@ class SimpleConfirmationAnalysisWorkflow(Workflow):
         step_config = self.config.multiple_choice_confirmation_analysis
         model_key = step_config.used_model_key if step_config else None
         llm = get_openai_llm(**self.config.models[model_key]) if model_key else self.llm
-
-        # construct regex for constraint decoding
-        regex_str = f"[{''.join(step_config.options)}]"
-        regex_str = regex_str.replace("(", r"\(")
+        regex_str = step_config.regex_str
         logger.debug(f"Used regex in MultipleChoiceConfirmationAnalysis: {regex_str}")
 
         chat_template = self._get_chat_template(step_config)
