@@ -106,7 +106,7 @@ def get_openai_llm(
             "an env variable that holds the api key."
         )
     if api_key is None:
-        logger.info(f"Fetching api key via env var: {api_key_name}")
+        logger.debug(f"Fetching api key via env var: {api_key_name}")
         load_dotenv()
         if os.environ.get(api_key_name) is None:
             raise ValueError(
