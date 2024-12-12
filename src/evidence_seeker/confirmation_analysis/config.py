@@ -26,9 +26,8 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
     timeout: int = 60
     verbose: bool = False
     used_model_key: str = "model_1"
-    pipeline_steps: List[PipelineStepConfig] = pydantic.Field(
-        default_factory=lambda: [
-            PipelineStepConfig(
+    freetext_confirmation_analysis: PipelineStepConfig = pydantic.Field(
+        default_factory=lambda: PipelineStepConfig(
                 name="freetext_confirmation_analysis",
                 description="Instruct the assistant to carry out free-text RTE analysis.",
                 prompt_template=(
@@ -43,8 +42,10 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
                     "Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS.\n"
                     "Please discuss this question thoroughly before providing your final answer."
                 ),
-            ),
-            PipelineStepConfig(
+            )
+    )
+    multiple_choice_confirmation_analysis: PipelineStepConfig = pydantic.Field(
+         default_factory=lambda: PipelineStepConfig(
                 name="multiple_choice_confirmation_analysis",
                 used_model_key="model_3",
                 description="Multiple choice RTE task given CoT trace.",
@@ -71,7 +72,6 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
                 options=["A", "B", "C"],
                 claim_option="A",
             ),
-        ]
     )
     models: Dict[str, Dict[str, Any]] = pydantic.Field(
         default_factory=lambda: {

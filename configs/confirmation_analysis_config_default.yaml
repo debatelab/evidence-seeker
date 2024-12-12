@@ -1,6 +1,31 @@
 config_version: v0.1
 description: "Erste Version einer Konfiguration f\xFCr den ConfirmationAnalyzerConfig\
   \ der EvidenceSeeker Boilerplate."
+freetext_confirmation_analysis:
+  claim_option: null
+  description: Instruct the assistant to carry out free-text RTE analysis.
+  name: freetext_confirmation_analysis
+  options: null
+  prompt_template: 'Determine the relationship between the following two texts:
+
+    <TEXT>{evidence_item}</TEXT>
+
+
+    <HYPOTHESIS>{statement}</HYPOTHESIS>
+
+    Does the TEXT entail, contradict, or neither entail nor contradict the HYPOTHESIS?
+
+    Classify the relationship as one of the following:
+
+    Entailment: The TEXT provides sufficient evidence to support the HYPOTHESIS.
+
+    Contradiction: The TEXT provides evidence that contradicts the HYPOTHESIS.
+
+    Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS.
+
+    Please discuss this question thoroughly before providing your final answer.'
+  system_prompt: null
+  used_model_key: null
 models:
   model_1:
     api_key_name: HF_TOKEN_EVIDENCE_SEEKER
@@ -38,32 +63,8 @@ models:
     model: tgi
     name: "Sp\xE4tzle 8B"
     temperature: 0.2
-pipeline_steps:
-- claim_option: null
-  description: Instruct the assistant to carry out free-text RTE analysis.
-  name: freetext_confirmation_analysis
-  options: null
-  prompt_template: 'Determine the relationship between the following two texts:
-
-    <TEXT>{evidence_item}</TEXT>
-
-
-    <HYPOTHESIS>{statement}</HYPOTHESIS>
-
-    Does the TEXT entail, contradict, or neither entail nor contradict the HYPOTHESIS?
-
-    Classify the relationship as one of the following:
-
-    Entailment: The TEXT provides sufficient evidence to support the HYPOTHESIS.
-
-    Contradiction: The TEXT provides evidence that contradicts the HYPOTHESIS.
-
-    Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS.
-
-    Please discuss this question thoroughly before providing your final answer.'
-  system_prompt: null
-  used_model_key: null
-- claim_option: A
+multiple_choice_confirmation_analysis:
+  claim_option: A
   description: Multiple choice RTE task given CoT trace.
   name: multiple_choice_confirmation_analysis
   options:

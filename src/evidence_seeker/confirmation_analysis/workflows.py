@@ -71,7 +71,7 @@ class SimpleConfirmationAnalysisWorkflow(Workflow):
     ) -> MultipleChoiceConfirmationAnalysisEvent:
         logger.debug("Confirmation analysis.")
 
-        step_config = next((c for c in self.config.pipeline_steps if c.name=="freetext_confirmation_analysis"), None)  # fmt: off
+        step_config = self.config.freetext_confirmation_analysis
         model_key = step_config.used_model_key if step_config else None
         llm = get_openai_llm(**self.config.models[model_key]) if model_key else self.llm
 
@@ -92,7 +92,7 @@ class SimpleConfirmationAnalysisWorkflow(Workflow):
     async def multiple_choice(
         self, ctx: Context, ev: MultipleChoiceConfirmationAnalysisEvent
     ) -> CollectAnalysesEvent:
-        step_config = next((c for c in self.config.pipeline_steps if c.name=="multiple_choice_confirmation_analysis"), None)  # fmt: off
+        step_config = self.config.multiple_choice_confirmation_analysis
         model_key = step_config.used_model_key if step_config else None
         llm = get_openai_llm(**self.config.models[model_key]) if model_key else self.llm
 

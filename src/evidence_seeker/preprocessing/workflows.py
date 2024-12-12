@@ -126,7 +126,7 @@ class PreprocessingWorkflow(Workflow):
     ) -> ListDescriptiveClaimsEvent:
         logger.debug("Analysing descriptive aspects of claim.")
 
-        step_config = next((c for c in self.config.pipeline_steps if c.name=="freetext_descriptive_analysis"), None)  # fmt: off
+        step_config = self.config.freetext_descriptive_analysis
         model_key = step_config.used_model_key if step_config else None
         llm = get_openai_llm(**self.config.models[model_key]) if model_key else self.llm
 
@@ -143,7 +143,7 @@ class PreprocessingWorkflow(Workflow):
     async def list_descriptive_claims(
         self, ctx: Context, ev: ListDescriptiveClaimsEvent
     ) -> NegateClaimEvent | StartedNegatingClaims:
-        step_config = next((c for c in self.config.pipeline_steps if c.name=="list_descriptive_statements"), None)  # fmt: off
+        step_config = self.config.list_descriptive_statements
         model_key = step_config.used_model_key if step_config else None
         llm = get_openai_llm(**self.config.models[model_key]) if model_key else self.llm
 
@@ -175,7 +175,7 @@ class PreprocessingWorkflow(Workflow):
     ) -> ListAscriptiveClaimsEvent:
         logger.debug("Analysing ascriptive aspects of claim.")
 
-        step_config = next((c for c in self.config.pipeline_steps if c.name=="freetext_ascriptive_analysis"), None)  # fmt: off
+        step_config = self.config.freetext_ascriptive_analysis
         model_key = step_config.used_model_key if step_config else None
         llm = get_openai_llm(**self.config.models[model_key]) if model_key else self.llm
 
@@ -192,7 +192,7 @@ class PreprocessingWorkflow(Workflow):
     async def list_ascriptive_claims(
         self, ctx: Context, ev: ListAscriptiveClaimsEvent
     ) -> NegateClaimEvent | StartedNegatingClaims:
-        step_config = next((c for c in self.config.pipeline_steps if c.name=="list_ascriptive_statements"), None)  # fmt: off
+        step_config = self.config.list_ascriptive_statements
         model_key = step_config.used_model_key if step_config else None
         llm = get_openai_llm(**self.config.models[model_key]) if model_key else self.llm
 
@@ -224,7 +224,7 @@ class PreprocessingWorkflow(Workflow):
     ) -> ListNormativeClaimsEvent:
         logger.debug("Analysing normative aspects of claim.")
 
-        step_config = next((c for c in self.config.pipeline_steps if c.name=="freetext_normative_analysis"), None)  # fmt: off
+        step_config = self.config.freetext_normative_analysis
         model_key = step_config.used_model_key if step_config else None
         llm = get_openai_llm(**self.config.models[model_key]) if model_key else self.llm
 
@@ -241,7 +241,7 @@ class PreprocessingWorkflow(Workflow):
     async def list_normative_claims(
         self, ctx: Context, ev: ListNormativeClaimsEvent
     ) -> NegateClaimEvent:
-        step_config = next((c for c in self.config.pipeline_steps if c.name=="list_normative_statements"), None)  # fmt: off
+        step_config = self.config.list_normative_statements
         model_key = step_config.used_model_key if step_config else None
         llm = get_openai_llm(**self.config.models[model_key]) if model_key else self.llm
 
@@ -273,7 +273,7 @@ class PreprocessingWorkflow(Workflow):
     ) -> CollectClarifiedClaimsEvent:
         logger.debug("Negating claim.")
 
-        step_config = next((c for c in self.config.pipeline_steps if c.name=="negate_claim"), None)  # fmt: off
+        step_config = self.config.negate_claim
         model_key = step_config.used_model_key if step_config else None
         llm = get_openai_llm(**self.config.models[model_key]) if model_key else self.llm
 
