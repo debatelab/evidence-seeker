@@ -240,7 +240,7 @@ class PreprocessingWorkflow(Workflow):
     @step
     async def list_normative_claims(
         self, ctx: Context, ev: ListNormativeClaimsEvent
-    ) -> NegateClaimEvent:
+    ) -> NegateClaimEvent | StartedNegatingClaims:
         step_config = self.config.list_normative_statements
         model_key = step_config.used_model_key if step_config else None
         llm = get_openai_llm(**self.config.models[model_key]) if model_key else self.llm
