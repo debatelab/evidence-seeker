@@ -1,7 +1,14 @@
 "models.py"
 
 from typing import Mapping
+import enum
 import pydantic
+
+
+class StatementType(enum.Enum):
+    DESCRIPTIVE = "descriptive"
+    ASRIPTIVE = "ascriptive"
+    NORMATIVE = "normative"
 
 
 class Document(pydantic.BaseModel):

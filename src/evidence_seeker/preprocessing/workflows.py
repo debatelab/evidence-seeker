@@ -2,7 +2,6 @@
 
 from typing import List
 
-import enum
 import json
 from llama_index.core import ChatPromptTemplate
 from llama_index.core.workflow import (
@@ -21,16 +20,9 @@ from evidence_seeker.preprocessing.config import (
     ClaimPreprocessingConfig,
     PipelineStepConfig,
 )
-from evidence_seeker.datamodels import CheckedClaim
+from evidence_seeker.datamodels import CheckedClaim, StatementType
 from evidence_seeker.backend import get_openai_llm
 
-
-# ==Statement Types==
-
-class StatementType(enum.Enum):
-    DESCRIPTIVE = "descriptive"
-    ASRIPTIVE = "ascriptive"
-    NORMATIVE = "normative"
 
 
 # ==pydantic models for constrained decoding==
