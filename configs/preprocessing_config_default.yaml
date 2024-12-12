@@ -1,0 +1,224 @@
+config_version: v0.1
+description: "Erste Version einer Konfiguration f\xFCr den Preprocessor der EvidenceSeeker\
+  \ Boilerplate."
+freetext_ascriptive_analysis:
+  description: Instruct the assistant to carry out free-text ascriptions analysis.
+  name: freetext_ascriptive_analysis
+  prompt_template: 'The following claim has been submitted for fact-checking.
+
+
+    <claim>{claim}</claim>
+
+
+    Before we proceed with retrieving evidence items, we carefully analyse the claim.
+    Your task is to contribute to this preparatory analysis, as detailed below.
+
+    In particular, you should thoroughly discuss whether the claim makes any explicit
+    ascriptions, that is, whether it explicitly ascribes a statement to a person or
+    an organisation (e.g., as something the person has said, believes, acts on etc.)
+    rather than plainly asserting that statement straightaway.
+
+    If so, clarify which statements are ascribed to whom exactly and in which ways.
+
+    In doing so, watch out for ambiguity and vagueness in the claim. Make alternative
+    interpretations explicit.
+
+    End your analysis with a short list including all identified ascriptions. Formulate
+    each ascription as a concise statement, such that it is transparent to whom it
+    is attributed.'
+  system_prompt: null
+  used_model_key: null
+freetext_descriptive_analysis:
+  description: Instruct the assistant to carry out free-text factual/descriptive analysis.
+  name: freetext_descriptive_analysis
+  prompt_template: 'The following claim has been submitted for fact-checking.
+
+
+    <claim>{claim}</claim>
+
+
+    Before we proceed with retrieving evidence items, we carefully analyse the claim.
+    Your task is to contribute to this preparatory analysis, as detailed below.
+
+    In particular, you should thoroughly discuss whether the claim contains or implies
+    factual or descriptive statements, which can be verified or falsified by empirical
+    observation or through scientific analysis, and which may include, for example,
+    descriptive reports, historical facts, or scientific claims.
+
+    If so, try to identify them and render them in your own words.
+
+    In doing so, watch out for ambiguity and vagueness in the claim. Make alternative
+    interpretations explicit.
+
+    End your analysis with a short list of all identified factual or descriptive statements.
+    Formulate each statement in a concise manner and such that its factual nature
+    stands out clearly.'
+  system_prompt: null
+  used_model_key: null
+freetext_normative_analysis:
+  description: Instruct the assistant to carry out free-text normative analysis.
+  name: freetext_normative_analysis
+  prompt_template: 'The following claim has been submitted for fact-checking.
+
+
+    <claim>{claim}</claim>
+
+
+    Before we proceed with retrieving evidence items, we carefully analyse the claim.
+    Your task is to contribute to this preparatory analysis, as detailed below.
+
+    In particular, you should thoroughly discuss whether the claim contains or implies
+    normative statements, such as value judgements, recommendations, or evaluations.
+    If so, try to identify them and render them in your own words.
+
+    In doing so, watch out for ambiguity and vagueness in the claim. Make alternative
+    interpretations explicit.
+
+    However, avoid reading normative content into the claim without textual evidence.
+
+    End your analysis with a short list of all identified normative statements. Formulate
+    each statement in a concise manner and such that its normative nature stands out
+    clearly.'
+  system_prompt: null
+  used_model_key: null
+list_ascriptive_statements:
+  description: Instruct the assistant to list ascriptions.
+  name: list_ascriptive_statements
+  prompt_template: 'The following claim has been submitted for ascriptive content
+    analysis.
+
+    <claim>{claim}</claim>
+
+    The analysis yielded the following results:
+
+    <results>
+
+    {ascriptive_analysis}
+
+    </results>
+
+    Based on this analysis:
+
+    - List all identified ascriptions. Clearly state each ascription as a concise
+    statement, such that it is transparent to whom it is attributed. Only include
+    ascriptions that are explicitly attributed to a specific person or organisation.
+
+    Format your (possibly empty) list of statements as a JSON object.
+
+    Do not include any other text than the JSON object.'
+  system_prompt: null
+  used_model_key: null
+list_descriptive_statements:
+  description: Instruct the assistant to list factual claims.
+  name: list_descriptive_statements
+  prompt_template: 'The following claim has been submitted for analysing its descriptive
+    content.
+
+    <claim>{claim}</claim>
+
+    The analysis yielded the following results:
+
+    <results>
+
+    {descriptive_analysis}
+
+    </results>
+
+    Building on this analysis:
+
+    - I want you to list all identified factual or descriptive statements. Only include
+    clear cases, i.e. statements that are unambiguously factual or descriptive.
+
+    Format your (possibly empty) list of statements as a JSON object.
+
+    Do not include any other text than the JSON object.'
+  system_prompt: null
+  used_model_key: null
+list_normative_statements:
+  description: Instruct the assistant to list normative claims.
+  name: list_normative_statements
+  prompt_template: 'The following claim has been submitted for normative content analysis.
+
+    <claim>{claim}</claim>
+
+    The analysis yielded the following results:
+
+    <results>
+
+    {normative_analysis}
+
+    </results>
+
+    Based on this analysis:
+
+    - List all identified normative statements (e.g., value judgements, recommendations,
+    or evaluations).
+
+    Format your (possibly empty) list of statements as a JSON object.
+
+    Do not include any other text than the JSON object.'
+  system_prompt: null
+  used_model_key: null
+models:
+  model_1:
+    api_key_name: HF_TOKEN_EVIDENCE_SEEKER
+    backend_type: nim
+    base_url: https://huggingface.co/api/integrations/dgx/v1
+    description: "NVIDEA NIM API (kostenpflichtig \xFCber DebateLab Account)"
+    max_tokens: 2048
+    model: meta-llama/Llama-3.1-70B-Instruct
+    name: Llama-3.1-70B-Instruct
+    temperature: 0.2
+  model_2:
+    api_key_name: HF_TOKEN_EVIDENCE_SEEKER
+    backend_type: openai
+    base_url: https://api-inference.huggingface.co/v1/
+    description: HF inference API
+    max_tokens: 1024
+    model: mistralai/Mistral-7B-Instruct-v0.2
+    name: Mistral-7B-Instruct-v0.2
+    temperature: 0.2
+  model_3:
+    api_key_name: HF_TOKEN_EVIDENCE_SEEKER
+    backend_type: tgi
+    base_url: https://dchi8b9swca6gxbe.eu-west-1.aws.endpoints.huggingface.cloud/v1/
+    description: HF dedicated endpoint (debatelab)
+    max_tokens: 2048
+    model: meta-llama/Llama-3.2-3B-Instruct
+    name: Llama-3.2-3B-Instruct
+    temperature: 0.2
+  model_4:
+    api_key: no-key-required
+    backend_type: tgi
+    base_url: http://kriton.philosophie.kit.edu:8080/v1/
+    description: Kriton@DebateLab
+    max_tokens: 2048
+    model: tgi
+    name: "Sp\xE4tzle 8B"
+    temperature: 0.2
+negate_claim:
+  description: Instruct the assistant to negate a claim.
+  name: negate_claim
+  prompt_template: 'Your task is to express the opposite of the following statement
+    in plain and unequivocal language.
+
+    Please generate a single sentence that clearly states the negation.
+
+    <statement>
+
+    {statement}
+
+    </statement>
+
+    Provide only the negated statement without any additional comments.'
+  system_prompt: null
+  used_model_key: null
+system_prompt: 'You are a helpful assistant with outstanding expertise in critical
+  thinking and logico-semantic analysis. You have a background in philosophy and experience
+  in fact checking and debate analysis.
+
+  You read instructions carefully and follow them precisely. You give concise and
+  clear answers.'
+timeout: 120
+used_model_key: model_1
+verbose: false
