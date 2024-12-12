@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from evidence_seeker.models import CheckedClaim
+from evidence_seeker.datamodels import CheckedClaim
 
 
 _CONFIRMATION_THRESHOLD = 0.2

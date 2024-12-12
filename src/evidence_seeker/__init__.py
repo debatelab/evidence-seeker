@@ -22,7 +22,7 @@ from .evidence_seeker import (
     EvidenceSeeker
 )
 
-from .models import (
+from .datamodels import (
     CheckedClaim,
     Document
 )

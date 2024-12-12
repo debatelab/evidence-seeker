@@ -15,7 +15,7 @@ from llama_index.core import (
 )
 import tenacity
 
-from evidence_seeker.models import CheckedClaim, Document
+from evidence_seeker.datamodels import CheckedClaim, Document
 from .config import RetrievalConfig
 
 
