@@ -42,7 +42,12 @@ class EvidenceSeeker:
         else:
             self.analyzer = ConfirmationAnalyzer()
 
-        self.aggregator = ConfirmationAggregator()
+        if "confirmation_aggregation_config" in kwargs:
+            self.aggregator = ConfirmationAggregator(config=kwargs["confirmation_aggregation_config"])
+        elif "confirmation_aggregation_config_file" in kwargs:
+            self.aggregator = ConfirmationAggregator.from_config_file(kwargs["confirmation_aggregation_config_file"])
+        else:
+            self.aggregator = ConfirmationAggregator()
         
         self.analyze_normative_claims = kwargs.get(
             "analyse_normative_claims",
