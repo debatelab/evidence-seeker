@@ -277,7 +277,7 @@ class PreprocessingWorkflow(Workflow):
             text=ev.statement,
             negation=response.message.content,
             uid=str(uuid.uuid4()),
-            metadata={"statement_type": ev.statement_type},
+            statement_type=StatementType(ev.statement_type),
         )
         return CollectClarifiedClaimsEvent(clarified_claim=clarified_claim)
 

@@ -21,6 +21,7 @@ class CheckedClaim(pydantic.BaseModel):
     text: str
     negation: str | None = None
     uid: str
+    statement_type: StatementType | None = None
     n_evidence: int | None = None
     average_confirmation: float | None = None
     evidential_uncertainty: float | None = None

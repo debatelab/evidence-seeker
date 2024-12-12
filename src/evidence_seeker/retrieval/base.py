@@ -50,6 +50,7 @@ class DocumentRetriever:
         self.index_id = config.index_id
         self.index_persist_path = config.index_persist_path
         self.similarity_top_k = config.top_k
+        self.ignore_statement_types = config.ignore_statement_types or []
 
         self.document_file_metadata: Callable[[str], Dict] | None = kwargs.get("document_file_metadata")
 
@@ -133,7 +134,10 @@ class DocumentRetriever:
         return documents
 
     async def __call__(self, claim: CheckedClaim) -> CheckedClaim:
-        claim.documents = await self.retrieve_documents(claim)
+        if claim.statement_type.value in self.ignore_statement_types:
+            claim.documents = []
+        else:
+            claim.documents = await self.retrieve_documents(claim)
         return claim
     
 

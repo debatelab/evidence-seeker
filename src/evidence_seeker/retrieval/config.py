@@ -2,6 +2,8 @@
 
 import pydantic
 
+from evidence_seeker.datamodels import StatementType
+
 
 class RetrievalConfig(pydantic.BaseModel):
     config_version: str = "v0.1"
@@ -15,3 +17,4 @@ class RetrievalConfig(pydantic.BaseModel):
     index_id: str = "sentence_index"
     index_persist_path: str = "storage/chunk_index"
     top_k: int = 8
+    ignore_statement_types: list[str] = [StatementType.NORMATIVE.value]
