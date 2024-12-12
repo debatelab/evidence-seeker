@@ -2,6 +2,8 @@
 
 
 import asyncio
+from typing import Callable
+from loguru import logger
 
 from evidence_seeker.confirmation_aggregation import ConfirmationAggregator
 from evidence_seeker.confirmation_analysis import ConfirmationAnalyzer
@@ -15,21 +17,25 @@ class EvidenceSeeker:
     def __init__(self, **kwargs):
 
         if "preprocessing_config" in kwargs:
-            self.preprocessor = ClaimPreprocessor(**kwargs["preprocessing_config"])
+            self.preprocessor = ClaimPreprocessor(config=kwargs["preprocessing_config"])
         elif "preprocessing_config_file" in kwargs:
             self.preprocessor = ClaimPreprocessor.from_config_file(kwargs["preprocessing_config_file"])
         else:
             self.preprocessor = ClaimPreprocessor()
 
+        document_file_metadata = kwargs.get("document_file_metadata")
+        if document_file_metadata is not None and not isinstance(document_file_metadata, Callable):
+            logger.warning("kwarg 'document_file_metadata' must be a callable.")
+            document_file_metadata = None
         if "retrieval_config" in kwargs:
-            self.retriever = DocumentRetriever(**kwargs["retrieval_config"])
+            self.retriever = DocumentRetriever(config=kwargs["retrieval_config"], document_file_metadata=document_file_metadata)
         elif "retrieval_config_file" in kwargs:
-            self.retriever = DocumentRetriever.from_config_file(kwargs["retrieval_config_file"])
+            self.retriever = DocumentRetriever.from_config_file(kwargs["retrieval_config_file"], document_file_metadata=document_file_metadata)
         else:
-            self.retriever = DocumentRetriever()
+            self.retriever = DocumentRetriever(document_file_metadata=document_file_metadata)
 
         if "confirmation_analysis_config" in kwargs:
-            self.analyzer = ConfirmationAnalyzer(**kwargs["confirmation_analysis_config"])
+            self.analyzer = ConfirmationAnalyzer(config=kwargs["confirmation_analysis_config"])
         elif "confirmation_analysis_config_file" in kwargs:
             self.analyzer = ConfirmationAnalyzer.from_config_file(kwargs["confirmation_analysis_config_file"])
         else:

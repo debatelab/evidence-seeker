@@ -182,7 +182,7 @@ def answer_probs(options: list[str], chat_response: ChatResponse) -> dict[str, f
     }
     # if necessary, normalize probs
     probs_sum = sum(probs_dict.values())
-    probs_dict = {token: prob / probs_sum for token, prob in probs_dict.items()}
+    probs_dict = {token: float(prob / probs_sum) for token, prob in probs_dict.items()}
 
     return probs_dict
 

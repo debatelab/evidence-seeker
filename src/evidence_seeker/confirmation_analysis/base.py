@@ -10,7 +10,10 @@ from .workflows import SimpleConfirmationAnalysisWorkflow
 
 
 class ConfirmationAnalyzer:
-    def __init__(self, config: ConfirmationAnalyzerConfig, **kwargs):
+    def __init__(self, config: ConfirmationAnalyzerConfig | None = None, **kwargs):
+        if config is None:
+            config = ConfirmationAnalyzerConfig()
+
         self.workflow = SimpleConfirmationAnalysisWorkflow(
             config=config, **kwargs
         )

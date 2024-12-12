@@ -3,7 +3,7 @@
 import logging
 import os
 import pathlib
-from typing import List
+from typing import Callable, Dict, List
 import uuid
 import yaml
 
@@ -36,7 +36,10 @@ class PatientTextEmbeddingsInference(TextEmbeddingsInference):
         return result
 
 class DocumentRetriever:
-    def __init__(self, config: RetrievalConfig, **kwargs):
+    def __init__(self, config: RetrievalConfig | None = None, **kwargs):
+        if config is None:
+            config = RetrievalConfig()
+
         self.embed_model_name = config.embed_model_name
         self.embed_base_url = config.embed_base_url
         self.embed_batch_size = config.embed_batch_size
@@ -48,7 +51,7 @@ class DocumentRetriever:
         self.index_persist_path = config.index_persist_path
         self.similarity_top_k = config.top_k
 
-        self.document_file_metadata = kwargs.get("document_file_metadata")
+        self.document_file_metadata: Callable[[str], Dict] | None = kwargs.get("document_file_metadata")
 
         self.embed_model = PatientTextEmbeddingsInference(
             **self._get_text_embeddings_inference_kwargs()
