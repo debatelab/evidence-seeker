@@ -61,7 +61,7 @@ class EvidenceSeeker:
 
     async def __call__(self, claim: str) -> list[dict]:
         checked_claims = [
-            claim.model_dump() for claim
+            claim.model_dump() for claim  # TODO: hier eher type claim / und dann ggf. über StatementType
             in await self.execute_pipeline(claim)
         ]
         return checked_claims
