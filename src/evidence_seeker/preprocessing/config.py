@@ -23,7 +23,7 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
     )
     timeout: int = 120
     verbose: bool = False
-    used_model_key: str = "model_1"
+    used_model_key: str = "model_5"
     freetext_descriptive_analysis: PipelineStepConfig = pydantic.Field(
         default_factory=lambda: PipelineStepConfig(
             name="freetext_descriptive_analysis",
@@ -200,6 +200,16 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
                 "base_url": "http://kriton.philosophie.kit.edu:8080/v1/",
                 "model": "tgi",
                 "api_key": "no-key-required",
+                "backend_type": "tgi",
+                "max_tokens": 2048,
+                "temperature": 0.2,
+            },
+            "model_5": {
+                "name": "Llama-3.1-70B-Instruct",
+                "description": "HF dedicated endpoint (debatelab)",
+                "base_url": "https://ev6086dt6s7nn1b5.us-east-1.aws.endpoints.huggingface.cloud/v1/",
+                "model": "meta-llama/Llama-3.1-70B-Instruct",
+                "api_key_name": "HF_TOKEN_EVIDENCE_SEEKER",
                 "backend_type": "tgi",
                 "max_tokens": 2048,
                 "temperature": 0.2,
