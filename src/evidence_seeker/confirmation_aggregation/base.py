@@ -42,10 +42,10 @@ class ConfirmationAggregator:
         }
         claim.n_evidence = len(relevant_conf_by_docs)
         claim.average_confirmation = float(
-            np.mean(list(relevant_conf_by_docs.values()))
+            np.mean(list(relevant_conf_by_docs.values())) if relevant_conf_by_docs else np.nan
         )
         claim.evidential_uncertainty = float(
-            np.var(list(relevant_conf_by_docs.values()))
+            np.var(list(relevant_conf_by_docs.values())) if relevant_conf_by_docs else np.nan
         )
         claim.verbalized_confirmation = await self.verbalize_confirmation(claim)
 
