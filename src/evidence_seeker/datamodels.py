@@ -7,7 +7,7 @@ import pydantic
 
 class StatementType(enum.Enum):
     DESCRIPTIVE = "descriptive"
-    ASRIPTIVE = "ascriptive"
+    ASCRIPTIVE = "ascriptive"
     NORMATIVE = "normative"
 
 
