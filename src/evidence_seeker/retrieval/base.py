@@ -117,7 +117,7 @@ class DocumentRetriever:
         """retrieve top_k documents that are relevant for the claim and/or its negation"""
 
         retriever = self.index.as_retriever(similarity_top_k=self.similarity_top_k)
-        matches = retriever.retrieve(claim.text)
+        matches = await retriever.aretrieve(claim.text)
         # NOTE: We're just using the claim text for now,
         # but we could also use the claim's negation.
         # This needs to be discussed.
