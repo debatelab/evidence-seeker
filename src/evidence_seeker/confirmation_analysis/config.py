@@ -24,9 +24,9 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
         "You have a background in philosophy and experience in fact checking and debate analysis.\n"
         "You read instructions carefully and follow them precisely. You give concise and clear answers."
     )
-    timeout: int = 60
+    timeout: int = 240
     verbose: bool = False
-    used_model_key: str = "model_1"
+    used_model_key: str = "model_5"
     freetext_confirmation_analysis: PipelineStepConfig = pydantic.Field(
         default_factory=lambda: PipelineStepConfig(
                 name="freetext_confirmation_analysis",
@@ -48,7 +48,7 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
     multiple_choice_confirmation_analysis: PipelineStepConfig = pydantic.Field(
          default_factory=lambda: PipelineStepConfig(
                 name="multiple_choice_confirmation_analysis",
-                used_model_key="model_3",
+                used_model_key="model_5",
                 description="Multiple choice RTE task given CoT trace.",
                 prompt_template=(
                     "Your task is to sum up the results of a rich textual entailment analysis.\n"
@@ -113,6 +113,16 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
                 "base_url": "http://kriton.philosophie.kit.edu:8080/v1/",
                 "model": "tgi",
                 "api_key": "no-key-required",
+                "backend_type": "tgi",
+                "max_tokens": 2048,
+                "temperature": 0.2,
+            },
+            "model_5": {
+                "name": "Llama-3.1-70B-Instruct",
+                "description": "HF dedicated endpoint (debatelab)",
+                "base_url": "https://ev6086dt6s7nn1b5.us-east-1.aws.endpoints.huggingface.cloud/v1/",
+                "model": "meta-llama/Llama-3.1-70B-Instruct",
+                "api_key_name": "HF_TOKEN_EVIDENCE_SEEKER",
                 "backend_type": "tgi",
                 "max_tokens": 2048,
                 "temperature": 0.2,
