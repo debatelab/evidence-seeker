@@ -137,6 +137,32 @@ class DocumentRetriever:
             )
 
         return documents
+    
+    async def retrieve_pair_documents(self, claim: CheckedClaim) -> list[Document]:
+        """retrieve top_k documents that are relevant for the claim and/or its negation"""
+
+        retriever = self.index.as_retriever(similarity_top_k=self.similarity_top_k / 2)
+        matches : list = await retriever.aretrieve(claim.text)
+        matches_neg = await retriever.aretrieve(claim.negation)
+        # NOTE: We're just using the claim text for now,
+        # but we could also use the claim's negation.
+        # This needs to be discussed.
+        matches_ids = [match.node.id_ for match in matches]
+        for m in matches_neg:
+            if m.node.id_ in matches_ids:
+                continue
+            matches.append(m)
+            matches_ids.append(m.node.id_)
+        documents = []
+        logger.info([match.node.id_ for match in matches])
+        for match in matches:
+            data = match.node.metadata.copy()
+            window = data.pop("window")
+            documents.append(
+                Document(text=window, uid=str(uuid.uuid4()), metadata=data)
+            )
+
+        return documents
 
     async def __call__(self, claim: CheckedClaim) -> CheckedClaim:
         if claim.statement_type.value in self.ignore_statement_types:
