@@ -5,6 +5,10 @@ import enum
 import pydantic
 
 
+class Language(enum.Enum):
+    DE = "German"
+    EN = "English"
+
 class StatementType(enum.Enum):
     DESCRIPTIVE = "descriptive"
     ASCRIPTIVE = "ascriptive"

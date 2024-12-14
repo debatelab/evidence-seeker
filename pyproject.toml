@@ -50,6 +50,7 @@ dependencies = [
   "ipywidgets",
   "llama-index-callbacks-arize-phoenix",
   "llama-index-utils-workflow",
+  "pip-tools",
   "pytest",
 ]
 

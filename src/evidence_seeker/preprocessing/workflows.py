@@ -20,26 +20,21 @@ from evidence_seeker.preprocessing.config import (
     ClaimPreprocessingConfig,
     PipelineStepConfig,
 )
-from evidence_seeker.datamodels import CheckedClaim, StatementType
+from evidence_seeker.datamodels import CheckedClaim, Language, StatementType
 from evidence_seeker.backend import get_openai_llm
 
 
-
 # ==pydantic models for constrained decoding==
-
-class Claim(BaseModel):
-    """A claim or statement."""
-
-    claim: str = Field(description="The claim expressed as one sentence.")
 
 
 class Claims(BaseModel):
     """A list of claims."""
 
-    claims: List[Claim] = Field(description="A list of claims.")
+    claims: List[str] = Field(description="A list of claims.")
 
 
 # ==events==
+
 
 class DescriptiveAnalysisEvent(Event):
     claim: str
@@ -86,6 +81,7 @@ class CollectClarifiedClaimsEvent(Event):
 
 # ==workflow==
 
+
 class PreprocessingWorkflow(Workflow):
     """
     This workflow lists claims based on seperated analyses. For instance,
@@ -101,6 +97,9 @@ class PreprocessingWorkflow(Workflow):
             kwargs["verbose"] = config.verbose
         super().__init__(**kwargs)
         self.config = config
+        self.lang = Language._member_map_.get(config.language)
+        if not self.lang:
+            raise ValueError(f"Language {config.language} not supported.")
         model_kwargs = self.config.models[self.config.used_model_key]
         self.llm = get_openai_llm(**model_kwargs)
 
@@ -123,7 +122,7 @@ class PreprocessingWorkflow(Workflow):
         llm = get_openai_llm(**self.config.models[model_key]) if model_key else self.llm
 
         chat_template = self._get_chat_template(step_config)
-        messages = chat_template.format_messages(claim=ev.claim)
+        messages = chat_template.format_messages(claim=ev.claim, language=self.lang.value)
         response = await llm.achat(messages=messages)
 
         return ListDescriptiveClaimsEvent(
@@ -142,7 +141,9 @@ class PreprocessingWorkflow(Workflow):
         json_schema = json.dumps(Claims.model_json_schema(), indent=2)
         chat_template = self._get_chat_template(step_config)
         messages = chat_template.format_messages(
-            claim=ev.claim, descriptive_analysis=ev.descriptive_analysis
+            claim=ev.claim,
+            descriptive_analysis=ev.descriptive_analysis,
+            language=self.lang.value,
         )
         response = await llm.achat_with_guidance(
             messages=messages, json_schema=json_schema
@@ -154,7 +155,7 @@ class PreprocessingWorkflow(Workflow):
         for claim in claims.claims:
             ctx.send_event(
                 NegateClaimEvent(
-                    statement=claim.claim,
+                    statement=claim,
                     statement_type=StatementType.DESCRIPTIVE.value,
                 )
             )
@@ -172,7 +173,7 @@ class PreprocessingWorkflow(Workflow):
         llm = get_openai_llm(**self.config.models[model_key]) if model_key else self.llm
 
         chat_template = self._get_chat_template(step_config)
-        messages = chat_template.format_messages(claim=ev.claim)
+        messages = chat_template.format_messages(claim=ev.claim, language=self.lang.value)
         response = await llm.achat(messages=messages)
 
         return ListAscriptiveClaimsEvent(
@@ -191,7 +192,9 @@ class PreprocessingWorkflow(Workflow):
         json_schema = json.dumps(Claims.model_json_schema(), indent=2)
         chat_template = self._get_chat_template(step_config)
         messages = chat_template.format_messages(
-            claim=ev.claim, ascriptive_analysis=ev.ascriptive_analysis
+            claim=ev.claim,
+            ascriptive_analysis=ev.ascriptive_analysis,
+            language=self.lang.value,
         )
         response = await llm.achat_with_guidance(
             messages=messages, json_schema=json_schema
@@ -204,7 +207,7 @@ class PreprocessingWorkflow(Workflow):
         for claim in claims.claims:
             ctx.send_event(
                 NegateClaimEvent(
-                    statement=claim.claim, statement_type=StatementType.ASCRIPTIVE.value
+                    statement=claim, statement_type=StatementType.ASCRIPTIVE.value
                 )
             )
 
@@ -221,7 +224,7 @@ class PreprocessingWorkflow(Workflow):
         llm = get_openai_llm(**self.config.models[model_key]) if model_key else self.llm
 
         chat_template = self._get_chat_template(step_config)
-        messages = chat_template.format_messages(claim=ev.claim)
+        messages = chat_template.format_messages(claim=ev.claim, language=self.lang.value)
         response = await llm.achat(messages=messages)
 
         return ListNormativeClaimsEvent(
@@ -240,7 +243,7 @@ class PreprocessingWorkflow(Workflow):
         json_schema = json.dumps(Claims.model_json_schema(), indent=2)
         chat_template = self._get_chat_template(step_config)
         messages = chat_template.format_messages(
-            claim=ev.claim, normative_analysis=ev.normative_analysis
+            claim=ev.claim, normative_analysis=ev.normative_analysis, language=self.lang.value
         )
         response = await llm.achat_with_guidance(
             messages=messages, json_schema=json_schema
@@ -253,7 +256,7 @@ class PreprocessingWorkflow(Workflow):
         for claim in claims.claims:
             ctx.send_event(
                 NegateClaimEvent(
-                    statement=claim.claim, statement_type=StatementType.NORMATIVE.value
+                    statement=claim, statement_type=StatementType.NORMATIVE.value
                 )
             )
 
@@ -270,7 +273,7 @@ class PreprocessingWorkflow(Workflow):
         llm = get_openai_llm(**self.config.models[model_key]) if model_key else self.llm
 
         chat_template = self._get_chat_template(step_config)
-        messages = chat_template.format_messages(statement=ev.statement)
+        messages = chat_template.format_messages(statement=ev.statement, language=self.lang.value)
         response = await llm.achat(messages=messages)
 
         clarified_claim = CheckedClaim(
@@ -286,11 +289,15 @@ class PreprocessingWorkflow(Workflow):
         self, ctx: Context, ev: CollectClarifiedClaimsEvent | StartedNegatingClaims
     ) -> StopEvent:
         num_descriptive_claims = await ctx.get("num_descriptive_claims", 0)
-        num_ascriptive_claims = await ctx.get("num_ascriptive_claims",0)
+        num_ascriptive_claims = await ctx.get("num_ascriptive_claims", 0)
         num_normative_claims = await ctx.get("num_normative_claims", 0)
-        claims_to_collect = num_descriptive_claims + num_ascriptive_claims + num_normative_claims
+        claims_to_collect = (
+            num_descriptive_claims + num_ascriptive_claims + num_normative_claims
+        )
         results = ctx.collect_events(
-            ev, [CollectClarifiedClaimsEvent] * claims_to_collect + [StartedNegatingClaims] * 3
+            ev,
+            [CollectClarifiedClaimsEvent] * claims_to_collect
+            + [StartedNegatingClaims] * 3,
         )
         if results is None:
             return None
@@ -303,18 +310,17 @@ class PreprocessingWorkflow(Workflow):
 
         return StopEvent(result=clarified_claims)
 
-
     # ==helper functions==
 
     def _get_chat_template(self, step_config: PipelineStepConfig) -> ChatPromptTemplate:
+        system_prompt = (
+            step_config.system_prompt
+            if step_config.system_prompt
+            else self.config.system_prompt
+        )
         return ChatPromptTemplate.from_messages(
             [
-                (
-                    "system",
-                    step_config.system_prompt
-                    if step_config.system_prompt
-                    else self.config.system_prompt,
-                ),
+                ("system", system_prompt),
                 ("user", step_config.prompt_template),
             ]
         )
