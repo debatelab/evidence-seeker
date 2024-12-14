@@ -2,12 +2,15 @@ api_key_name: HF_TOKEN_EVIDENCE_SEEKER
 config_version: v0.1
 description: "Erste Version einer Konfiguration f\xFCr den Retriever der EvidenceSeeker\
   \ Boilerplate."
-document_input_files:
-- ./IPCC_AR6_WGI_TS.pdf
-embed_base_url: https://n5i1esy54f5lbm63.eu-west-1.aws.endpoints.huggingface.cloud
+document_input_dir: null
+document_input_files: null
+embed_base_url: https://ibpp4xgm0kspxkjb.us-east-1.aws.endpoints.huggingface.cloud
 embed_batch_size: 32
-embed_model_name: sentence-transformers/all-MiniLM-L6-v2
-index_id: sentence_index
-index_persist_path: storage/chunk_index
+embed_model_name: sentence-transformers/paraphrase-multilingual-mpnet-base-v2
+ignore_statement_types:
+- normative
+index_hub_path: DebateLabKIT/apuz-index-es
+index_id: default_index_id
+index_persist_path: null
 top_k: 8
 window_size: 3
