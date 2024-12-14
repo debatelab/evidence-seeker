@@ -88,10 +88,11 @@ class DocumentRetriever:
                 repo_id=self.index_hub_path,
                 repo_type="dataset",
                 local_dir=persist_dir,
+                token=self.token,
             )
             persist_dir = os.path.join(persist_dir, "index")
 
-        logger.info(f"Loading index from disk at {self.index_persist_path}")
+        logger.info(f"Loading index from disk at {persist_dir}")
         # rebuild storage context
         storage_context = StorageContext.from_defaults(persist_dir=persist_dir)
         # load index
