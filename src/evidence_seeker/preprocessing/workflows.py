@@ -149,6 +149,8 @@ class PreprocessingWorkflow(Workflow):
             messages=messages, json_schema=json_schema
         )
         claims = Claims.model_validate_json(response.message.content)
+        # deduplictae claims
+        claims.claims = list(set(claims.claims))
 
         # store number of descriptive claims to negate in the context
         await ctx.set("num_descriptive_claims", len(claims.claims))
@@ -200,6 +202,8 @@ class PreprocessingWorkflow(Workflow):
             messages=messages, json_schema=json_schema
         )
         claims = Claims.model_validate_json(response.message.content)
+        # deduplictae claims
+        claims.claims = list(set(claims.claims))
 
         # store number of ascriptive claims to negate in the context
         await ctx.set("num_ascriptive_claims", len(claims.claims))
@@ -249,6 +253,8 @@ class PreprocessingWorkflow(Workflow):
             messages=messages, json_schema=json_schema
         )
         claims = Claims.model_validate_json(response.message.content)
+        # deduplictae claims
+        claims.claims = list(set(claims.claims))
 
         # store number of normative claims to negate in the context
         await ctx.set("num_normative_claims", len(claims.claims))
