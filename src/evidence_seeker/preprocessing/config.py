@@ -30,7 +30,7 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
             name="freetext_descriptive_analysis",
             description="Instruct the assistant to carry out free-text factual/descriptive analysis.",
             prompt_template=(
-                "The following claim has been submitted for fact-checking.\n\n"
+                "The following {language} claim has been submitted for fact-checking.\n\n"
                 "<claim>{claim}</claim>\n\n"
                 "Before we proceed with retrieving evidence items, we carefully analyse the claim. "
                 "Your task is to contribute to this preparatory analysis, as detailed below.\n"
@@ -71,7 +71,7 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
             name="freetext_ascriptive_analysis",
             description="Instruct the assistant to carry out free-text ascriptions analysis.",
             prompt_template=(
-                "The following claim has been submitted for fact-checking.\n\n"
+                "The following {language} claim has been submitted for fact-checking.\n\n"
                 "<claim>{claim}</claim>\n\n"
                 "Before we proceed with retrieving evidence items, we carefully analyse the claim. "
                 "Your task is to contribute to this preparatory analysis, as detailed below.\n"
@@ -82,9 +82,9 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
                 "If so, clarify which statements are ascribed to whom exactly and in which ways.\n"
                 "In doing so, watch out for ambiguity and vagueness in the claim. Make alternative "
                 "interpretations explicit.\n"
-                "End your analysis with a short list including all identified ascriptions in {language}. "
-                "Formulate each ascription as a concise statement, such that it is transparent to "
-                "whom it is attributed."
+                "Conclude your analysis with a short list of all identified ascriptions: "
+                "Formulate each statement in a concise manner, and such that it is transparent to "
+                "whom it is attributed. Render the clarified ascriptions in {language}."
             ),
         )
     )
@@ -113,7 +113,7 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
             name="freetext_normative_analysis",
             description="Instruct the assistant to carry out free-text normative analysis.",
             prompt_template=(
-                "The following claim has been submitted for fact-checking.\n\n"
+                "The following {language} claim has been submitted for fact-checking.\n\n"
                 "<claim>{claim}</claim>\n\n"
                 "Before we proceed with retrieving evidence items, we carefully analyse the claim. "
                 "Your task is to contribute to this preparatory analysis, as detailed below.\n"
