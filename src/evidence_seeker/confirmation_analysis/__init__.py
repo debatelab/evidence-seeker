@@ -1,4 +1,4 @@
-"confoirmation analysis module"
+"confirmation analysis module"
 
 from .base import ConfirmationAnalyzer
 from .config import ConfirmationAnalyzerConfig
