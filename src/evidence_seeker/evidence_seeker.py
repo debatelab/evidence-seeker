@@ -31,6 +31,8 @@ class EvidenceSeeker:
             self.retriever = DocumentRetriever(config=kwargs["retrieval_config"], document_file_metadata=document_file_metadata)
         elif "retrieval_config_file" in kwargs:
             self.retriever = DocumentRetriever.from_config_file(kwargs["retrieval_config_file"], document_file_metadata=document_file_metadata)
+        elif "retriever" in kwargs:
+            self.retriever = kwargs["retriever"]
         else:
             self.retriever = DocumentRetriever(document_file_metadata=document_file_metadata)
 
