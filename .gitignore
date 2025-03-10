@@ -175,3 +175,6 @@ cython_debug/
 .pyre/
 .vscode/
 .idea/
+
+# Gradio
+.gradio/
