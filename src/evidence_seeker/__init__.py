@@ -17,6 +17,11 @@
 #     log_msg,
 # )
 
+from .utils import (
+    #results_to_markdown,
+    describe_result
+)
+
 
 from .evidence_seeker import (
     EvidenceSeeker
@@ -40,5 +45,7 @@ __all__ = [
 #    "ConfirmationAnalyzer",
     "CheckedClaim",
     "Document",
+    #"results_to_markdown",
+    "describe_result"
 #    "SimpleConfirmationAnalysisWorkflow"
 ]

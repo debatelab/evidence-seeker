@@ -1,3 +1,5 @@
+"utils.py"
+
 from typing import Dict, List
 from jinja2 import Environment
 
@@ -51,4 +53,28 @@ def results_to_markdown(
         show_documents=show_documents
     )
     return markdown
+
+def describe_result(input, results) -> str:
+    preamble_template = (
+        '## EvidenceSeeker Results\n\n'
+        '### Input\n\n'
+        '**Submitted claim:** {claim}\n\n'
+        '### Results\n\n'
+    )
+    result_template = (
+        '**Clarified claim:** <font color="orange">{text}</font> [_{statement_type}_]\n\n'
+        '**Status**: {verbalized_confirmation}\n\n'
+        '|Metric|Value|\n'
+        '|:---|---:|\n'
+        '|Average confirmation|{average_confirmation:.3f}|\n'
+        '|Evidential divergence|{evidential_uncertainty:.3f}|\n'
+        '|Width of evidential base|{n_evidence}|\n\n'
+    )
+    markdown = []
+    markdown.append(preamble_template.format(claim=input))
+    for claim_dict in results:
+        rdict = claim_dict.copy()
+        rdict["statement_type"] = rdict["statement_type"].value
+        markdown.append(result_template.format(**claim_dict))
+    return "\n".join(markdown)
 
