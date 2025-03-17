@@ -71,28 +71,27 @@ class DocumentRetriever:
             raise ValueError(msg)
 
         if self.index_persist_path:
-            if os.path.exists(self.index_persist_path):
-                persist_dir = self.index_persist_path
+            persist_dir = self.index_persist_path
+            if not os.path.exists(self.index_persist_path) and \
+                    not self.index_hub_path:
+                raise FileNotFoundError((
+                    f"Index not found at {self.index_persist_path}."
+                    "Please provide a valid path and/or set `index_hub_path`."
+                ))
             else:
-                raise FileNotFoundError(
-                    f"Index persist path {self.index_persist_path} not found."
-                )
+                logger.info((
+                    f"Downloading index from hub at {self.index_hub_path}"
+                    f"and saving to {self.index_persist_path}"
+                ))
+                self.download_index_from_hub(persist_dir)
 
         if not self.index_persist_path:
             logger.info(f"Downloading index from hub at {self.index_hub_path}")
-            import huggingface_hub
+            # storing index in temp dir
+            persist_dir = self.download_index_from_hub()
 
-            HfApi = huggingface_hub.HfApi(token=self.token)
-            persist_dir = tempfile.mkdtemp()
-            HfApi.snapshot_download(
-                repo_id=self.index_hub_path,
-                repo_type="dataset",
-                local_dir=persist_dir,
-                token=self.token,
-            )
-            persist_dir = os.path.join(persist_dir, "index")
-
-        logger.info(f"Loading index from disk at {self.index_persist_path}")
+        persist_dir = os.path.join(persist_dir, "index")
+        logger.info(f"Loading index from disk at {persist_dir}")
         # rebuild storage context
         storage_context = StorageContext.from_defaults(persist_dir=persist_dir)
         # load index
@@ -107,6 +106,22 @@ class DocumentRetriever:
             shutil.rmtree(persist_dir)
 
         return index
+
+    def download_index_from_hub(self, persist_dir: str | None = None) -> str:
+
+        import huggingface_hub
+
+        HfApi = huggingface_hub.HfApi(token=self.token)
+        if persist_dir is None:
+            persist_dir = tempfile.mkdtemp()
+
+        HfApi.snapshot_download(
+            repo_id=self.index_hub_path,
+            repo_type="dataset",
+            local_dir=persist_dir,
+            token=self.token,
+        )
+        return persist_dir
 
     def _get_text_embeddings_inference_kwargs(self) -> dict:
         return {
