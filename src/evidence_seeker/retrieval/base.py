@@ -6,8 +6,12 @@ import tempfile
 from typing import Callable, Dict, List
 import uuid
 import yaml
+import enum
 
 from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInference
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.embeddings.ollama import OllamaEmbedding
+
 from llama_index.core import (
     load_index_from_storage,
     StorageContext,
@@ -18,6 +22,12 @@ import tenacity
 
 from evidence_seeker.datamodels import CheckedClaim, Document
 from .config import RetrievalConfig
+
+
+class EmbedBackendType(enum.Enum):
+    TEI = "tei"
+    OLLAMA = "ollama"
+    HUGGINGFACE = "huggingface"
 
 
 class PatientTextEmbeddingsInference(TextEmbeddingsInference):
@@ -48,6 +58,7 @@ class DocumentRetriever:
             config = RetrievalConfig()
 
         self.embed_model_name = config.embed_model_name
+        self.embed_backend_type = config.embed_backend_type
         self.embed_base_url = config.embed_base_url
         self.embed_batch_size = config.embed_batch_size
         self.token = kwargs.get("token", os.getenv(config.api_key_name))
@@ -58,32 +69,50 @@ class DocumentRetriever:
         self.similarity_top_k = config.top_k
         self.ignore_statement_types = config.ignore_statement_types or []
 
-        self.embed_model = PatientTextEmbeddingsInference(
-            **self._get_text_embeddings_inference_kwargs()
-        )
+        if self.embed_backend_type == EmbedBackendType.OLLAMA.value:
+            self.embed_model = OllamaEmbedding(
+                **self._get_text_embeddings_inference_kwargs()
+            )
+        elif self.embed_backend_type == EmbedBackendType.HUGGINGFACE.value:
+            self.embed_model = HuggingFaceEmbedding(
+                **self._get_text_embeddings_inference_kwargs()
+            )
+        elif self.embed_backend_type == EmbedBackendType.TEI.value:
+            self.embed_model = PatientTextEmbeddingsInference(
+                **self._get_text_embeddings_inference_kwargs()
+            )
+        else:
+            raise ValueError(
+                f"Unsupported backend type for embedding: "
+                f"{self.embed_backend_type}"
+            )
 
         self.index = self.load_index()
 
     def load_index(self):
         if not self.index_persist_path and not self.index_hub_path:
-            msg = "Either index_persist_path or index_hub_path must be provided."
+            msg = (
+                "At least, either index_persist_path or index_hub_path "
+                "must be provided."
+            )
             logger.error(msg)
             raise ValueError(msg)
 
         if self.index_persist_path:
             persist_dir = self.index_persist_path
-            if not os.path.exists(self.index_persist_path) and \
-                    not self.index_hub_path:
-                raise FileNotFoundError((
-                    f"Index not found at {self.index_persist_path}."
-                    "Please provide a valid path and/or set `index_hub_path`."
-                ))
-            else:
-                logger.info((
-                    f"Downloading index from hub at {self.index_hub_path}"
-                    f"and saving to {self.index_persist_path}"
-                ))
-                self.download_index_from_hub(persist_dir)
+            if not os.path.exists(self.index_persist_path):
+                if not self.index_hub_path:
+                    raise FileNotFoundError((
+                        f"Index not found at {self.index_persist_path}."
+                        "Please provide a valid path and/or set "
+                        "`index_hub_path`."
+                    ))
+                else:
+                    logger.info((
+                        f"Downloading index from hub at {self.index_hub_path}"
+                        f"and saving to {self.index_persist_path}"
+                    ))
+                    self.download_index_from_hub(persist_dir)
 
         if not self.index_persist_path:
             logger.info(f"Downloading index from hub at {self.index_hub_path}")
@@ -124,12 +153,31 @@ class DocumentRetriever:
         return persist_dir
 
     def _get_text_embeddings_inference_kwargs(self) -> dict:
-        return {
-            "model_name": self.embed_model_name,
-            "base_url": self.embed_base_url,
-            "embed_batch_size": self.embed_batch_size,
-            "auth_token": f"Bearer {self.token}",
-        }
+        if self.embed_backend_type == EmbedBackendType.HUGGINGFACE.value:
+            return {
+                "model_name": self.embed_model_name,
+                # ToDo/Check: How to add additional arguments?
+                "embed_batch_size": self.embed_batch_size,
+            }
+        elif self.embed_backend_type == EmbedBackendType.TEI.value:
+            return {
+                "model_name": self.embed_model_name,
+                "base_url": self.embed_base_url,
+                "embed_batch_size": self.embed_batch_size,
+                "auth_token": f"Bearer {self.token}",
+            }
+        elif self.embed_backend_type == EmbedBackendType.OLLAMA.value:
+            return {
+                "model_name": self.embed_model_name,
+                "base_url": self.embed_base_url,
+                # ToDo/Check: How to add additional arguments?
+                "ollama_additional_kwargs": {"embed_batch_size": self.embed_batch_size}
+            }
+        else:
+            raise ValueError(
+                f"Unsupported backend type for embedding: "
+                f"{self.embed_backend_type}"
+            )
 
     async def retrieve_documents(self, claim: CheckedClaim) -> list[Document]:
         """retrieve top_k documents that are relevant for the claim and/or its negation"""
@@ -150,7 +198,7 @@ class DocumentRetriever:
             )
 
         return documents
-    
+
     async def retrieve_pair_documents(self, claim: CheckedClaim) -> list[Document]:
         """retrieve top_k documents that are relevant for the claim and/or its negation"""
 
@@ -198,6 +246,7 @@ def build_index(
     window_size: int = 3,
     index_id: str = "default_index_id",
     embed_model_name: str | None = None,
+    embed_backend_type: str = "tei",
     embed_base_url: str | None = None,
     embed_batch_size: int = 32,
     index_persist_path: str | None = "./storage/index",
@@ -206,32 +255,56 @@ def build_index(
 ):
     if not index_persist_path or upload_hub_path:
         logger.error(
-            "Either index_persist_path or upload_to_hub_path must be provided. Exiting without building index."
+            "Either index_persist_path or upload_to_hub_path must "
+            "be provided. Exiting without building index."
         )
         return
 
     if os.path.exists(index_persist_path):
         logger.warning(
-            f"Index persist path {index_persist_path} already exists. Exiting without building index."
+            f"Index persist path {index_persist_path} already exists. "
+            "Exiting without building index."
         )
         return
 
-    if not embed_model_name or not embed_base_url:
-        logger.error("No embed_model_kwargs provided. Exiting without building index.")
+    if not embed_model_name:
+        logger.error("No embed_model_kwargs provided. "
+                     "Exiting without building index.")
+        return
+    if not embed_base_url and (embed_backend_type == EmbedBackendType.HUGGINGFACE.value or embed_backend_type == EmbedBackendType.TEI.value):
+        logger.error("No base_url provided. Exiting without building index.")
         return
 
-    embed_model_kwargs = {
-        "model_name": embed_model_name,
-        "base_url": embed_base_url,
-        "embed_batch_size": embed_batch_size,
-        "auth_token": f"Bearer {token}",
-    }
-
-    embed_model = PatientTextEmbeddingsInference(**embed_model_kwargs)
+    if embed_backend_type == EmbedBackendType.OLLAMA.value:
+        embed_model = OllamaEmbedding(
+            model_name=embed_model_name,
+            base_url=embed_base_url,
+            # ToDo/Check: How to add additional arguments?
+            ollama_additional_kwargs={"embed_batch_size": embed_batch_size}
+        )
+    elif embed_backend_type == EmbedBackendType.HUGGINGFACE.value:
+        embed_model = HuggingFaceEmbedding(
+            model_name=embed_model_name,
+            # ToDo/Check: How to add additional arguments?
+            embed_batch_size=embed_batch_size,
+        )
+    elif embed_backend_type == EmbedBackendType.TEI.value:
+        embed_model = PatientTextEmbeddingsInference(
+            model_name=embed_model_name,
+            base_url=embed_base_url,
+            embed_batch_size=embed_batch_size,
+            auth_token=f"Bearer {token}"
+        )
+    else:
+        raise ValueError(
+            f"Unsupported backend type for embedding: "
+            f"{embed_backend_type}"
+        )
 
     if document_input_dir and document_input_files:
         logger.warning(
-            "Both document_input_dir and document_input_files provided. Using document_input_files."
+            "Both document_input_dir and document_input_files provided. "
+            "Using document_input_files."
         )
         document_input_dir = None
     if document_input_dir:
