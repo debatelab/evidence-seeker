@@ -150,10 +150,34 @@ class SimpleConfirmationAnalysisWorkflow(Workflow):
 
         return StopEvent(result=confirmation)
 
+    # ==helper functions==
 
-    #==helper functions==
+    def _get_chat_template(
+            self, step_config: PipelineStepConfig
+    ) -> ChatPromptTemplate:
 
-    def _get_chat_template(self, step_config: PipelineStepConfig) -> ChatPromptTemplate:
+        # used model for this step
+        if step_config.used_model_key:
+            model_key = step_config.used_model_key
+        else:
+            model_key = self.config.used_model_key
+        # do we have a model-specific template?
+        if step_config.prompt_templates.get(model_key):
+            prompt_template = step_config.prompt_templates[model_key]
+        else:
+            logger.debug(
+                "Did not find a model-specific template. "
+                "Using default template instead."
+            )
+            if step_config.prompt_templates.get("default") is None:
+                logger.error(
+                    "Default prompt template not found in config."
+                )
+                raise ValueError(
+                    "Default prompt template not found in config."
+                )
+            prompt_template = step_config.prompt_templates["default"]
+
         return ChatPromptTemplate.from_messages(
             [
                 (
@@ -162,6 +186,6 @@ class SimpleConfirmationAnalysisWorkflow(Workflow):
                     if step_config.system_prompt
                     else self.config.system_prompt,
                 ),
-                ("user", step_config.prompt_template),
+                ("user", prompt_template),
             ]
         )
