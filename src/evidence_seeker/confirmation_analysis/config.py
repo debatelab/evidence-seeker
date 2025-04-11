@@ -1,6 +1,6 @@
 "confirmation_analysis.py"
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import pydantic
 
@@ -8,7 +8,7 @@ import pydantic
 class PipelineStepConfig(pydantic.BaseModel):
     name: str
     description: str
-    prompt_template: str
+    prompt_templates: Dict[str, str] 
     used_model_key: str | None = None
     system_prompt: str | None = None
     options: List[str] | None = None
@@ -26,50 +26,53 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
     )
     timeout: int = 240
     verbose: bool = False
-    used_model_key: str = "model_5"
+    used_model_key: Optional[str] = None
     freetext_confirmation_analysis: PipelineStepConfig = pydantic.Field(
         default_factory=lambda: PipelineStepConfig(
                 name="freetext_confirmation_analysis",
                 description="Instruct the assistant to carry out free-text RTE analysis.",
-                prompt_template=(
-                    "Determine the relationship between the following two texts:\n"
-                    "<TEXT>{evidence_item}</TEXT>\n"
-                    "\n"
-                    "<HYPOTHESIS>{statement}</HYPOTHESIS>\n"
-                    "Does the TEXT entail, contradict, or neither entail nor contradict the HYPOTHESIS?\n"
-                    "Classify the relationship as one of the following:\n"
-                    "Entailment: The TEXT provides sufficient evidence to support the HYPOTHESIS.\n"
-                    "Contradiction: The TEXT provides evidence that contradicts the HYPOTHESIS.\n"
-                    "Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS.\n"
-                    "Please discuss this question thoroughly before providing your final answer."
-                ),
+                prompt_templates={
+                    "default": (
+                        "Determine the relationship between the following two texts:\n"
+                        "<TEXT>{evidence_item}</TEXT>\n"
+                        "\n"
+                        "<HYPOTHESIS>{statement}</HYPOTHESIS>\n"
+                        "Does the TEXT entail, contradict, or neither entail nor contradict the HYPOTHESIS?\n"
+                        "Classify the relationship as one of the following:\n"
+                        "Entailment: The TEXT provides sufficient evidence to support the HYPOTHESIS.\n"
+                        "Contradiction: The TEXT provides evidence that contradicts the HYPOTHESIS.\n"
+                        "Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS.\n"
+                        "Please discuss this question thoroughly before providing your final answer."
+                    ),
+                }
             )
     )
     multiple_choice_confirmation_analysis: PipelineStepConfig = pydantic.Field(
          default_factory=lambda: PipelineStepConfig(
                 name="multiple_choice_confirmation_analysis",
-                used_model_key="model_5",
                 description="Multiple choice RTE task given CoT trace.",
-                prompt_template=(
-                    "Your task is to sum up the results of a rich textual entailment analysis.\n"
-                    "\n"
-                    "<TEXT>{evidence_item}</TEXT>\n"
-                    "\n"
-                    "<HYPOTHESIS>{statement}</HYPOTHESIS>\n"
-                    "\n"
-                    "Our previous analysis has yielded the following result:\n"
-                    "\n"
-                    "<RESULT>\n"
-                    "{freetext_confirmation_analysis}\n"
-                    "</RESULT>\n"
-                    "\n"
-                    "Please sum up this result by deciding which of the following choices is correct. "
-                    "Just answer with the label of the correct choice.\n"
-                    "\n"
-                    "(A) Entailment: The TEXT provides sufficient evidence to support the HYPOTHESIS.\n"
-                    "(B) Contradiction: The TEXT provides evidence that contradicts the HYPOTHESIS.\n"
-                    "(C) Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS."
-                ),
+                prompt_templates={
+                    "default": (
+                        "Your task is to sum up the results of a rich textual entailment analysis.\n"
+                        "\n"
+                        "<TEXT>{evidence_item}</TEXT>\n"
+                        "\n"
+                        "<HYPOTHESIS>{statement}</HYPOTHESIS>\n"
+                        "\n"
+                        "Our previous analysis has yielded the following result:\n"
+                        "\n"
+                        "<RESULT>\n"
+                        "{freetext_confirmation_analysis}\n"
+                        "</RESULT>\n"
+                        "\n"
+                        "Please sum up this result by deciding which of the following choices is correct. "
+                        "Just answer with the label of the correct choice.\n"
+                        "\n"
+                        "(A) Entailment: The TEXT provides sufficient evidence to support the HYPOTHESIS.\n"
+                        "(B) Contradiction: The TEXT provides evidence that contradicts the HYPOTHESIS.\n"
+                        "(C) Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS."
+                    ),
+                },
                 options=["(A", "(B", "(C"],
                 claim_option="(A",
                 regex_str=r"(\(A)|(\(B)|(\(C)",
