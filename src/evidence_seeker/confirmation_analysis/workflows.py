@@ -1,6 +1,5 @@
 "confirmation_analysis.py"
 
-from llama_index.core import ChatPromptTemplate
 from llama_index.core.workflow import (
     Context,
     Event,
@@ -9,11 +8,13 @@ from llama_index.core.workflow import (
     Workflow,
     step,
 )
-from llama_index.llms.openai_like import OpenAILike
 from loguru import logger
 
-from evidence_seeker.backend import OpenAILikeWithGuidance, get_openai_llm, answer_probs
-from .config import ConfirmationAnalyzerConfig, PipelineStepConfig
+from evidence_seeker.backend import get_openai_llm, answer_probs
+import random
+from typing import List, Set, Dict, Optional
+
+from .config import ConfirmationAnalyzerConfig
 
 
 class FreetextConfirmationAnalysisEvent(Event):
@@ -71,11 +72,12 @@ class SimpleConfirmationAnalysisWorkflow(Workflow):
     ) -> MultipleChoiceConfirmationAnalysisEvent:
         logger.debug("Confirmation analysis.")
 
+        # ToDo: use a dict or sth. to store initiated models
         step_config = self.config.freetext_confirmation_analysis
         model_key = step_config.used_model_key if step_config else None
         llm = get_openai_llm(**self.config.models[model_key]) if model_key else self.llm
 
-        chat_template = self._get_chat_template(step_config)
+        chat_template = self.config.get_chat_template(step_config)
         messages = chat_template.format_messages(
             statement=ev.statement, evidence_item=ev.evidence_item
         )
@@ -85,7 +87,8 @@ class SimpleConfirmationAnalysisWorkflow(Workflow):
             statement=ev.statement,
             evidence_item=ev.evidence_item,
             freetext_confirmation_analysis=response.message.content,
-            branch=ev.branch,  # repassing branch tag to indicate workflow branch
+            # repassing branch tag to indicate workflow branch
+            branch=ev.branch,
         )
 
     @step
@@ -93,23 +96,39 @@ class SimpleConfirmationAnalysisWorkflow(Workflow):
         self, ctx: Context, ev: MultipleChoiceConfirmationAnalysisEvent
     ) -> CollectAnalysesEvent:
         step_config = self.config.multiple_choice_confirmation_analysis
+        model_specific_conf = self.config.get_step_config(step_config)
+        # ToDo: use a dict or sth. to store initiated models
         model_key = step_config.used_model_key if step_config else None
         llm = get_openai_llm(**self.config.models[model_key]) if model_key else self.llm
-        regex_str = step_config.regex_str
-        logger.debug(f"Used regex in MultipleChoiceConfirmationAnalysis: {regex_str}")
 
-        chat_template = self._get_chat_template(step_config)
+        # Construct the regex programmatically, if not given in config
+        if model_specific_conf.constrained_decoding_regex:
+            regex_str = model_specific_conf.constrained_decoding_regex
+        else:
+            regex_str = rf"^({'|'.join(model_specific_conf.answer_labels)})$"
+        logger.debug(f"Used regex: {regex_str}")
+
+        # Randomize the answer options
+        randomized_answer_options = RandomlyOrderedAnswerOptions(
+            answer_options=set(model_specific_conf.answer_options),
+            answer_labels=model_specific_conf.answer_labels,
+            delim_str=model_specific_conf.delim_str,
+        )
+        # generate messages for llm
+        chat_template = self.config.get_chat_template(step_config)
         messages = chat_template.format_messages(
             statement=ev.statement,
             evidence_item=ev.evidence_item,
             freetext_confirmation_analysis=ev.freetext_confirmation_analysis,
+            answer_options=randomized_answer_options.to_string(),
         )
+        print(f"Messages: {messages}")
         response = await llm.achat_with_guidance(
             messages=messages,
             regex_str=regex_str,
             generation_kwargs={"logprobs": True, "top_logprobs": 5},
         )
-        probs_dict = answer_probs(step_config.options, response)
+        probs_dict = answer_probs(model_specific_conf.answer_labels, response)
         logger.debug(f"Returned probabilities: {probs_dict}")
         prob_claim_entailed = probs_dict[step_config.claim_option]
 
@@ -150,42 +169,52 @@ class SimpleConfirmationAnalysisWorkflow(Workflow):
 
         return StopEvent(result=confirmation)
 
-    # ==helper functions==
 
-    def _get_chat_template(
-            self, step_config: PipelineStepConfig
-    ) -> ChatPromptTemplate:
+class RandomlyOrderedAnswerOptions():
+    ordered_answers: List[str]
+    # Maps enumeration characters (e.g., 'A') to answer options
+    enumeration_mapping: Dict[str, str]
+    # a string that is used to separate the enumeration character
+    # from the answer option
+    delim_str: str
 
-        # used model for this step
-        if step_config.used_model_key:
-            model_key = step_config.used_model_key
-        else:
-            model_key = self.config.used_model_key
-        # do we have a model-specific template?
-        if step_config.prompt_templates.get(model_key):
-            prompt_template = step_config.prompt_templates[model_key]
-        else:
-            logger.debug(
-                "Did not find a model-specific template. "
-                "Using default template instead."
+    def __init__(self,
+                 answer_options: Set[str],
+                 answer_labels: List[str] = None,
+                 delim_str: Optional[str] = "."):
+        """Generate a randomized list of the answer options."""
+        # Shuffle the answers and enumeration characters
+        shuffled_answers = list(answer_options)
+        self.delim_str = delim_str
+        random.shuffle(shuffled_answers)
+
+        if answer_labels is None:
+            default_enum_alphabet = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+            answer_labels = default_enum_alphabet[:len(answer_options)]
+        random.shuffle(answer_labels)
+
+        # Create the a mapping label -> answer (e.g., 'A' -> answer option)
+        self.enumeration_mapping = {
+            enum: answer for enum, answer in zip(answer_labels,
+                                                 shuffled_answers)
+        }
+
+    def to_string(self) -> str:
+        """Generate a string representation of the answer options"""
+        answer_options = ""
+        delim_str = self.delim_str if self.delim_str else ''
+        for enum, answer in self.enumeration_mapping.items():
+            answer_options += f"{enum}{delim_str} {answer}\n"
+        return answer_options
+
+    def label_to_answer(
+        self,
+        label: str
+    ) -> str:
+        """Map an enumeration character to the corresponding answer option."""
+        if label not in self.enumeration_mapping:
+            raise ValueError(
+                f"Invalid answer label: {label}\n"
+                f"Must be one of {list(self.enumeration_mapping.keys())}"
             )
-            if step_config.prompt_templates.get("default") is None:
-                logger.error(
-                    "Default prompt template not found in config."
-                )
-                raise ValueError(
-                    "Default prompt template not found in config."
-                )
-            prompt_template = step_config.prompt_templates["default"]
-
-        return ChatPromptTemplate.from_messages(
-            [
-                (
-                    "system",
-                    step_config.system_prompt
-                    if step_config.system_prompt
-                    else self.config.system_prompt,
-                ),
-                ("user", prompt_template),
-            ]
-        )
+        return self.enumeration_mapping[label]
