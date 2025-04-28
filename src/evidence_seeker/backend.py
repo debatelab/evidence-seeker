@@ -4,10 +4,8 @@ from typing import Type
 
 from dotenv import load_dotenv
 import enum
-from llama_index.core.llms import ChatResponse
 from llama_index.llms.openai_like import OpenAILike
 from loguru import logger
-import numpy as np
 import pydantic
 
 
@@ -27,10 +25,9 @@ class OpenAILikeWithGuidance(OpenAILike):
         if self.backend_type not in [bt.value for bt in BackendType]:
             logger.warning(
                 f"Unknown backend type {self.backend_type}."
-                "Assuming default backend type 'openai' for guided genereation."
+                "Assuming default backend type 'openai' for guided generation."
             )
             self.backend_type = BackendType.OPENAI.value
-
 
     async def achat_with_guidance(
             self,
@@ -42,6 +39,10 @@ class OpenAILikeWithGuidance(OpenAILike):
     ):
         # depending on the backend_type, we choose different ways
         # for constraint decoding
+        # TODO (ToRefactor): Here, a guidance type is fixed for a backend
+        # type. However,we also allow to specify a guidance type on the
+        # pipeline step level. This is somewhat complicated.
+
         # https://docs.nvidia.com/nim/large-language-models/latest/structured-generation.html
         if self.backend_type == BackendType.NIM.value:
             if json_schema is None:
@@ -78,7 +79,8 @@ class OpenAILikeWithGuidance(OpenAILike):
         else:
             if output_cls is None:
                 raise ValueError(
-                    "You should provide a Pydantic output class for structured output."
+                    "You should provide a Pydantic output class for "
+                    "structured output."
                 )
             sllm = self.as_structured_llm(output_cls)
             return await sllm.achat(
@@ -131,50 +133,3 @@ def get_openai_llm(
         **kwargs
     )
     return llm
-
-
-
-
-def answer_probs(options: list[str], chat_response: ChatResponse) -> dict[str, float]:
-    """
-    Returns the probabilites of answer options based
-    on the chat response of a `MultipleChoiceConfirmationAnalysisEvent`.
-    Args:
-        options (List): A list of the possible response options.
-        chat_response (ChatResponse): The chat response object
-            containing raw log probabilities.
-    Returns:
-        dict: A dictionary with normalized probabilities for each option.
-    Raises:
-        ValueError: If the claim option is not in the list of options.
-    Warnings:
-        Logs a warning if the list of alternative first tokens is not
-            equal to the given response choices.
-    """
-
-    top_logprobs = chat_response.raw.choices[0].logprobs.content
-    first_token_top_logprobs = top_logprobs[0].top_logprobs
-    tokens = [token.token for token in first_token_top_logprobs]
-    if not set(tokens) != set(options):
-        logger.warning(
-            f"WARNING: The list of alternative first tokens ({tokens}) is "
-            f"not equal to the given response choices ({options}). "
-            "Perhaps, the constrained decoding does not work as expected."
-        )
-    if not set(options).issubset(set(tokens)):
-        raise RuntimeError(
-            f"The response choices ({options}) are not in the list "
-            f"of alternative first tokens ({tokens}). "
-            "Perhaps, the constrained decoding does not work as expected."
-        )
-    probs_dict = {
-        token.token: np.exp(token.logprob)
-        for token in first_token_top_logprobs
-        if token.token in options
-    }
-    # if necessary, normalize probs
-    probs_sum = sum(probs_dict.values())
-    probs_dict = {token: float(prob / probs_sum) for token, prob in probs_dict.items()}
-
-    return probs_dict
-

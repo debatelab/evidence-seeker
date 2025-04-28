@@ -5,18 +5,40 @@ from loguru import logger
 from llama_index.core import ChatPromptTemplate
 
 import pydantic
+import enum
+
+
+class LogProbsType(enum.Enum):
+    OPENAI_LIKE = "openai_like"
+    ESTIMATE = "estimate"
+
+
+class GuidanceType(enum.Enum):
+    JSON = "json"
+    REGEX = "regex"
+    GRAMMAR = "grammar"
+    PYDANTIC = "pydantic"
+    PROMPTED = "prompted"
 
 
 class PipelineModelStepConfig(pydantic.BaseModel):
     prompt_template: str
     system_prompt: str | None = None
     # following fields are only used for multiple choice tasks
-    answer_labels: List[str] | None = None
-    claim_option: str | None = None
+    answer_labels: Optional[List[str]] = None
+    claim_option: Optional[str] = None
+    n_repetitions_mcq: int = 1
     # ToDo: As set of strings
-    answer_options: List[str] = None
-    delim_str: str | None = "."
+    answer_options: Optional[List[str]] = None
+    delim_str: Optional[str] = "."
+    # Fields used for constrained decoding
+    guidance_type: Optional[str] = GuidanceType.JSON.value
     constrained_decoding_regex: Optional[str] = None
+    constrained_decoding_grammar: Optional[str] = None
+    # used for regex-based validation of the output for `GuidanceType.PROMPTED`
+    validation_regex: Optional[str] = None
+    # log probs
+    logprobs_type: Optional[str] = LogProbsType.OPENAI_LIKE.value
 
 
 class PipelineStepConfig(pydantic.BaseModel):
@@ -94,22 +116,82 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
                         ],
                         constrained_decoding_regex=r"^(\(A|\(B|\(C)$"
                     ),
+                    "lmstudio": PipelineModelStepConfig(
+                        prompt_template=(
+                            "Your task is to sum up the results of a rich textual entailment analysis.\n"
+                            "\n"
+                            "<TEXT>{evidence_item}</TEXT>\n"
+                            "\n"
+                            "<HYPOTHESIS>{statement}</HYPOTHESIS>\n"
+                            "\n"
+                            "Our previous analysis has yielded the following result:\n"
+                            "\n"
+                            "<RESULT>\n"
+                            "{freetext_confirmation_analysis}\n"
+                            "</RESULT>\n"
+                            "\n"
+                            "Please sum up this result by deciding which of the following choices is correct.\n"
+                            "\n"
+                            "{answer_options}\n"
+                            "\n"
+                            "Just answer with the label ('A', 'B' or 'C') of the correct choice.\n"
+                            "\n"
+                        ),
+                        answer_labels=["A", "B", "C"],
+                        n_repetitions_mcq=3,
+                        claim_option="Entailment: The TEXT provides sufficient evidence to support the HYPOTHESIS.",
+                        delim_str=".",
+                        answer_options=[
+                            "Entailment: The TEXT provides sufficient evidence to support the HYPOTHESIS.",
+                            "Contradiction: The TEXT provides evidence that contradicts the HYPOTHESIS.",
+                            "Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS.",
+                        ],
+                        guidance_type=GuidanceType.PROMPTED.value,
+                        logprobs_type=LogProbsType.ESTIMATE.value,
+                        validation_regex=r"^[\.\(]?(A|B|C)[\.\):]?$",
+                    ),
+                    "together.ai": PipelineModelStepConfig(
+                        prompt_template=(
+                            "Your task is to sum up the results of a rich textual entailment analysis.\n"
+                            "\n"
+                            "<TEXT>{evidence_item}</TEXT>\n"
+                            "\n"
+                            "<HYPOTHESIS>{statement}</HYPOTHESIS>\n"
+                            "\n"
+                            "Our previous analysis has yielded the following result:\n"
+                            "\n"
+                            "<RESULT>\n"
+                            "{freetext_confirmation_analysis}\n"
+                            "</RESULT>\n"
+                            "\n"
+                            "Please sum up this result by deciding which of the following choices is correct.\n"
+                            "\n"
+                            "{answer_options}\n"
+                            "\n"
+                            "Just answer with the label ('A', 'B' or 'C') of the correct choice.\n"
+                            "\n"
+                        ),
+                        answer_labels=["A", "B", "C"],
+                        n_repetitions_mcq=3,
+                        claim_option="Entailment: The TEXT provides sufficient evidence to support the HYPOTHESIS.",
+                        delim_str=".",
+                        answer_options=[
+                            "Entailment: The TEXT provides sufficient evidence to support the HYPOTHESIS.",
+                            "Contradiction: The TEXT provides evidence that contradicts the HYPOTHESIS.",
+                            "Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS.",
+                        ],
+                        guidance_type=GuidanceType.PROMPTED.value,
+                        logprobs_type=LogProbsType.ESTIMATE.value,
+                        validation_regex=r"^[\.\(]?(A|B|C)[\.\):]?$",
+                    ),
                 }
             ),
     )
+    # TODO (?): Define Pydantic class for model. Or do we leave it at this? 
+    # Since we want to unpack the dict as model kwargs.
     models: Dict[str, Dict[str, Any]] = pydantic.Field(
         default_factory=lambda: {
             "model_1": {
-                "name": "Llama-3.1-70B-Instruct",
-                "description": "NVIDEA NIM API (kostenpflichtig über DebateLab Account)",
-                "base_url": "https://huggingface.co/api/integrations/dgx/v1",
-                "model": "meta-llama/Llama-3.1-70B-Instruct",
-                "api_key_name": "HF_TOKEN_EVIDENCE_SEEKER",
-                "backend_type": "nim",
-                "max_tokens": 2048,
-                "temperature": 0.2,
-            },
-            "model_2": {
                 "name": "Mistral-7B-Instruct-v0.2",
                 "description": "HF inference API",
                 "base_url": "https://api-inference.huggingface.co/v1/",
@@ -119,47 +201,59 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
                 "max_tokens": 1024,
                 "temperature": 0.2,
             },
-            "model_3": {
-                "name": "Llama-3.2-3B-Instruct",
-                "description": "HF dedicated endpoint (debatelab)",
-                "base_url": "https://dchi8b9swca6gxbe.eu-west-1.aws.endpoints.huggingface.cloud/v1/",
-                "model": "meta-llama/Llama-3.2-3B-Instruct",
-                "api_key_name": "HF_TOKEN_EVIDENCE_SEEKER",
-                "backend_type": "tgi",
-                "max_tokens": 2048,
+            'lmstudio': {
+                # "name": "meta-llama-3.1-8b-instruct",
+                "name": "llama-3.2-1b-instruct",
+                "description": "Local model served via LMStudio",
+                "base_url": "http://127.0.0.1:1234/v1/",
+                "model": "meta-llama-3.1-8b-instruct",
+                #"model": "llama-3.2-1b-instruct",
+                "backend_type": "openai",
+                "max_tokens": 1024,
                 "temperature": 0.2,
+                "api_key": "not_needed",
+                "timeout": 260
             },
-            "model_4": {
-                "name": "Spätzle 8B",
-                "description": "Kriton@DebateLab",
-                "base_url": "http://kriton.philosophie.kit.edu:8080/v1/",
-                "model": "tgi",
-                "api_key": "no-key-required",
-                "backend_type": "tgi",
-                "max_tokens": 2048,
+            'together.ai': {
+                "name": "Meta-Llama-3-8B-Instruct-Turbo",
+                "description": "Model served via Together.ai over HuggingFace",
+                "base_url": "https://router.huggingface.co/together/v1",
+                "model": "meta-llama/Meta-Llama-3-8B-Instruct-Turbo",
+                "api_key_name": "hf_debatelab_inference_provider",
+                "backend_type": "openai",
+                "max_tokens": 1024,
                 "temperature": 0.2,
-            },
-            "model_5": {
-                "name": "Llama-3.1-70B-Instruct",
-                "description": "HF dedicated endpoint (debatelab)",
-                "base_url": "https://ev6086dt6s7nn1b5.us-east-1.aws.endpoints.huggingface.cloud/v1/",
-                "model": "meta-llama/Llama-3.1-70B-Instruct",
-                "api_key_name": "HF_TOKEN_EVIDENCE_SEEKER",
-                "backend_type": "tgi",
-                "max_tokens": 2048,
-                "temperature": 0.2,
+                "timeout": 260
             },
         }
     )
 
     # ==helper functions==
+    def _step_config(
+        self,
+        step_config: Optional[PipelineStepConfig] = None,
+        step_name: Optional[str] = None
+    ) -> PipelineStepConfig:
+        """Internal convenience function."""
+        if step_config is None and step_name is None:
+            raise ValueError("Either pass a step config of a name of the pipeline step")
+        if step_config is None:
+            if step_name == "multiple_choice_confirmation_analysis":
+                return self.multiple_choice_confirmation_analysis
+            elif step_name == "freetext_confirmation_analysis":
+                return self.freetext_confirmation_analysis
+            else:
+                raise ValueError(f"Did not found step config for {step_name}")
+        else:
+            return step_config
 
     def get_step_config(
             self,
-            step_config: PipelineStepConfig
+            step_name: Optional[str] = None,
+            step_config: Optional[PipelineStepConfig] = None
     ) -> PipelineModelStepConfig:
         """Get the model specific step config for the given step name."""
-
+        step_config = self._step_config(step_config, step_name)
         # used model for this step
         if step_config.used_model_key:
             model_key = step_config.used_model_key
@@ -170,41 +264,51 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
             model_specific_conf = step_config.llm_specific_configs[model_key]
         else:
             if step_config.llm_specific_configs.get("default") is None:
-                logger.error(
+                msg = (
                     f"Default step config for {step_config.name} "
                     "not found in config."
                 )
-                raise ValueError(
-                    f"Default step config for {step_config.name} "
-                    "not found in config."
-                )
+                logger.error(msg)
+                raise ValueError(msg)
             model_specific_conf = step_config.llm_specific_configs["default"]
         return model_specific_conf
 
     def get_chat_template(
-            self, step_config: PipelineStepConfig
+            self,
+            step_name: Optional[str] = None,
+            step_config: Optional[PipelineStepConfig] = None
     ) -> ChatPromptTemplate:
-
-        model_specific_conf = self.get_step_config(step_config)
+        step_config = self._step_config(step_config, step_name)
+        model_specific_conf = self.get_step_config(step_config=step_config)
         prompt_template = model_specific_conf.prompt_template
 
         return ChatPromptTemplate.from_messages(
             [
-                ("system", self.get_system_prompt(step_config)),
+                ("system", self.get_system_prompt(step_config=step_config)),
                 ("user", prompt_template),
             ]
         )
 
-    def get_system_prompt(self, step_config: PipelineStepConfig) -> str:
+    def get_system_prompt(
+            self,
+            step_name: Optional[str] = None,
+            step_config: Optional[PipelineStepConfig] = None
+    ) -> str:
         """Get the system prompt for a specific step of the workflow."""
-        model_specific_conf = self.get_step_config(step_config)
+        step_config = self._step_config(step_config, step_name)
+        model_specific_conf = self.get_step_config(step_config=step_config)
         if model_specific_conf.system_prompt:
             return model_specific_conf.system_prompt
         else:
             return self.system_prompt
 
-    def get_model_key(self, step_config: PipelineStepConfig) -> str:
+    def get_model_key(
+            self, 
+            step_name: Optional[str] = None,
+            step_config: Optional[PipelineStepConfig] = None
+    ) -> str:
         """Get the model key for a specific step of the workflow."""
+        step_config = self._step_config(step_config, step_name)
         if step_config.used_model_key:
             return step_config.used_model_key
         else:
