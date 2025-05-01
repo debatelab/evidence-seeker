@@ -15,6 +15,14 @@ class BackendType(enum.Enum):
     OPENAI = "openai"
 
 
+class GuidanceType(enum.Enum):
+    JSON = "json"
+    REGEX = "regex"
+    GRAMMAR = "grammar"
+    PYDANTIC = "pydantic"
+    PROMPTED = "prompted"
+
+
 class OpenAILikeWithGuidance(OpenAILike):
 
     backend_type: str | None = None

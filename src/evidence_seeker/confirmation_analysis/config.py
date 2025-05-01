@@ -7,18 +7,12 @@ from llama_index.core import ChatPromptTemplate
 import pydantic
 import enum
 
+from evidence_seeker.backend import GuidanceType
+
 
 class LogProbsType(enum.Enum):
     OPENAI_LIKE = "openai_like"
     ESTIMATE = "estimate"
-
-
-class GuidanceType(enum.Enum):
-    JSON = "json"
-    REGEX = "regex"
-    GRAMMAR = "grammar"
-    PYDANTIC = "pydantic"
-    PROMPTED = "prompted"
 
 
 class PipelineModelStepConfig(pydantic.BaseModel):
@@ -180,8 +174,8 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
                             "Contradiction: The TEXT provides evidence that contradicts the HYPOTHESIS.",
                             "Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS.",
                         ],
-                        guidance_type=GuidanceType.PROMPTED.value,
-                        logprobs_type=LogProbsType.ESTIMATE.value,
+                        guidance_type=GuidanceType.JSON.value,
+                        logprobs_type=LogProbsType.OPENAI_LIKE.value,
                         validation_regex=r"^[\.\(]?(A|B|C)[\.\):]?$",
                     ),
                 }
@@ -202,12 +196,12 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
                 "temperature": 0.2,
             },
             'lmstudio': {
-                # "name": "meta-llama-3.1-8b-instruct",
-                "name": "llama-3.2-1b-instruct",
+                "name": "meta-llama-3.1-8b-instruct",
+                # "name": "llama-3.2-1b-instruct",
                 "description": "Local model served via LMStudio",
                 "base_url": "http://127.0.0.1:1234/v1/",
                 "model": "meta-llama-3.1-8b-instruct",
-                #"model": "llama-3.2-1b-instruct",
+                # "model": "llama-3.2-1b-instruct",
                 "backend_type": "openai",
                 "max_tokens": 1024,
                 "temperature": 0.2,
@@ -215,10 +209,10 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
                 "timeout": 260
             },
             'together.ai': {
-                "name": "Meta-Llama-3-8B-Instruct-Turbo",
+                "name": "Meta-Llama-3-Instruct",
                 "description": "Model served via Together.ai over HuggingFace",
                 "base_url": "https://router.huggingface.co/together/v1",
-                "model": "meta-llama/Meta-Llama-3-8B-Instruct-Turbo",
+                "model": "meta-llama/Llama-3.2-3B-Instruct-Turbo",
                 "api_key_name": "hf_debatelab_inference_provider",
                 "backend_type": "openai",
                 "max_tokens": 1024,
