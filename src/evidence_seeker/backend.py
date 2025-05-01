@@ -1,6 +1,6 @@
 
 import os
-from typing import Type
+from typing import Type, Optional
 
 from dotenv import load_dotenv
 import enum
@@ -21,6 +21,7 @@ class GuidanceType(enum.Enum):
     GRAMMAR = "grammar"
     PYDANTIC = "pydantic"
     PROMPTED = "prompted"
+    STRUCTURED_LLM = "structured_llm"
 
 
 class OpenAILikeWithGuidance(OpenAILike):
@@ -43,59 +44,172 @@ class OpenAILikeWithGuidance(OpenAILike):
             json_schema: str = None,
             output_cls: Type[pydantic.BaseModel] = None,
             regex_str: str | None = None,
+            grammar_str: str | None = None,
             generation_kwargs: dict = dict(),
+            guidance_type: GuidanceType = GuidanceType.JSON,
     ):
-        # depending on the backend_type, we choose different ways
-        # for constraint decoding
-        # TODO (ToRefactor): Here, a guidance type is fixed for a backend
-        # type. However,we also allow to specify a guidance type on the
-        # pipeline step level. This is somewhat complicated.
 
+        if _validate_guidance_params(
+                json_schema=json_schema,
+                output_cls=output_cls,
+                regex_str=regex_str,
+                grammar_str=grammar_str,
+                guidance_type=guidance_type
+        ):
+            if guidance_type == GuidanceType.PROMPTED:
+                return await self.achat(
+                    messages=messages,
+                    **generation_kwargs,
+                )
+            # Using the llama-index interface for structured output
+            # see: https://docs.llamaindex.ai/en/stable/understanding/extraction/
+            elif (
+                self.backend_type == BackendType.OPENAI.value and
+                guidance_type == GuidanceType.STRUCTURED_LLM
+            ):
+                sllm = self.as_structured_llm(output_cls)
+                return await sllm.achat(
+                    messages=messages,
+                    **generation_kwargs
+                )
+            # else, we generate backend specific kwargs for the guidance type
+            else:
+                guidance_kwargs = self._get_guidance_kwargs(
+                    guidance_type=guidance_type,
+                    json_schema=json_schema,
+                    output_cls=output_cls,
+                    regex_str=regex_str,
+                    grammar_str=grammar_str
+                )
+                generation_kwargs.update(guidance_kwargs)
+                return await self.achat(
+                    messages=messages,
+                    **generation_kwargs
+                )
+
+    def _get_guidance_kwargs(
+            self,
+            guidance_type: GuidanceType,
+            json_schema: str = None,
+            output_cls: Type[pydantic.BaseModel] = None,
+            regex_str: str | None = None,
+            grammar_str: str | None = None,
+
+    ) -> dict:
+        """
+        Get the kwargs for the guidance type.
+
+        Raise ValueError if the guidance type is not supported by the backend.
+        """
+        if json_schema is None and output_cls is not None:
+            json_schema = output_cls.model_json_schema()
+
+        # depending on the backend_type and guidance type, we generate
+        # the kwargs for the guided generation.
+
+        # For NIM, we use the `extra_body`
         # https://docs.nvidia.com/nim/large-language-models/latest/structured-generation.html
         if self.backend_type == BackendType.NIM.value:
-            if json_schema is None:
-                raise ValueError(
-                    "You should provide a JSON schema for structured output."
-                )
-            return await self.achat(
-                messages=messages,
-                extra_body={"nvext": {"guided_json": json_schema}},
-                **generation_kwargs
-            )
+            if guidance_type == (
+                GuidanceType.JSON or guidance_type == GuidanceType.PYDANTIC
+            ):
+                return {"extra_body": {"nvext": {"guided_json": json_schema}}}
 
-        # for TGI (e.g., dedicated HF endpoints) we use `response_type`
+        # for TGI (e.g., dedicated HF endpoints) we use `response_format`
         # for constrained decoding
         # https://github.com/huggingface/text-generation-inference/pull/2046
         elif self.backend_type == BackendType.TGI.value:
-            if json_schema is not None and regex_str is not None:
-                raise ValueError(
-                    "Specify a JSON schema or a regex expression for"
-                    "constrained decoding with a TGI."
-                )
-            response_format = {
-                "type": "json_object" if json_schema else "regex",
-                "value": json_schema if json_schema else regex_str
-            }
-            return await self.achat(
-                messages=messages,
-                response_format=response_format,
-                **generation_kwargs
-            )
+            if guidance_type == (
+                GuidanceType.JSON or guidance_type == GuidanceType.PYDANTIC
+            ):
+                return {
+                    "response_format": {
+                        "type": "json_object",
+                        "value": json_schema
+                    }
+                }
+            if guidance_type == GuidanceType.REGEX:
+                return {
+                    "response_format": {
+                        "type": "regex",
+                        "value": regex_str
+                    }
+                }
+        elif self.backend_type == BackendType.OPENAI.value:
+            if guidance_type == (
+                GuidanceType.JSON or guidance_type == GuidanceType.PYDANTIC
+            ):
+                return {
+                    "response_format": {
+                        "type": "json_schema",
+                        "json_schema": {
+                            "schema": json_schema
+                        }
+                    }
+                }
+            if guidance_type == GuidanceType.GRAMMAR:
+                return {
+                    "response_format": {
+                        "type": "grammar",
+                        "grammar": grammar_str
+                    }
+                }
+        # else, we raise an error
+        raise ValueError(
+            f"Guidance type {guidance_type} is not supported by or "
+            "not implemented for the backend {self.backend_type}."
+        )
 
-        # default: Using the llama-index interface for structured output
-        # see: https://docs.llamaindex.ai/en/stable/understanding/extraction/
-        else:
-            if output_cls is None:
-                raise ValueError(
-                    "You should provide a Pydantic output class for "
-                    "structured output."
-                )
-            sllm = self.as_structured_llm(output_cls)
-            return await sllm.achat(
-                messages=messages,
-                **generation_kwargs
-            )
 
+def _validate_guidance_params(
+            json_schema: str = None,
+            output_cls: Type[pydantic.BaseModel] = None,
+            regex_str: str | None = None,
+            grammar_str: str | None = None,
+            guidance_type: GuidanceType = GuidanceType.JSON,
+) -> bool:
+    """
+    Validate the parameters for the guidance type.
+    """
+    error_msg = None
+    if guidance_type == GuidanceType.JSON:
+        if json_schema is None and output_cls is None:
+            error_msg = (
+                "You should provide a JSON schema or a Pydantic class"
+                " for structured output."
+            )
+    elif guidance_type == GuidanceType.PYDANTIC:
+        if output_cls is None:
+            error_msg = (
+                "You should provide a Pydantic output class for "
+                "structured output."
+            )
+    elif guidance_type == GuidanceType.REGEX:
+        if regex_str is None:
+            error_msg = (
+                "You should provide a regex expression for "
+                "constrained decoding."
+            )
+    elif guidance_type == GuidanceType.GRAMMAR:
+        if grammar_str is None:
+            error_msg = (
+                "You should provide a grammar expression for "
+                "constrained decoding."
+            )
+    elif guidance_type == GuidanceType.STRUCTURED_LLM:
+        if output_cls is None:
+            error_msg = (
+                "You should provide a Pydantic output class "
+                "for structured output."
+            )
+    elif guidance_type == GuidanceType.PROMPTED:
+        error_msg = None
+    else:
+        error_msg = f"Guidance type {guidance_type} is not supported."
+
+    if error_msg:
+        raise ValueError(error_msg)
+    return True
 
 def get_openai_llm(
         api_key: str = None,

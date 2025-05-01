@@ -167,28 +167,25 @@ class SimpleConfirmationAnalysisWorkflow(Workflow):
         else:
             generation_kwargs = dict()
 
-        model_key = self.config.get_model_key(
-            "multiple_choice_confirmation_analysis"
+        llm = self._get_model(
+            self.config.get_model_key(
+                "multiple_choice_confirmation_analysis"
+            )
         )
-        llm = self._get_model(model_key)
 
-        # inference request dependent on guidance type
-        if model_specific_conf.guidance_type == GuidanceType.PROMPTED.value:
-            response = await llm.achat(
-                messages=messages,
-                **generation_kwargs,
-            )
-        # else: rely on the guidance type as hard-coded via the
-        # backend type
-        else:
-            regex_str = _guidance_regex(model_specific_conf)
-            logger.debug(f"Used regex: {regex_str}")
-            # TODO: JSON, Grammar
-            response = await llm.achat_with_guidance(
-                messages=messages,
-                regex_str=regex_str,
-                generation_kwargs=generation_kwargs,
-            )
+        regex_str = _guidance_regex(model_specific_conf)
+        logger.debug(
+            f"Used guidance type: {model_specific_conf.guidance_type}"
+        )
+        response = await llm.achat_with_guidance(
+            messages=messages,
+            regex_str=regex_str,
+            grammar_str=model_specific_conf.constrained_decoding_grammar,
+            # TODO: JSON via pydantic
+            # output_cls= ...
+            generation_kwargs=generation_kwargs,
+            guidance_type=GuidanceType(model_specific_conf.guidance_type),
+        )
 
         probs_dict = _get_logprobs(
             model_specific_conf.answer_labels,
@@ -457,7 +454,7 @@ def _extract_logprobs(
         raise NotImplementedError(
             "Extracting logprobs for guidance type "
             f"{model_specific_conf.guidance_type}"
-            " is not implemented yet."
+            " is not implemented yet. Leonie will do this soon."
         )
     else:
         raise NotImplementedError(
