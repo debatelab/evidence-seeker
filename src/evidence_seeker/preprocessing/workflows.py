@@ -138,7 +138,7 @@ class PreprocessingWorkflow(Workflow):
         model_key = step_config.used_model_key if step_config else None
         llm = get_openai_llm(**self.config.models[model_key]) if model_key else self.llm
 
-        json_schema = json.dumps(Claims.model_json_schema(), indent=2)
+        # json_schema = json.dumps(Claims.model_json_schema(), indent=2)
         chat_template = self._get_chat_template(step_config)
         messages = chat_template.format_messages(
             claim=ev.claim,
@@ -146,7 +146,9 @@ class PreprocessingWorkflow(Workflow):
             language=self.lang.value,
         )
         response = await llm.achat_with_guidance(
-            messages=messages, json_schema=json_schema
+            messages=messages,
+            # json_schema=json_schema,
+            output_cls=Claims
         )
         claims = Claims.model_validate_json(response.message.content)
         # deduplictae claims
@@ -191,7 +193,7 @@ class PreprocessingWorkflow(Workflow):
         model_key = step_config.used_model_key if step_config else None
         llm = get_openai_llm(**self.config.models[model_key]) if model_key else self.llm
 
-        json_schema = json.dumps(Claims.model_json_schema(), indent=2)
+        # json_schema = json.dumps(Claims.model_json_schema(), indent=2)
         chat_template = self._get_chat_template(step_config)
         messages = chat_template.format_messages(
             claim=ev.claim,
@@ -199,7 +201,9 @@ class PreprocessingWorkflow(Workflow):
             language=self.lang.value,
         )
         response = await llm.achat_with_guidance(
-            messages=messages, json_schema=json_schema
+            messages=messages,
+            # json_schema=json_schema,
+            output_cls=Claims
         )
         claims = Claims.model_validate_json(response.message.content)
         # deduplictae claims
@@ -244,13 +248,15 @@ class PreprocessingWorkflow(Workflow):
         model_key = step_config.used_model_key if step_config else None
         llm = get_openai_llm(**self.config.models[model_key]) if model_key else self.llm
 
-        json_schema = json.dumps(Claims.model_json_schema(), indent=2)
+        # json_schema = json.dumps(Claims.model_json_schema(), indent=2)
         chat_template = self._get_chat_template(step_config)
         messages = chat_template.format_messages(
             claim=ev.claim, normative_analysis=ev.normative_analysis, language=self.lang.value
         )
         response = await llm.achat_with_guidance(
-            messages=messages, json_schema=json_schema
+            messages=messages,
+            # json_schema=json_schema,
+            output_cls=Claims
         )
         claims = Claims.model_validate_json(response.message.content)
         # deduplictae claims
