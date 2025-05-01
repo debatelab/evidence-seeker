@@ -24,7 +24,7 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
     language: str = "DE"
     timeout: int = 120
     verbose: bool = False
-    used_model_key: str = "model_5"
+    used_model_key: str = "together.ai"
     freetext_descriptive_analysis: PipelineStepConfig = pydantic.Field(
         default_factory=lambda: PipelineStepConfig(
             name="freetext_descriptive_analysis",
@@ -164,55 +164,29 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
     )
     models: Dict[str, Dict[str, Any]] = pydantic.Field(
         default_factory=lambda: {
-            "model_1": {
-                "name": "Llama-3.1-70B-Instruct",
-                "description": "NVIDEA NIM API (kostenpflichtig über DebateLab Account)",
-                "base_url": "https://huggingface.co/api/integrations/dgx/v1",
-                "model": "meta-llama/Llama-3.1-70B-Instruct",
-                "api_key_name": "HF_TOKEN_EVIDENCE_SEEKER",
-                "backend_type": "nim",
-                "max_tokens": 2048,
-                "temperature": 0.2,
-            },
-            "model_2": {
-                "name": "Mistral-7B-Instruct-v0.2",
-                "description": "HF inference API",
-                "base_url": "https://api-inference.huggingface.co/v1/",
-                "model": "mistralai/Mistral-7B-Instruct-v0.2",
-                "api_key_name": "HF_TOKEN_EVIDENCE_SEEKER",
+            'lmstudio': {
+                "name": "meta-llama-3.1-8b-instruct",
+                # "name": "llama-3.2-1b-instruct",
+                "description": "Local model served via LMStudio",
+                "base_url": "http://127.0.0.1:1234/v1/",
+                "model": "meta-llama-3.1-8b-instruct",
+                # "model": "llama-3.2-1b-instruct",
                 "backend_type": "openai",
                 "max_tokens": 1024,
                 "temperature": 0.2,
+                "api_key": "not_needed",
+                "timeout": 260
             },
-            "model_3": {
-                "name": "Llama-3.2-3B-Instruct",
-                "description": "HF dedicated endpoint (debatelab)",
-                "base_url": "https://dchi8b9swca6gxbe.eu-west-1.aws.endpoints.huggingface.cloud/v1/",
-                "model": "meta-llama/Llama-3.2-3B-Instruct",
-                "api_key_name": "HF_TOKEN_EVIDENCE_SEEKER",
-                "backend_type": "tgi",
-                "max_tokens": 2048,
+            'together.ai': {
+                "name": "Meta-Llama-3-Instruct",
+                "description": "Model served via Together.ai over HuggingFace",
+                "base_url": "https://router.huggingface.co/together/v1",
+                "model": "meta-llama/Llama-3.2-3B-Instruct-Turbo",
+                "api_key_name": "hf_debatelab_inference_provider",
+                "backend_type": "openai",
+                "max_tokens": 1024,
                 "temperature": 0.2,
-            },
-            "model_4": {
-                "name": "Spätzle 8B",
-                "description": "Kriton@DebateLab",
-                "base_url": "http://kriton.philosophie.kit.edu:8080/v1/",
-                "model": "tgi",
-                "api_key": "no-key-required",
-                "backend_type": "tgi",
-                "max_tokens": 2048,
-                "temperature": 0.2,
-            },
-            "model_5": {
-                "name": "Llama-3.1-70B-Instruct",
-                "description": "HF dedicated endpoint (debatelab)",
-                "base_url": "https://ev6086dt6s7nn1b5.us-east-1.aws.endpoints.huggingface.cloud/v1/",
-                "model": "meta-llama/Llama-3.1-70B-Instruct",
-                "api_key_name": "HF_TOKEN_EVIDENCE_SEEKER",
-                "backend_type": "tgi",
-                "max_tokens": 2048,
-                "temperature": 0.2,
+                "timeout": 260
             },
         }
     )
