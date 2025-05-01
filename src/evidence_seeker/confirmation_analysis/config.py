@@ -166,7 +166,6 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
                             "\n"
                         ),
                         answer_labels=["A", "B", "C"],
-                        n_repetitions_mcq=3,
                         claim_option="Entailment: The TEXT provides sufficient evidence to support the HYPOTHESIS.",
                         delim_str=".",
                         answer_options=[
@@ -174,8 +173,11 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
                             "Contradiction: The TEXT provides evidence that contradicts the HYPOTHESIS.",
                             "Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS.",
                         ],
-                        guidance_type=GuidanceType.JSON.value,
-                        logprobs_type=LogProbsType.OPENAI_LIKE.value,
+                        # guidance_type=GuidanceType.JSON.value,
+                        # logprobs_type=LogProbsType.OPENAI_LIKE.value,
+                        n_repetitions_mcq=3,
+                        guidance_type=GuidanceType.PROMPTED.value,
+                        logprobs_type=LogProbsType.ESTIMATE.value,
                         validation_regex=r"^[\.\(]?(A|B|C)[\.\):]?$",
                     ),
                 }
