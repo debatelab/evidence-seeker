@@ -184,6 +184,7 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
                 "model": "meta-llama/Llama-3.2-3B-Instruct-Turbo",
                 "api_key_name": "hf_debatelab_inference_provider",
                 "backend_type": "openai",
+                "default_headers": {"X-HF-Bill-To": "DebateLabKIT"},
                 "max_tokens": 1024,
                 "temperature": 0.2,
                 "timeout": 260
