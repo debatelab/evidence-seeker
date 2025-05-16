@@ -50,9 +50,9 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
         "You have a background in philosophy and experience in fact checking and debate analysis.\n"
         "You read instructions carefully and follow them precisely. You give concise and clear answers."
     )
-    timeout: int = 240
+    timeout: int = 3000
     verbose: bool = False
-    used_model_key: Optional[str] = None
+    used_model_key: Optional[str] = "lmstudio"
     freetext_confirmation_analysis: PipelineStepConfig = pydantic.Field(
         default_factory=lambda: PipelineStepConfig(
             name="freetext_confirmation_analysis",
@@ -180,6 +180,41 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
                         logprobs_type=LogProbsType.ESTIMATE.value,
                         validation_regex=r"^[\.\(]?(A|B|C)[\.\):]?$",
                     ),
+                    "hf_inference_api": PipelineModelStepConfig(
+                        prompt_template=(
+                            "Your task is to sum up the results of a rich textual entailment analysis.\n"
+                            "\n"
+                            "<TEXT>{evidence_item}</TEXT>\n"
+                            "\n"
+                            "<HYPOTHESIS>{statement}</HYPOTHESIS>\n"
+                            "\n"
+                            "Our previous analysis has yielded the following result:\n"
+                            "\n"
+                            "<RESULT>\n"
+                            "{freetext_confirmation_analysis}\n"
+                            "</RESULT>\n"
+                            "\n"
+                            "Please sum up this result by deciding which of the following choices is correct.\n"
+                            "\n"
+                            "{answer_options}\n"
+                            "\n"
+                            "Just answer with the label ('A', 'B' or 'C') of the correct choice.\n"
+                            "\n"
+                        ),
+                        answer_labels=["A", "B", "C"],
+                        claim_option="Entailment: The TEXT provides sufficient evidence to support the HYPOTHESIS.",
+                        delim_str=".",
+                        answer_options=[
+                            "Entailment: The TEXT provides sufficient evidence to support the HYPOTHESIS.",
+                            "Contradiction: The TEXT provides evidence that contradicts the HYPOTHESIS.",
+                            "Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS.",
+                        ],
+                        # guidance_type=GuidanceType.JSON.value,
+                        # logprobs_type=LogProbsType.OPENAI_LIKE.value,
+                        n_repetitions_mcq=1,
+                        guidance_type=GuidanceType.REGEX.value,
+                        logprobs_type=LogProbsType.ESTIMATE.value,
+                    ),
                 }
             ),
     )
@@ -198,12 +233,10 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
                 "temperature": 0.2,
             },
             'lmstudio': {
-                "name": "meta-llama-3.1-8b-instruct",
-                # "name": "llama-3.2-1b-instruct",
+                "name": "llama-3.2-1b-instruct",
                 "description": "Local model served via LMStudio",
                 "base_url": "http://127.0.0.1:1234/v1/",
-                "model": "meta-llama-3.1-8b-instruct",
-                # "model": "llama-3.2-1b-instruct",
+                "model": "llama-3.2-1b-instruct",
                 "backend_type": "openai",
                 "max_tokens": 1024,
                 "temperature": 0.2,
@@ -217,6 +250,19 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
                 "model": "meta-llama/Llama-3.2-3B-Instruct-Turbo",
                 "api_key_name": "hf_debatelab_inference_provider",
                 "backend_type": "openai",
+                "default_headers": {"X-HF-Bill-To": "DebateLabKIT"},
+                "max_tokens": 1024,
+                "temperature": 0.2,
+                "timeout": 260
+            },
+            'hf_inference_api': {
+                "name": "meta-llama/Llama-3.1-8B-Instruct",
+                "description": "Model served over HuggingFace Inference API",
+                "base_url": "https://router.huggingface.co/hf-inference/models/meta-llama/Llama-3.1-8B-Instruct/v1",
+                "model": "meta-llama/Llama-3.1-8B-Instruct",
+                "api_key_name": "hf_debatelab_inference_provider",
+                "backend_type": "tgi",
+                "default_headers": {"X-HF-Bill-To": "DebateLabKIT"},
                 "max_tokens": 1024,
                 "temperature": 0.2,
                 "timeout": 260

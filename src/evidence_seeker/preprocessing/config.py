@@ -22,9 +22,9 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
         "You read instructions carefully and follow them precisely. You give concise and clear answers."
     )
     language: str = "DE"
-    timeout: int = 120
+    timeout: int = 900
     verbose: bool = False
-    used_model_key: str = "together.ai"
+    used_model_key: str = "lmstudio"
     freetext_descriptive_analysis: PipelineStepConfig = pydantic.Field(
         default_factory=lambda: PipelineStepConfig(
             name="freetext_descriptive_analysis",
@@ -165,12 +165,10 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
     models: Dict[str, Dict[str, Any]] = pydantic.Field(
         default_factory=lambda: {
             'lmstudio': {
-                "name": "meta-llama-3.1-8b-instruct",
-                # "name": "llama-3.2-1b-instruct",
+                "name": "mllama-3.2-1b-instruct",
                 "description": "Local model served via LMStudio",
                 "base_url": "http://127.0.0.1:1234/v1/",
-                "model": "meta-llama-3.1-8b-instruct",
-                # "model": "llama-3.2-1b-instruct",
+                "model": "llama-3.2-1b-instruct",
                 "backend_type": "openai",
                 "max_tokens": 1024,
                 "temperature": 0.2,
