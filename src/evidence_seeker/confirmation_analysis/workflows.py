@@ -80,7 +80,6 @@ class SimpleConfirmationAnalysisWorkflow(Workflow):
                 "you should set `n_repetitions_mcq >= 10`!"
             )
 
-    # TODO: refactor: Create backend class for the models
     def _get_model(
         self,
         model_key: str
@@ -366,6 +365,8 @@ def _get_logprobs(
             randomized_answer_options
         )
     elif model_specific_conf.logprobs_type == LogProbsType.ESTIMATE.value:
+        # mapping: answer (not the label) -> prob
+        # initialize the mapping with prob=0 for all answers
         mapping_answer_probs = {
             answer: 0 for
             answer in randomized_answer_options.enumeration_mapping.values()
@@ -375,6 +376,8 @@ def _get_logprobs(
             chat_response,
             model_specific_conf
         )
+        # setting the prob=1 for the answer
+        # that was chosen by the model
         if answer_label:
             answer = randomized_answer_options.label_to_answer(answer_label)
             mapping_answer_probs[answer] = 1.0
@@ -410,8 +413,10 @@ def _extract_logprobs(
         Logs a warning if the list of alternative first tokens is not
             equal to the given response choices.
     """
+    # mapping: answer (not the label) -> prob
+    # initialize the mapping with prob=0 for all answers
     mapping_answer_probs = {
-        answer: None for
+        answer: 0 for
         answer in randomized_answer_options.enumeration_mapping.values()
     }
     if (
@@ -425,7 +430,7 @@ def _extract_logprobs(
         top_logprobs = chat_response.raw.choices[0].logprobs.content
         first_token_top_logprobs = top_logprobs[0].top_logprobs
         tokens = [token.token for token in first_token_top_logprobs]
-        if not set(tokens) != set(answer_labels):
+        if set(tokens) != set(answer_labels):
             logger.warning(
                 f"WARNING: The list of alternative first tokens ({tokens}) is "
                 f"not equal to the given response choices ({answer_labels}). "
@@ -437,6 +442,7 @@ def _extract_logprobs(
                 f"of alternative first tokens ({tokens}). "
                 "Perhaps, the constrained decoding does not work as expected."
             )
+        # mapping: answer label -> label probability
         probs_dict = {
             token.token: np.exp(token.logprob)
             for token in first_token_top_logprobs
@@ -446,9 +452,11 @@ def _extract_logprobs(
         probs_sum = sum(probs_dict.values())
         probs_dict = {token: float(prob / probs_sum)
                       for token, prob in probs_dict.items()}
-        # TODO: refactor (so far, only the label is returned)
-
-        return probs_dict
+        # update mapping_answer_probs
+        for answer_label in probs_dict.keys():
+            answer = randomized_answer_options.label_to_answer(answer_label)
+            mapping_answer_probs[answer] = probs_dict[answer_label]
+        return mapping_answer_probs
     # TODO: add support for JSON
     elif (model_specific_conf.guidance_type == GuidanceType.JSON.value):
         raise NotImplementedError(
