@@ -209,16 +209,15 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
                             "Contradiction: The TEXT provides evidence that contradicts the HYPOTHESIS.",
                             "Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS.",
                         ],
-                        # guidance_type=GuidanceType.JSON.value,
-                        # logprobs_type=LogProbsType.OPENAI_LIKE.value,
                         n_repetitions_mcq=1,
                         guidance_type=GuidanceType.REGEX.value,
-                        logprobs_type=LogProbsType.ESTIMATE.value,
+                        constrained_decoding_regex="(A)|(B)|(C)",
+                        logprobs_type=LogProbsType.OPENAI_LIKE.value,
                     ),
                 }
             ),
     )
-    # TODO (?): Define Pydantic class for model. Or do we leave it at this? 
+    # TODO (?): Define Pydantic class for model. Or do we leave it at this?
     # Since we want to unpack the dict as model kwargs.
     models: Dict[str, Dict[str, Any]] = pydantic.Field(
         default_factory=lambda: {
