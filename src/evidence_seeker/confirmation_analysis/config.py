@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional
 from loguru import logger
 from llama_index.core import ChatPromptTemplate
 
+import json
 import pydantic
 import enum
 
@@ -14,6 +15,10 @@ class LogProbsType(enum.Enum):
     OPENAI_LIKE = "openai_like"
     ESTIMATE = "estimate"
 
+class Answer(pydantic.BaseModel):
+    answer: str = pydantic.Field(..., 
+                        description="The correct answer, must be one of 'A', 'B', or 'C'.", 
+                        pattern=r"^(A|B|C)$")
 
 class PipelineModelStepConfig(pydantic.BaseModel):
     prompt_template: str
@@ -33,6 +38,7 @@ class PipelineModelStepConfig(pydantic.BaseModel):
     validation_regex: Optional[str] = None
     # log probs
     logprobs_type: Optional[str] = LogProbsType.OPENAI_LIKE.value
+    json_schema: Optional[str|Dict[str, Any]] = None
 
 
 class PipelineStepConfig(pydantic.BaseModel):
@@ -173,12 +179,13 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
                             "Contradiction: The TEXT provides evidence that contradicts the HYPOTHESIS.",
                             "Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS.",
                         ],
-                        # guidance_type=GuidanceType.JSON.value,
-                        # logprobs_type=LogProbsType.OPENAI_LIKE.value,
+                        guidance_type=GuidanceType.JSON.value,
+                        logprobs_type=LogProbsType.OPENAI_LIKE.value,
                         n_repetitions_mcq=3,
-                        guidance_type=GuidanceType.PROMPTED.value,
-                        logprobs_type=LogProbsType.ESTIMATE.value,
+                        #guidance_type=GuidanceType.PROMPTED.value,
+                        #logprobs_type=LogProbsType.ESTIMATE.value,
                         validation_regex=r"^[\.\(]?(A|B|C)[\.\):]?$",
+                        json_schema=Answer.model_json_schema()
                     ),
                     "hf_inference_api": PipelineModelStepConfig(
                         prompt_template=(

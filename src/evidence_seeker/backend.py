@@ -1,13 +1,12 @@
 
 import os
-from typing import Type, Optional
+from typing import Type, Optional, Any, Dict
 
 from dotenv import load_dotenv
 import enum
 from llama_index.llms.openai_like import OpenAILike
 from loguru import logger
 import pydantic
-
 
 class BackendType(enum.Enum):
     NIM = "nim"
@@ -22,7 +21,6 @@ class GuidanceType(enum.Enum):
     PYDANTIC = "pydantic"
     PROMPTED = "prompted"
     STRUCTURED_LLM = "structured_llm"
-
 
 class OpenAILikeWithGuidance(OpenAILike):
 
@@ -41,7 +39,7 @@ class OpenAILikeWithGuidance(OpenAILike):
     async def achat_with_guidance(
             self,
             messages: list[str],
-            json_schema: str = None,
+            json_schema: str | Dict[str, Any] | None = None,
             output_cls: Type[pydantic.BaseModel] = None,
             regex_str: str | None = None,
             grammar_str: str | None = None,
@@ -90,7 +88,7 @@ class OpenAILikeWithGuidance(OpenAILike):
     def _get_guidance_kwargs(
             self,
             guidance_type: GuidanceType,
-            json_schema: str = None,
+            json_schema: str | Dict[str, Any] | None = None,
             output_cls: Type[pydantic.BaseModel] = None,
             regex_str: str | None = None,
             grammar_str: str | None = None,
@@ -142,9 +140,7 @@ class OpenAILikeWithGuidance(OpenAILike):
                 return {
                     "response_format": {
                         "type": "json_schema",
-                        "json_schema": {
-                            "schema": json_schema
-                        }
+                        "schema": json_schema
                     }
                 }
             if guidance_type == GuidanceType.GRAMMAR:
@@ -162,7 +158,7 @@ class OpenAILikeWithGuidance(OpenAILike):
 
 
 def _validate_guidance_params(
-            json_schema: str = None,
+            json_schema: str | Dict[str, Any] | None = None,
             output_cls: Type[pydantic.BaseModel] = None,
             regex_str: str | None = None,
             grammar_str: str | None = None,

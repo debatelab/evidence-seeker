@@ -181,6 +181,7 @@ class SimpleConfirmationAnalysisWorkflow(Workflow):
             regex_str=regex_str,
             grammar_str=model_specific_conf.constrained_decoding_grammar,
             # TODO: JSON via pydantic
+            json_schema=model_specific_conf.json_schema,
             # output_cls= ...
             generation_kwargs=generation_kwargs,
             guidance_type=GuidanceType(model_specific_conf.guidance_type),
@@ -416,7 +417,7 @@ def _extract_logprobs(
     # mapping: answer (not the label) -> prob
     # initialize the mapping with prob=0 for all answers
     mapping_answer_probs = {
-        answer: 0 for
+        answer: 0.0 for
         answer in randomized_answer_options.enumeration_mapping.values()
     }
     if (
@@ -449,21 +450,50 @@ def _extract_logprobs(
             if token.token in answer_labels
         }
         # if necessary, normalize probs
-        probs_sum = sum(probs_dict.values())
+        probs_sum = np.sum(list(probs_dict.values()))
         probs_dict = {token: float(prob / probs_sum)
                       for token, prob in probs_dict.items()}
         # update mapping_answer_probs
         for answer_label in probs_dict.keys():
             answer = randomized_answer_options.label_to_answer(answer_label)
             mapping_answer_probs[answer] = probs_dict[answer_label]
+        logger.debug(mapping_answer_probs)
         return mapping_answer_probs
-    # TODO: add support for JSON
+    # TODO: make JSON support more robust (right now: assumes that answer labels are single tokens, works with together.ai)
     elif (model_specific_conf.guidance_type == GuidanceType.JSON.value):
-        raise NotImplementedError(
-            "Extracting logprobs for guidance type "
-            f"{model_specific_conf.guidance_type}"
-            " is not implemented yet. Leonie will do this soon."
-        )
+        #raise NotImplementedError(
+        #    "Extracting logprobs for guidance type "
+        #    f"{model_specific_conf.guidance_type}"
+        #    " is not implemented yet. Leonie will do this soon."
+        #)
+        if not hasattr(chat_response.raw.choices[0].logprobs, "token_logprobs"):
+            logger.error(
+                "The response does not contain log probabilities."
+            )
+        # mapping: answer label -> label probability
+        probs_dict = {}
+        for i, token in enumerate(chat_response.raw.choices[0].logprobs.model_dump()["tokens"]):
+            if token in answer_labels:
+                alts = chat_response.raw.choices[0].logprobs.model_dump()["top_logprobs"][i].keys()
+                if not set(answer_labels).issubset(set(alts)):
+                    raise RuntimeError(
+                        f"The response choices ({answer_labels}) are not in the list "
+                        f"of alternative tokens ({alts}). "
+                        "Perhaps, the constrained decoding does not work as expected."
+                    )
+                for label in answer_labels:
+                    probs_dict[label] = np.exp(chat_response.raw.choices[0].logprobs.model_dump()["top_logprobs"][i][label])
+                break
+        # if necessary, normalize probs
+        probs_sum = np.sum(list(probs_dict.values()))
+        probs_dict = {token: float(prob / probs_sum)
+                      for token, prob in probs_dict.items()}
+        # update mapping_answer_probs
+        for answer_label in probs_dict.keys():
+            answer = randomized_answer_options.label_to_answer(answer_label)
+            mapping_answer_probs[answer] = probs_dict[answer_label]
+            
+        return mapping_answer_probs
     else:
         raise NotImplementedError(
             "Extracting logprobs for guidance type "
