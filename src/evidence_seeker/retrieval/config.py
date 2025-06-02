@@ -11,6 +11,7 @@ class RetrievalConfig(pydantic.BaseModel):
     embed_base_url: str = "https://ibpp4xgm0kspxkjb.us-east-1.aws.endpoints.huggingface.cloud"
     embed_model_name: str = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
     embed_backend_type: str = "tei"
+    bill_to: str | None = None,
     api_key_name: str = "HF_TOKEN_EVIDENCE_SEEKER"
     embed_batch_size: int = 32
     document_input_dir: str | None = None
