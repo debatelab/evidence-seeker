@@ -29,6 +29,7 @@ import tenacity
 from evidence_seeker.datamodels import CheckedClaim, Document
 from .config import RetrievalConfig
 
+INDEX_PATH_IN_REPO = "index"
 
 class EmbedBackendType(enum.Enum):
     # Embedding via TEI (e.g., as provided by HuggingFace as a service)
@@ -132,6 +133,8 @@ class DocumentRetriever:
 
         self.index_id = config.index_id
         self.index_persist_path = config.index_persist_path
+        if self.index_persist_path:
+            os.path.abspath(config.index_persist_path)
         self.index_hub_path = config.index_hub_path
         self.similarity_top_k = config.top_k
         self.ignore_statement_types = config.ignore_statement_types or []
@@ -162,6 +165,8 @@ class DocumentRetriever:
 
         if self.index_persist_path:
             persist_dir = self.index_persist_path
+            logger.info(f"Using index persist path: {persist_dir}")
+            logger.info(os.path.exists(self.index_persist_path))
             if not os.path.exists(self.index_persist_path):
                 if not self.index_hub_path:
                     raise FileNotFoundError((
@@ -177,11 +182,14 @@ class DocumentRetriever:
                     self.download_index_from_hub(persist_dir)
 
         if not self.index_persist_path:
-            logger.info(f"Downloading index from hub at {self.index_hub_path}")
+            logger.info(
+                f"Downloading index from hub at {self.index_hub_path}..."
+            )
             # storing index in temp dir
             persist_dir = self.download_index_from_hub()
+            logger.info(f"Index downloaded to temp dir: {persist_dir}")
 
-        persist_dir = os.path.join(persist_dir, "index")
+        persist_dir = os.path.join(persist_dir, INDEX_PATH_IN_REPO)
         logger.info(f"Loading index from disk at {persist_dir}")
         # rebuild storage context
         storage_context = StorageContext.from_defaults(persist_dir=persist_dir)
@@ -365,11 +373,19 @@ def build_index(
     bill_to: str | None = None,
     embed_base_url: str | None = None,
     embed_batch_size: int = 32,
-    index_persist_path: str | None = "./storage/index",
+    index_persist_path: str | None = "./storage/",
     upload_hub_path: str | None = None,
-    token: str | None = None,
+    api_token: str | None = None,
+    hub_token: str | None = None,
 ):
-    if not index_persist_path or upload_hub_path:
+    if index_persist_path:
+        index_persist_path = os.path.join(
+            os.path.abspath(index_persist_path),
+            INDEX_PATH_IN_REPO
+        )
+
+    # TODO: Mv validation to `_get_embed_model`
+    if not (index_persist_path or upload_hub_path):
         logger.error(
             "Either index_persist_path or upload_to_hub_path must "
             "be provided. Exiting without building index."
@@ -390,8 +406,7 @@ def build_index(
     if (
         not embed_base_url
         and (
-            embed_backend_type == EmbedBackendType.HUGGINGFACE.value
-            or embed_backend_type == EmbedBackendType.TEI.value
+            embed_backend_type == EmbedBackendType.TEI.value
             or embed_backend_type == EmbedBackendType.HUGGINGFACE_INFERENCE_API.value
         )
     ):
@@ -405,7 +420,7 @@ def build_index(
             embed_model_name=embed_model_name,
             embed_base_url=embed_base_url,
             embed_batch_size=embed_batch_size,
-            token=token,
+            token=api_token,
             bill_to=bill_to,
         )
     )
@@ -447,7 +462,7 @@ def build_index(
 
     if index_persist_path:
         logger.debug(f"Persisting index to {index_persist_path}")
-        index.storage_context.persist(f"./{index_persist_path}")
+        index.storage_context.persist(index_persist_path)
 
     if upload_hub_path:
         folder_path = index_persist_path
@@ -461,12 +476,12 @@ def build_index(
 
         import huggingface_hub
 
-        HfApi = huggingface_hub.HfApi(token=token)
+        HfApi = huggingface_hub.HfApi(token=hub_token)
 
         HfApi.upload_folder(
             repo_id=upload_hub_path,
             folder_path=folder_path,
-            path_in_repo="index",
+            path_in_repo=INDEX_PATH_IN_REPO,
             repo_type="dataset",
         )
 
