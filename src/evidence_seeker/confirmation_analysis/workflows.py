@@ -11,11 +11,12 @@ from llama_index.core.workflow import (
 from loguru import logger
 
 import random
-from typing import List, Set, Dict, Optional
+from typing import List, Set, Dict, Optional, Any
 from llama_index.core.llms import ChatResponse
 import numpy as np
 import re
 import enum
+import json
 
 from evidence_seeker.backend import (
     get_openai_llm,
@@ -330,12 +331,15 @@ def _extract_answer_label(
         model_specific_conf.guidance_type == GuidanceType.JSON.value
         or model_specific_conf.guidance_type == GuidanceType.PYDANTIC.value
     ):
-        # TODO: add support for JSON
-        raise NotImplementedError(
-            "Extracting answer label for guidance type "
-            f"{model_specific_conf.guidance_type}"
-            " is not implemented yet."
-        )
+        res = json.loads(chat_response.raw.choices[0].message.content)
+        if "answer" not in res.keys() or res["answer"] not in set(answer_labels):
+            msg = (
+                f"The response content ({chat_response.raw.choices[0].message.content}) "
+                "does not match the JSON format."
+            )
+            logger.warning(msg)
+            return None 
+        return res["answer"]  
     else:
         raise NotImplementedError(
             "Extracting answer label for guidance type "
@@ -416,7 +420,7 @@ def _extract_logprobs(
     """
     # mapping: answer (not the label) -> prob
     # initialize the mapping with prob=0 for all answers
-    mapping_answer_probs = {
+    mapping_answer_probs : dict[str, float | None]= {
         answer: 0.0 for
         answer in randomized_answer_options.enumeration_mapping.values()
     }
@@ -459,32 +463,46 @@ def _extract_logprobs(
             mapping_answer_probs[answer] = probs_dict[answer_label]
         logger.debug(mapping_answer_probs)
         return mapping_answer_probs
-    # TODO: make JSON support more robust (right now: assumes that answer labels are single tokens, works with together.ai)
+    # Assumes that answer labels are single and unique characters, but considers all tokens within the top_logprobs that contain an answer label,
+    # i.e. does not assume that answer labels always occur as single tokens at the same position within the token string
     elif (model_specific_conf.guidance_type == GuidanceType.JSON.value):
-        #raise NotImplementedError(
-        #    "Extracting logprobs for guidance type "
-        #    f"{model_specific_conf.guidance_type}"
-        #    " is not implemented yet. Leonie will do this soon."
-        #)
         if not hasattr(chat_response.raw.choices[0].logprobs, "token_logprobs"):
             logger.error(
                 "The response does not contain log probabilities."
             )
+        schema = model_specific_conf.json_schema
+        if type(schema) == str: schema = json.loads(schema)
+        try:
+            meta_pattern = r"^\^?(\([a-zA-Z0-9](\|[a-zA-Z0-9])*\)|[a-zA-Z0-9])\$?$"
+            m = re.match(meta_pattern, schema["properties"]["answer"]["pattern"])
+            seen = set()
+            seen_twice = set(x for x in answer_labels if x in seen or seen.add(x))
+            if m is None or len(seen_twice) != 0:
+                logger.warning("JSON Guidance assumes unique and single characters as answer labels. The given JSON schema might not fulfill this requirement and therefore not work as expected.")
+        except KeyError as _:
+            raise RuntimeError("No answer label pattern extractable. Perhaps, the constrained decoding does not work as expected.")
+        
+        answer = _extract_answer_label(answer_labels,chat_response,model_specific_conf)
+        if not answer:
+            raise RuntimeError("No answer label extractable. Perhaps, the constrained decoding does not work as expected.")
         # mapping: answer label -> label probability
         probs_dict = {}
-        for i, token in enumerate(chat_response.raw.choices[0].logprobs.model_dump()["tokens"]):
-            if token in answer_labels:
-                alts = chat_response.raw.choices[0].logprobs.model_dump()["top_logprobs"][i].keys()
-                if not set(answer_labels).issubset(set(alts)):
-                    raise RuntimeError(
-                        f"The response choices ({answer_labels}) are not in the list "
-                        f"of alternative tokens ({alts}). "
-                        "Perhaps, the constrained decoding does not work as expected."
-                    )
+        json_prefix = '{"answer": "'
+        prev = ""
+        tokens = chat_response.raw.choices[0].logprobs.model_dump()["tokens"]
+        top_logprobs = chat_response.raw.choices[0].logprobs.model_dump()["top_logprobs"]
+
+        for i, token in enumerate(tokens):
+            for alt in top_logprobs[i].keys():
                 for label in answer_labels:
-                    probs_dict[label] = np.exp(chat_response.raw.choices[0].logprobs.model_dump()["top_logprobs"][i][label])
-                break
-        # if necessary, normalize probs
+                    if (prev+alt).startswith(json_prefix+label) and top_logprobs[i][alt] and alt.find(label) != -1:
+                        if label not in probs_dict.keys(): 
+                            probs_dict[label] = np.exp(top_logprobs[i][alt])
+                        else:
+                            probs_dict[label] += np.exp(top_logprobs[i][alt])
+            prev += token
+
+        # normalizing probs
         probs_sum = np.sum(list(probs_dict.values()))
         probs_dict = {token: float(prob / probs_sum)
                       for token, prob in probs_dict.items()}
