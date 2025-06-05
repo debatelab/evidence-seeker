@@ -482,21 +482,31 @@ def _extract_logprobs(
                 logger.warning("JSON Guidance assumes unique and single characters as answer labels. The given JSON schema might not fulfill this requirement and therefore not work as expected.")
         except KeyError as _:
             raise RuntimeError("No answer label pattern extractable. Perhaps, the constrained decoding does not work as expected.")
-        
-        answer = _extract_answer_label(answer_labels,chat_response,model_specific_conf)
+
+        answer = _extract_answer_label(
+            answer_labels,
+            chat_response,
+            model_specific_conf
+        )
         if not answer:
-            raise RuntimeError("No answer label extractable. Perhaps, the constrained decoding does not work as expected.")
+            raise RuntimeError(
+                "No answer label extractable. Perhaps, the "
+                "constrained decoding does not work as expected."
+            )
         # mapping: answer label -> label probability
         probs_dict = {}
         json_prefix = '{"answer": "'
         prev = ""
         tokens = chat_response.raw.choices[0].logprobs.model_dump()["tokens"]
         top_logprobs = chat_response.raw.choices[0].logprobs.model_dump()["top_logprobs"]
-
         for i, token in enumerate(tokens):
             for alt in top_logprobs[i].keys():
                 for label in answer_labels:
-                    if (prev+alt).startswith(json_prefix+label) and top_logprobs[i][alt] and alt.find(label) != -1:
+                    if (
+                        (prev+alt).startswith(json_prefix+label)
+                        and top_logprobs[i][alt] is not None
+                        and alt.find(label) != -1
+                    ):
                         if label not in probs_dict.keys(): 
                             probs_dict[label] = np.exp(top_logprobs[i][alt])
                         else:
@@ -511,7 +521,7 @@ def _extract_logprobs(
         for answer_label in probs_dict.keys():
             answer = randomized_answer_options.label_to_answer(answer_label)
             mapping_answer_probs[answer] = probs_dict[answer_label]
-            
+
         return mapping_answer_probs
     else:
         raise NotImplementedError(
