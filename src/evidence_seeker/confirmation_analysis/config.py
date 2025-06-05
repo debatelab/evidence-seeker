@@ -15,6 +15,7 @@ class LogProbsType(enum.Enum):
     OPENAI_LIKE = "openai_like"
     ESTIMATE = "estimate"
 
+# TODO: pattern/answer labels should not be hard coded (they are defined below)
 class Answer(pydantic.BaseModel):
     answer: str = pydantic.Field(..., 
                         description="The correct answer, must be one of 'A', 'B', or 'C'.", 
@@ -38,6 +39,7 @@ class PipelineModelStepConfig(pydantic.BaseModel):
     validation_regex: Optional[str] = None
     # log probs
     logprobs_type: Optional[str] = LogProbsType.OPENAI_LIKE.value
+    # TODO: Remove
     json_schema: Optional[str|Dict[str, Any]] = None
 
 
@@ -58,7 +60,8 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
     )
     timeout: int = 3000
     verbose: bool = False
-    used_model_key: Optional[str] = "lmstudio"
+    #used_model_key: Optional[str] = "lmstudio"
+    used_model_key: Optional[str] = "together.ai"
     freetext_confirmation_analysis: PipelineStepConfig = pydantic.Field(
         default_factory=lambda: PipelineStepConfig(
             name="freetext_confirmation_analysis",
@@ -173,14 +176,14 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
                         ),
                         answer_labels=["A", "B", "C"],
                         claim_option="Entailment: The TEXT provides sufficient evidence to support the HYPOTHESIS.",
-                        delim_str=".",
+                        delim_str="",
                         answer_options=[
                             "Entailment: The TEXT provides sufficient evidence to support the HYPOTHESIS.",
                             "Contradiction: The TEXT provides evidence that contradicts the HYPOTHESIS.",
                             "Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS.",
                         ],
-                        guidance_type=GuidanceType.JSON.value,
-                        logprobs_type=LogProbsType.OPENAI_LIKE.value,
+                        guidance_type=GuidanceType.JSON.value, # ='json'
+                        logprobs_type=LogProbsType.OPENAI_LIKE.value, # ='openai_like'
                         n_repetitions_mcq=3,
                         #guidance_type=GuidanceType.PROMPTED.value,
                         #logprobs_type=LogProbsType.ESTIMATE.value,
