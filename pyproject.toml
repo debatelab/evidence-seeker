@@ -6,17 +6,14 @@ build-backend = "hatchling.build"
 name = "evidence-seeker"
 dynamic = ["version"]
 description = 'EvidenceSeeker Boilerplate'
-readme = """
-A code template for an RAG-based LLM workflow for disambiguating claims and fact-checking them relative to a given database. 
-
-For details, see the <https://github.com/debatelab/evidence-seeker>.
-"""
 # <3.13, since openinference-instrumentation-llama-index==3.0.4 needs python < 3.13
 requires-python = ">=3.8, <3.13"
 license = "MIT"
 keywords = []
 authors = [
   { name = "Gregor Betz", email = "3662782+ggbetz@users.noreply.github.com" },
+  { name = "Sebastian Cacean"},
+  { name = "Leonie Wahl"}
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -40,6 +37,14 @@ dependencies = [
   "wrapt<=1.16.0",
   "httpx==0.27.2",
 ]
+
+[project.readme]
+text = """
+A code template for an RAG-based LLM workflow for disambiguating claims and fact-checking them relative to a given database. 
+
+For details, see the <https://github.com/debatelab/evidence-seeker>.
+"""
+content-type = "text/markdown"
 
 [project.urls]
 Documentation = "https://github.com/debatelab/evidence-seeker#readme"
