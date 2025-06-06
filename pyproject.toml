@@ -6,7 +6,11 @@ build-backend = "hatchling.build"
 name = "evidence-seeker"
 dynamic = ["version"]
 description = 'EvidenceSeeker Boilerplate'
-readme = "README.md"
+readme = """
+A code template for an RAG-based LLM workflow for disambiguating claims and fact-checking them relative to a given database. 
+
+For details, see the <https://github.com/debatelab/evidence-seeker>.
+"""
 # <3.13, since openinference-instrumentation-llama-index==3.0.4 needs python < 3.13
 requires-python = ">=3.8, <3.13"
 license = "MIT"
