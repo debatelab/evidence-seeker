@@ -181,7 +181,6 @@ class SimpleConfirmationAnalysisWorkflow(Workflow):
             messages=messages,
             regex_str=regex_str,
             grammar_str=model_specific_conf.constrained_decoding_grammar,
-            # TODO: JSON via pydantic
             json_schema=model_specific_conf.json_schema,
             # output_cls= ...
             generation_kwargs=generation_kwargs,
@@ -470,19 +469,7 @@ def _extract_logprobs(
             logger.error(
                 "The response does not contain log probabilities."
             )
-        schema = model_specific_conf.json_schema
-        if type(schema) == str: schema = json.loads(schema)
-        try:
-            meta_pattern = r"^\^?(\([a-zA-Z0-9](\|[a-zA-Z0-9])*\)|[a-zA-Z0-9])\$?$"
-            m = re.match(meta_pattern, schema["properties"]["answer"]["pattern"])
-            seen = set()
-            seen_twice = set(x for x in answer_labels if x in seen or seen.add(x))
-            too_long = set(x for x in answer_labels if len(x) != 1)
-            if m is None or len(seen_twice) != 0 or len(too_long) != 0:
-                logger.warning("JSON Guidance assumes unique and single characters as answer labels. The given JSON schema might not fulfill this requirement and therefore not work as expected.")
-        except KeyError as _:
-            raise RuntimeError("No answer label pattern extractable. Perhaps, the constrained decoding does not work as expected.")
-
+        
         answer = _extract_answer_label(
             answer_labels,
             chat_response,

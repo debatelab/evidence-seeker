@@ -1,25 +1,31 @@
 "confirmation_analysis.py"
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Self
 from loguru import logger
 from llama_index.core import ChatPromptTemplate
 
-import json
+import re
 import pydantic
 import enum
 
 from evidence_seeker.backend import GuidanceType
 
-
 class LogProbsType(enum.Enum):
     OPENAI_LIKE = "openai_like"
     ESTIMATE = "estimate"
 
-# TODO: pattern/answer labels should not be hard coded (they are defined below)
-class Answer(pydantic.BaseModel):
-    answer: str = pydantic.Field(..., 
-                        description="The correct answer, must be one of 'A', 'B', or 'C'.", 
-                        pattern=r"^(A|B|C)$")
+def json_schema(pattern : str) -> Dict[str, Any]:
+    return {
+        "properties": {
+            "answer": {
+            "type": "string",
+            "pattern": pattern
+            }
+        },
+        "required": [
+            "answer",
+        ]
+    }
 
 class PipelineModelStepConfig(pydantic.BaseModel):
     prompt_template: str
@@ -32,16 +38,33 @@ class PipelineModelStepConfig(pydantic.BaseModel):
     answer_options: Optional[List[str]] = None
     delim_str: Optional[str] = "."
     # Fields used for constrained decoding
-    guidance_type: Optional[str] = GuidanceType.JSON.value
+    guidance_type: Optional[str] = GuidanceType.REGEX.value
     constrained_decoding_regex: Optional[str] = None
     constrained_decoding_grammar: Optional[str] = None
     # used for regex-based validation of the output for `GuidanceType.PROMPTED`
     validation_regex: Optional[str] = None
     # log probs
     logprobs_type: Optional[str] = LogProbsType.OPENAI_LIKE.value
-    # TODO: Remove
-    json_schema: Optional[str|Dict[str, Any]] = None
-
+    # JSON schema for JSON Guidance
+    @pydantic.computed_field
+    @property
+    def json_schema(self) -> Optional[str|Dict[str, Any]]:
+        if self.guidance_type == GuidanceType.JSON.value and self.answer_labels is not None and len(self.answer_labels)!=0:
+            return json_schema(pattern=rf"^({'|'.join(self.answer_labels)})$")
+        return None
+    # Validation of answer labels for JSON Guidance
+    @pydantic.model_validator(mode='after')
+    def check_answer_labels(self) -> Self:
+        if self.guidance_type == GuidanceType.JSON.value:
+            if self.answer_labels is None or len(self.answer_labels)==0:
+                raise ValueError('Please provide possible answer labels for multiple choice tasks when using JSON Guidance.')
+            else:
+                seen = set()
+                seen_twice = set(x for x in self.answer_labels if x in seen or seen.add(x))
+                valid_labels = True; [valid_labels := valid_labels & (re.match(r"^[a-zA-Z0-9]$", l) is not None) for l in self.answer_labels]
+                if len(seen_twice) != 0 or not valid_labels:
+                    raise ValueError("JSON Guidance assumes unique and single characters as answer labels. Possible characters are ASCII characters in the ranges of a-z, A-Z and 0-9.")
+        return self
 
 class PipelineStepConfig(pydantic.BaseModel):
     name: str
@@ -79,7 +102,7 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
                         "Contradiction: The TEXT provides evidence that contradicts the HYPOTHESIS.\n"
                         "Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS.\n"
                         "Please discuss this question thoroughly before providing your final answer."
-                    ),
+                    )
                 )
             }
         )
@@ -188,7 +211,7 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
                         #guidance_type=GuidanceType.PROMPTED.value,
                         #logprobs_type=LogProbsType.ESTIMATE.value,
                         validation_regex=r"^[\.\(]?(A|B|C)[\.\):]?$",
-                        json_schema=Answer.model_json_schema()
+                        #json_schema=Answer.model_json_schema()
                     ),
                     "hf_inference_api": PipelineModelStepConfig(
                         prompt_template=(
