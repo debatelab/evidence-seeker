@@ -70,7 +70,7 @@ dependencies = [
   "pytest",
 ]
 
-[tool.hatch.envs.dev_env]
+[tool.hatch.envs.evse-dev_env]
 type = "pip-compile"
 lock-filename = "locks/{env_name}.lock"
 dependencies = [
@@ -85,7 +85,7 @@ dependencies = [
   "llama-index-embeddings-ollama"
 ]
 
-[[tool.hatch.envs.dev_env.matrix]]
+[[tool.hatch.envs.evse-dev_env.matrix]]
 python = ["3.11", "3.12"]
 
 [tool.hatch.envs.types]
