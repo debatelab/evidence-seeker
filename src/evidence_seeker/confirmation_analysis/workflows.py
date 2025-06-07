@@ -187,9 +187,6 @@ class SimpleConfirmationAnalysisWorkflow(Workflow):
         )
 
         regex_str = _guidance_regex(model_specific_conf)
-        logger.debug(
-            f"Used guidance type: {model_specific_conf.guidance_type}"
-        )
         response = await llm.achat_with_guidance(
             messages=messages,
             regex_str=regex_str,

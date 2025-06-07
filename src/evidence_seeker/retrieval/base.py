@@ -166,7 +166,6 @@ class DocumentRetriever:
         if self.index_persist_path:
             persist_dir = self.index_persist_path
             logger.info(f"Using index persist path: {persist_dir}")
-            logger.info(os.path.exists(self.index_persist_path))
             if not os.path.exists(self.index_persist_path):
                 if not self.index_hub_path:
                     raise FileNotFoundError((
