@@ -80,6 +80,19 @@ class SimpleConfirmationAnalysisWorkflow(Workflow):
                 "For reliably estimating log probs (LogProbsType.ESTIMATE) "
                 "you should set `n_repetitions_mcq >= 10`!"
             )
+        logger.debug(
+            f"Using {self.n_repetitions_mcq} repetitions for "
+            "multiple choice confirmation entailement question."
+        )
+        logger.debug(
+            f"Using {mcq_config.guidance_type} as "
+            "guidance type for multiple choice entailement question."
+        )
+        logger.debug(
+            f"Using {mcq_config.logprobs_type} as "
+            "logits retrieval type."
+        )
+
 
     def _get_model(
         self,
