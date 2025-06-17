@@ -6,7 +6,6 @@ import tempfile
 from typing import Callable, Dict, List, Optional
 import uuid
 import yaml
-import enum
 
 from llama_index.embeddings.text_embeddings_inference import (
     TextEmbeddingsInference,
@@ -27,20 +26,9 @@ from loguru import logger
 import tenacity
 
 from evidence_seeker.datamodels import CheckedClaim, Document
-from .config import RetrievalConfig
+from .config import RetrievalConfig, EmbedBackendType
 
 INDEX_PATH_IN_REPO = "index"
-
-class EmbedBackendType(enum.Enum):
-    # Embedding via TEI (e.g., as provided by HuggingFace as a service)
-    TEI = "tei"
-    # Local embedding via ollama
-    # TODO/TOFIX: Ollama embedding throws errors. Check if we can fix it.
-    OLLAMA = "ollama"
-    # Local embedding via huggingface
-    HUGGINGFACE = "huggingface"
-    # HF Inference API
-    HUGGINGFACE_INFERENCE_API = "huggingface_inference_api"
 
 
 class PatientTextEmbeddingsInference(TextEmbeddingsInference):
@@ -224,7 +212,10 @@ class DocumentRetriever:
         return persist_dir
 
     async def retrieve_documents(self, claim: CheckedClaim) -> list[Document]:
-        """retrieve top_k documents that are relevant for the claim and/or its negation"""
+        """
+        retrieve top_k documents that are relevant for the claim
+        and/or its negation
+        """
 
         retriever = self.index.as_retriever(
             similarity_top_k=self.similarity_top_k
@@ -245,11 +236,18 @@ class DocumentRetriever:
 
         return documents
 
-    async def retrieve_pair_documents(self, claim: CheckedClaim) -> list[Document]:
-        """retrieve top_k documents that are relevant for the claim and/or its negation"""
+    async def retrieve_pair_documents(
+            self, claim: CheckedClaim
+    ) -> list[Document]:
+        """
+        retrieve top_k documents that are relevant for the claim
+        and/or its negation
+        """
 
-        retriever = self.index.as_retriever(similarity_top_k=self.similarity_top_k / 2)
-        matches : list = await retriever.aretrieve(claim.text)
+        retriever = self.index.as_retriever(
+            similarity_top_k=self.similarity_top_k / 2
+        )
+        matches: list = await retriever.aretrieve(claim.text)
         matches_neg = await retriever.aretrieve(claim.negation)
         # NOTE: We're just using the claim text for now,
         # but we could also use the claim's negation.
@@ -361,131 +359,138 @@ def _get_embed_model(
         )
 
 
-def build_index(
-    document_input_dir: str | None = None,
-    document_input_files: List[str] | None = None,
-    document_file_metadata: Callable[[str], Dict] | None = None,
-    window_size: int = 3,
-    index_id: str = "default_index_id",
-    embed_model_name: str | None = None,
-    embed_backend_type: str = "tei",
-    bill_to: str | None = None,
-    embed_base_url: str | None = None,
-    embed_batch_size: int = 32,
-    index_persist_path: str | None = "./storage/",
-    upload_hub_path: str | None = None,
-    api_token: str | None = None,
-    hub_token: str | None = None,
-):
-    if index_persist_path:
-        index_persist_path = os.path.join(
-            os.path.abspath(index_persist_path),
-            INDEX_PATH_IN_REPO
-        )
+class IndexBuilder:
 
-    # TODO: Mv validation to `_get_embed_model`
-    if not (index_persist_path or upload_hub_path):
-        logger.error(
-            "Either index_persist_path or upload_to_hub_path must "
-            "be provided. Exiting without building index."
-        )
-        return
-
-    if os.path.exists(index_persist_path):
-        logger.warning(
-            f"Index persist path {index_persist_path} already exists. "
-            "Exiting without building index."
-        )
-        return
-
-    if not embed_model_name:
-        logger.error("No embed_model_kwargs provided. "
-                     "Exiting without building index.")
-        return
-    if (
-        not embed_base_url
-        and (
-            embed_backend_type == EmbedBackendType.TEI.value
-            or embed_backend_type == EmbedBackendType.HUGGINGFACE_INFERENCE_API.value
-        )
+    def __init__(
+            self,
+            config: RetrievalConfig | None = None,
+            config_file: str | None = None,
+            env_file: str | None = None,
+            **kwargs
     ):
-        logger.error("No base_url provided. Exiting without building index.")
-        return
+        if config is not None:
+            self.config = config
+        elif config_file is not None:
+            path = pathlib.Path(config_file)
+            self.config = RetrievalConfig(**yaml.safe_load(path.read_text()))
+        else:
+            self.config = RetrievalConfig()
 
-    embed_model = _get_embed_model(
-        EmbedBackendType(embed_backend_type),
-        **_get_text_embeddings_inference_kwargs(
-            embed_backend_type=EmbedBackendType(embed_backend_type),
-            embed_model_name=embed_model_name,
-            embed_base_url=embed_base_url,
-            embed_batch_size=embed_batch_size,
-            token=api_token,
-            bill_to=bill_to,
-        )
-    )
+        if env_file is not None:
+            import dotenv
+            dotenv.load_dotenv(env_file)
 
-    if document_input_dir and document_input_files:
-        logger.warning(
-            "Both document_input_dir and document_input_files provided. "
-            "Using document_input_files."
-        )
-        document_input_dir = None
-    if document_input_dir:
-        logger.debug(f"Reading documents from {document_input_dir}")
-    if document_input_files:
-        logger.debug(f"Reading documents from {document_input_files}")
+        # For building the index, we add `INDEX_PATH_IN_REPO` as subdirectory.
+        if self.config.index_persist_path:
+            self.config.index_persist_path = os.path.join(
+                os.path.abspath(self.config.index_persist_path),
+                INDEX_PATH_IN_REPO
+            )
 
-    from llama_index.core import SimpleDirectoryReader
-    from llama_index.core.node_parser import SentenceWindowNodeParser
-
-    logger.info("Building document index...")
-    documents = SimpleDirectoryReader(
-        input_dir=document_input_dir,
-        input_files=document_input_files,
-        filename_as_id=True,
-        file_metadata=document_file_metadata,
-    ).load_data()
-
-    logger.debug("Parsing nodes...")
-    nodes = SentenceWindowNodeParser.from_defaults(
-        window_size=window_size,
-        window_metadata_key="window",
-        original_text_metadata_key="original_text",
-    ).get_nodes_from_documents(documents)
-
-    logger.debug("Creating VectorStoreIndex with embeddings...")
-    index = VectorStoreIndex(
-        nodes, use_async=False, embed_model=embed_model, show_progress=True
-    )
-    index.set_index_id(index_id)
-
-    if index_persist_path:
-        logger.debug(f"Persisting index to {index_persist_path}")
-        index.storage_context.persist(index_persist_path)
-
-    if upload_hub_path:
-        folder_path = index_persist_path
-
-        if not folder_path:
-            # Save index in tmp dict
-            folder_path = tempfile.mkdtemp()
-            index.storage_context.persist(folder_path)
-
-        logger.debug(f"Uploading index to hub at {upload_hub_path}")
-
-        import huggingface_hub
-
-        HfApi = huggingface_hub.HfApi(token=hub_token)
-
-        HfApi.upload_folder(
-            repo_id=upload_hub_path,
-            folder_path=folder_path,
-            path_in_repo=INDEX_PATH_IN_REPO,
-            repo_type="dataset",
+        api_token = os.getenv(self.config.api_key_name)
+        if not api_token:
+            logger.warning("No API token provided for embedding model.")
+        # init embed model
+        self.embed_model = _get_embed_model(
+            EmbedBackendType(self.config.embed_backend_type),
+            **_get_text_embeddings_inference_kwargs(
+                embed_backend_type=EmbedBackendType(
+                    self.config.embed_backend_type
+                ),
+                embed_model_name=self.config.embed_model_name,
+                embed_base_url=self.config.embed_base_url,
+                embed_batch_size=self.config.embed_batch_size,
+                token=api_token,
+                bill_to=self.config.bill_to,
+            )
         )
 
-        if not index_persist_path:
-            # remove tmp folder
-            import shutil
+    def build_index(
+            self,
+            document_file_metadata: Callable[[str], Dict] | None = None,
+    ):
+        conf = self.config
+        if os.path.exists(conf.index_persist_path):
+            logger.warning(
+                f"Index persist path {conf.index_persist_path} "
+                "already exists. Exiting without building index."
+                "If you want to rebuild the index, "
+                "please remove the existing sub directory 'index'"
+                f" in {conf.index_persist_path}."
+            )
+            return
+        if conf.document_input_dir and conf.document_input_files:
+            logger.warning(
+                "Both document_input_dir and document_input_files provided. "
+                "Using document_input_files."
+            )
+            conf.document_input_dir = None
 
-            shutil.rmtree(folder_path)
+        if conf.document_input_dir:
+            logger.debug(f"Reading documents from {conf.document_input_dir}")
+        if conf.document_input_files:
+            logger.debug(f"Reading documents from {conf.document_input_files}")
+
+        from llama_index.core import SimpleDirectoryReader
+        from llama_index.core.node_parser import SentenceWindowNodeParser
+
+        logger.info("Building document index...")
+        documents = SimpleDirectoryReader(
+            input_dir=conf.document_input_dir,
+            input_files=conf.document_input_files,
+            filename_as_id=True,
+            file_metadata=document_file_metadata,
+        ).load_data()
+
+        logger.debug("Parsing nodes...")
+        nodes = SentenceWindowNodeParser.from_defaults(
+            window_size=conf.window_size,
+            window_metadata_key="window",
+            original_text_metadata_key="original_text",
+        ).get_nodes_from_documents(documents)
+
+        logger.debug("Creating VectorStoreIndex with embeddings...")
+        index = VectorStoreIndex(
+            nodes,
+            use_async=False,
+            embed_model=self.embed_model,
+            show_progress=True
+        )
+        index.set_index_id(conf.index_id)
+
+        if conf.index_persist_path:
+            logger.debug(f"Persisting index to {conf.index_persist_path}")
+            index.storage_context.persist(conf.index_persist_path)
+
+        if conf.index_hub_path:
+            folder_path = conf.index_persist_path
+
+            if not folder_path:
+                # Save index in tmp dict
+                folder_path = tempfile.mkdtemp()
+                index.storage_context.persist(folder_path)
+
+            logger.debug(f"Uploading index to hub at {conf.upload_hub_path}")
+
+            import huggingface_hub
+
+            hub_token = os.getenv(conf.hub_key_name)
+            if not hub_token:
+                logger.warning(
+                    "No Hugging Face hub token found as environment variable. "
+                    "Index will not be uploaded to the hub.")
+                return
+            HfApi = huggingface_hub.HfApi(token=hub_token)
+
+            HfApi.upload_folder(
+                repo_id=conf.index_hub_path,
+                folder_path=folder_path,
+                path_in_repo=INDEX_PATH_IN_REPO,
+                repo_type="dataset",
+            )
+
+            if not conf.index_persist_path:
+                # remove tmp folder
+                import shutil
+
+                shutil.rmtree(folder_path)
