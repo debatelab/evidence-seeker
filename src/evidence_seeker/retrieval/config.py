@@ -32,6 +32,7 @@ class RetrievalConfig(pydantic.BaseModel):
     hub_key_name: str | None = "HF_HUB_TOKEN"
     embed_batch_size: int = 32
     document_input_dir: str | None = "./knowledge_base/data_files"
+    meta_data_file: str | None = "./knowledge_base/meta_data.json"
     document_input_files: list[str] | None = None
     window_size: int = 3
     index_id: str = "default_index_id"

@@ -413,7 +413,7 @@ class IndexBuilder:
         if os.path.exists(conf.index_persist_path):
             logger.warning(
                 f"Index persist path {conf.index_persist_path} "
-                "already exists. Exiting without building index."
+                "already exists. Exiting without building index. "
                 "If you want to rebuild the index, "
                 "please remove the existing sub directory 'index'"
                 f" in {conf.index_persist_path}."
@@ -421,10 +421,34 @@ class IndexBuilder:
             return
         if conf.document_input_dir and conf.document_input_files:
             logger.warning(
-                "Both document_input_dir and document_input_files provided. "
-                "Using document_input_files."
+                "Both 'document_input_dir' and 'document_input_files' "
+                " provided'. Using 'document_input_files'."
             )
             conf.document_input_dir = None
+        # handle document file metadata
+        if conf.meta_data_file:
+            logger.info(
+                f"Using metadata file {conf.meta_data_file} for documents."
+            )
+            if document_file_metadata is not None:
+                logger.warning(
+                    "Both callable 'document_file_metadata' and "
+                    "'meta_data_file' provided. "
+                    "Using 'document_file_metadata'."
+                )
+            # check if metadata file exists
+            if not os.path.exists(conf.meta_data_file):
+                logger.warning(
+                    f"Metadata file {conf.meta_data_file} does not exist. "
+                )
+                document_file_metadata = None
+            else:
+                import json
+                with open(conf.meta_data_file, "r") as f:
+                    metadata_dict = json.load(f)
+
+                def document_file_metadata(file_name: str):
+                    metadata_dict.get(file_name, {})
 
         if conf.document_input_dir:
             logger.debug(f"Reading documents from {conf.document_input_dir}")

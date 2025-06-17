@@ -1,4 +1,4 @@
 "retrieval module"
 
-from .base import DocumentRetriever, build_index
+from .base import DocumentRetriever
 from .config import RetrievalConfig
