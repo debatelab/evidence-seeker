@@ -33,6 +33,7 @@ class RetrievalConfig(pydantic.BaseModel):
     embed_batch_size: int = 32
     document_input_dir: str | None = "./knowledge_base/data_files"
     meta_data_file: str | None = "./knowledge_base/meta_data.json"
+    env_file: str | None = "./config/api_keys.txt"
     document_input_files: list[str] | None = None
     window_size: int = 3
     index_id: str = "default_index_id"
@@ -123,4 +124,30 @@ class RetrievalConfig(pydantic.BaseModel):
             )
             logger.error(err_msg)
             raise ValueError(err_msg)
+        return config
+
+    @model_validator(mode='after')
+    def load_env_file(
+        cls,
+        config: 'RetrievalConfig'
+    ) -> 'RetrievalConfig':
+        if config.env_file is not None:
+            # check if the env file exists
+            from os import path
+            if not path.exists(config.env_file):
+                err_msg = (
+                    f"Environment file '{config.env_file}' does not exist. "
+                    "Please provide a valid path to the environment file. "
+                    "Or set it to None if you don't need it and set the "
+                    "API keys in other ways as environment variables."
+                )
+                logger.error(err_msg)
+                raise FileNotFoundError(err_msg)
+            # load the env file
+            from dotenv import load_dotenv
+            load_dotenv(config.env_file)
+            logger.info(
+                f"Loaded environment variables from '{config.env_file}'"
+            )
+
         return config

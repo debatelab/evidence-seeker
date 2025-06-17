@@ -361,24 +361,11 @@ def _get_embed_model(
 
 class IndexBuilder:
 
-    def __init__(
-            self,
-            config: RetrievalConfig | None = None,
-            config_file: str | None = None,
-            env_file: str | None = None,
-            **kwargs
-    ):
+    def __init__(self, config: RetrievalConfig | None = None):
         if config is not None:
             self.config = config
-        elif config_file is not None:
-            path = pathlib.Path(config_file)
-            self.config = RetrievalConfig(**yaml.safe_load(path.read_text()))
         else:
             self.config = RetrievalConfig()
-
-        if env_file is not None:
-            import dotenv
-            dotenv.load_dotenv(env_file)
 
         # For building the index, we add `INDEX_PATH_IN_REPO` as subdirectory.
         if self.config.index_persist_path:
@@ -404,6 +391,12 @@ class IndexBuilder:
                 bill_to=self.config.bill_to,
             )
         )
+
+    @staticmethod
+    def from_config_file(config_file: str):
+        path = pathlib.Path(config_file)
+        config = RetrievalConfig(**yaml.safe_load(path.read_text()))
+        return IndexBuilder(config=config)
 
     def build_index(
             self,
