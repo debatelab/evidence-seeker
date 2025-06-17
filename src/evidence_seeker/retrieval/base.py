@@ -117,7 +117,11 @@ class DocumentRetriever:
         self.embed_backend_type = config.embed_backend_type
         self.embed_base_url = config.embed_base_url
         self.embed_batch_size = config.embed_batch_size
-        self.token = kwargs.get("token", os.getenv(config.api_key_name))
+
+        self.api_token = kwargs.get("token", os.getenv(config.api_key_name))
+        self.hub_token = kwargs.get(
+            "hub_token", os.getenv(config.hub_key_name)
+        )
 
         self.index_id = config.index_id
         self.index_persist_path = config.index_persist_path
@@ -136,7 +140,7 @@ class DocumentRetriever:
                 embed_model_name=self.embed_model_name,
                 embed_base_url=self.embed_base_url,
                 embed_batch_size=self.embed_batch_size,
-                token=self.token,
+                token=self.api_token,
                 bill_to=self.bill_to,
             )
         )
@@ -154,7 +158,11 @@ class DocumentRetriever:
         if self.index_persist_path:
             persist_dir = self.index_persist_path
             logger.info(f"Using index persist path: {persist_dir}")
-            if not os.path.exists(self.index_persist_path):
+            if (
+                not os.path.exists(self.index_persist_path)
+                # empty directory check
+                or not os.listdir(self.index_persist_path)
+            ):
                 if not self.index_hub_path:
                     raise FileNotFoundError((
                         f"Index not found at {self.index_persist_path}."
@@ -199,7 +207,7 @@ class DocumentRetriever:
 
         import huggingface_hub
 
-        HfApi = huggingface_hub.HfApi(token=self.token)
+        HfApi = huggingface_hub.HfApi(token=self.hub_token)
         if persist_dir is None:
             persist_dir = tempfile.mkdtemp()
 
@@ -207,7 +215,7 @@ class DocumentRetriever:
             repo_id=self.index_hub_path,
             repo_type="dataset",
             local_dir=persist_dir,
-            token=self.token,
+            token=self.hub_token,
         )
         return persist_dir
 
