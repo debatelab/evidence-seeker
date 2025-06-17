@@ -85,6 +85,34 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
     verbose: bool = False
     #used_model_key: Optional[str] = "lmstudio"
     used_model_key: Optional[str] = "together.ai"
+    env_file: str | None = None
+
+    @pydantic.model_validator(mode='after')
+    def load_env_file(
+        cls,
+        config: 'ConfirmationAnalyzerConfig'
+    ) -> 'ConfirmationAnalyzerConfig':
+        if config.env_file is not None:
+            # check if the env file exists
+            from os import path
+            if not path.exists(config.env_file):
+                err_msg = (
+                    f"Environment file '{config.env_file}' does not exist. "
+                    "Please provide a valid path to the environment file. "
+                    "Or set it to None if you don't need it and set the "
+                    "API keys in other ways as environment variables."
+                )
+                logger.error(err_msg)
+                raise FileNotFoundError(err_msg)
+            # load the env file
+            from dotenv import load_dotenv
+            load_dotenv(config.env_file)
+            logger.info(
+                f"Loaded environment variables from '{config.env_file}'"
+            )
+
+        return config
+
     freetext_confirmation_analysis: PipelineStepConfig = pydantic.Field(
         default_factory=lambda: PipelineStepConfig(
             name="freetext_confirmation_analysis",

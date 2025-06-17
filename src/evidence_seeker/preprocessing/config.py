@@ -3,6 +3,7 @@
 from typing import Any, Dict
 
 import pydantic
+from loguru import logger
 
 
 class PipelineStepConfig(pydantic.BaseModel):
@@ -24,7 +25,35 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
     language: str = "DE"
     timeout: int = 900
     verbose: bool = False
-    used_model_key: str = "lmstudio"
+    env_file: str | None = None
+
+    @pydantic.model_validator(mode='after')
+    def load_env_file(
+        cls,
+        config: 'ClaimPreprocessingConfig'
+    ) -> 'ClaimPreprocessingConfig':
+        if config.env_file is not None:
+            # check if the env file exists
+            from os import path
+            if not path.exists(config.env_file):
+                err_msg = (
+                    f"Environment file '{config.env_file}' does not exist. "
+                    "Please provide a valid path to the environment file. "
+                    "Or set it to None if you don't need it and set the "
+                    "API keys in other ways as environment variables."
+                )
+                logger.error(err_msg)
+                raise FileNotFoundError(err_msg)
+            # load the env file
+            from dotenv import load_dotenv
+            load_dotenv(config.env_file)
+            logger.info(
+                f"Loaded environment variables from '{config.env_file}'"
+            )
+
+        return config
+
+    used_model_key: str = "together.ai"
     freetext_descriptive_analysis: PipelineStepConfig = pydantic.Field(
         default_factory=lambda: PipelineStepConfig(
             name="freetext_descriptive_analysis",
