@@ -118,9 +118,12 @@ class DocumentRetriever:
         self.embed_base_url = config.embed_base_url
         self.embed_batch_size = config.embed_batch_size
 
-        self.api_token = kwargs.get("token", os.getenv(config.api_key_name))
+        self.api_token = kwargs.get(
+            "token",
+            os.getenv(config.api_key_name or "No API_KEY_NAME_"))
         self.hub_token = kwargs.get(
-            "hub_token", os.getenv(config.hub_key_name)
+            "hub_token",
+            os.getenv(config.hub_key_name or "No _HUB_KEY_NAME_")
         )
 
         self.index_id = config.index_id
@@ -382,7 +385,7 @@ class IndexBuilder:
                 INDEX_PATH_IN_REPO
             )
 
-        api_token = os.getenv(self.config.api_key_name)
+        api_token = os.getenv(self.config.api_key_name or "No API_KEY_NAME_")
         if not api_token:
             logger.warning("No API token provided for embedding model.")
         # init embed model
@@ -408,7 +411,7 @@ class IndexBuilder:
 
     def build_index(
             self,
-            document_file_metadata: Callable[[str], Dict] | None = None,
+            metadata_func: Callable[[str], Dict] | None = None,
     ):
         conf = self.config
         if os.path.exists(conf.index_persist_path):
@@ -431,25 +434,26 @@ class IndexBuilder:
             logger.info(
                 f"Using metadata file {conf.meta_data_file} for documents."
             )
-            if document_file_metadata is not None:
+            if metadata_func is not None:
                 logger.warning(
-                    "Both callable 'document_file_metadata' and "
-                    "'meta_data_file' provided. "
-                    "Using 'document_file_metadata'."
+                    "Both callable 'metadata_func' and "
+                    "'meta_data_file' are provided. "
+                    "Using 'metadata_func'."
                 )
-            # check if metadata file exists
-            if not os.path.exists(conf.meta_data_file):
-                logger.warning(
-                    f"Metadata file {conf.meta_data_file} does not exist. "
-                )
-                document_file_metadata = None
             else:
-                import json
-                with open(conf.meta_data_file, "r") as f:
-                    metadata_dict = json.load(f)
+                # check if metadata file exists
+                if not os.path.exists(conf.meta_data_file):
+                    logger.warning(
+                        f"Metadata file {conf.meta_data_file} does not exist. "
+                    )
+                    metadata_func = None
+                else:
+                    import json
+                    with open(conf.meta_data_file, "r") as f:
+                        metadata_dict = json.load(f)
 
-                def document_file_metadata(file_name: str):
-                    metadata_dict.get(file_name, {})
+                    def metadata_func(file_name: str):
+                        metadata_dict.get(file_name, {})
 
         if conf.document_input_dir:
             logger.debug(f"Reading documents from {conf.document_input_dir}")
@@ -464,7 +468,7 @@ class IndexBuilder:
             input_dir=conf.document_input_dir,
             input_files=conf.document_input_files,
             filename_as_id=True,
-            file_metadata=document_file_metadata,
+            file_metadata=metadata_func,
         ).load_data()
 
         logger.debug("Parsing nodes...")
@@ -499,7 +503,7 @@ class IndexBuilder:
 
             import huggingface_hub
 
-            hub_token = os.getenv(conf.hub_key_name)
+            hub_token = os.getenv(conf.hub_key_name or "No _HUB_KEY_NAME_")
             if not hub_token:
                 logger.warning(
                     "No Hugging Face hub token found as environment variable. "

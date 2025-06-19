@@ -8,6 +8,7 @@ from llama_index.llms.openai_like import OpenAILike
 from loguru import logger
 import pydantic
 
+
 class BackendType(enum.Enum):
     NIM = "nim"
     TGI = "tgi"
@@ -22,9 +23,10 @@ class GuidanceType(enum.Enum):
     PROMPTED = "prompted"
     STRUCTURED_LLM = "structured_llm"
 
+
 class OpenAILikeWithGuidance(OpenAILike):
 
-    backend_type: str | None = None
+    backend_type: Optional[str] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -60,7 +62,7 @@ class OpenAILikeWithGuidance(OpenAILike):
                     **generation_kwargs,
                 )
             # Using the llama-index interface for structured output
-            # see: https://docs.llamaindex.ai/en/stable/understanding/extraction/
+            # https://docs.llamaindex.ai/en/stable/understanding/extraction/
             elif (
                 self.backend_type == BackendType.OPENAI.value and
                 guidance_type == GuidanceType.STRUCTURED_LLM
@@ -157,6 +159,7 @@ class OpenAILikeWithGuidance(OpenAILike):
         )
 
 
+# TODO: Move to config classes and use pydantic validators
 def _validate_guidance_params(
             json_schema: str | Dict[str, Any] | None = None,
             output_cls: Type[pydantic.BaseModel] = None,
@@ -207,6 +210,7 @@ def _validate_guidance_params(
         raise ValueError(error_msg)
     return True
 
+
 def get_openai_llm(
         api_key: str = None,
         api_key_name: str = None,
@@ -221,18 +225,26 @@ def get_openai_llm(
         **kwargs) -> OpenAILikeWithGuidance:
 
     if api_key is None and api_key_name is None:
-        raise ValueError(
-            "You should provide an api key or a name of"
-            "an env variable that holds the api key."
+        logger.warning(
+            "Neither an API key nor a name of "
+            "an env variable that holds the API key are provided. "
+            "We assume the an API key is not needed an set it to "
+            " 'api_key_not_needed'."
         )
-    if api_key is None:
+        api_key = "api_key_not_needed"
+    elif api_key is None and api_key_name is not None:
         logger.debug(f"Fetching api key via env var: {api_key_name}")
-        load_dotenv()
-        if os.environ.get(api_key_name) is None:
+        api_key = os.getenv(api_key_name, None)
+        if api_key is None:
             raise ValueError(
                 f"The api key name {api_key_name} is not set as env variable."
             )
-        api_key = os.environ.get(api_key_name)
+    elif api_key is not None and api_key_name is not None:
+        logger.warning(
+            "Both an API key and a name of an env variable that holds the API key "
+            "are provided. We use the API key and ignore the env variable."
+        )
+
 
     logger.debug(
         f"Instantiating OpenAILike model (model: {model},"
