@@ -5,11 +5,11 @@ import asyncio
 from typing import Callable
 from loguru import logger
 
-from evidence_seeker.confirmation_aggregation import ConfirmationAggregator
-from evidence_seeker.confirmation_analysis import ConfirmationAnalyzer
+from evidence_seeker.confirmation_aggregation.base import ConfirmationAggregator
+from evidence_seeker.confirmation_analysis.base import ConfirmationAnalyzer
 from evidence_seeker.datamodels import CheckedClaim
-from evidence_seeker.preprocessing import ClaimPreprocessor
-from evidence_seeker.retrieval import DocumentRetriever
+from evidence_seeker.preprocessing.base import ClaimPreprocessor
+from evidence_seeker.retrieval.base import DocumentRetriever
 
 
 class EvidenceSeeker:
@@ -30,7 +30,7 @@ class EvidenceSeeker:
         if "retrieval_config" in kwargs:
             self.retriever = DocumentRetriever(config=kwargs["retrieval_config"], document_file_metadata=document_file_metadata)
         elif "retrieval_config_file" in kwargs:
-            self.retriever = DocumentRetriever.from_config_file(kwargs["retrieval_config_file"], document_file_metadata=document_file_metadata)
+            self.retriever = DocumentRetriever.from_config_file(kwargs["retrieval_config_file"])
         elif "retriever" in kwargs:
             self.retriever = kwargs["retriever"]
         else:
