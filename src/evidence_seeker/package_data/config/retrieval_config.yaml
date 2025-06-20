@@ -1,0 +1,20 @@
+api_key_name: API_TOKEN_EMBEDDING_MODEL
+bill_to: null
+config_version: v0.1
+description: Configuration of EvidenceSeeker's retriever component.
+document_input_dir: ./knowledge_base/data_files
+document_input_files: null
+embed_backend_type: huggingface
+embed_base_url: null
+embed_batch_size: 32
+embed_model_name: sentence-transformers/paraphrase-multilingual-mpnet-base-v2
+env_file: "./config/api_keys.txt"
+hub_key_name: HF_HUB_TOKEN
+ignore_statement_types:
+- normative
+index_hub_path: null
+index_id: default_index_id
+index_persist_path: ./embeddings
+meta_data_file: ./knowledge_base/meta_data.json
+top_k: 8
+window_size: 3

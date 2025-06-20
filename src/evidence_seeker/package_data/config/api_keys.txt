@@ -1,0 +1,3 @@
+API_TOKEN_LANGUAGE_MODEL=_add_your_api_token_here_
+API_TOKEN_EMBEDDING_MODEL=_add_your_api_token_here_
+HF_HUB_TOKEN=_add_your_huggingface_token_here_

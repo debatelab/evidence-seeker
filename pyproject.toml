@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.13.0"]
 build-backend = "hatchling.build"
 
 [project]
@@ -52,6 +52,9 @@ Documentation = "https://github.com/debatelab/evidence-seeker#readme"
 Issues = "https://github.com/debatelab/evidence-seeker/issues"
 Source = "https://github.com/debatelab/evidence-seeker"
 
+[project.scripts]
+evse = "evidence_seeker.cli.evse_cli:main"
+
 [tool.hatch.env]
 requires = [
     "hatch-pip-compile"
@@ -59,6 +62,18 @@ requires = [
 
 [tool.hatch.version]
 path = "src/evidence_seeker/__about__.py"
+
+
+[tool.setuptools.package-data]
+"evidence_seeker.package_data" = ["*.yml", "*.py","*.json", "*.txt", "*.csv", "*.md"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src/evidence_seeker/package_data", # Include the entire package_data directory
+]
+
+[tool.hatch.build.targets.wheel]
+force-include = { "src/evidence_seeker/package_data" = "evidence_seeker/package_data" }
 
 [tool.hatch.envs.default]
 dependencies = [
