@@ -288,10 +288,10 @@ class DocumentRetriever:
         return claim
 
     @staticmethod
-    def from_config_file(config_file: str):
+    def from_config_file(config_file: str, **kwargs):
         path = pathlib.Path(config_file)
         config = RetrievalConfig(**yaml.safe_load(path.read_text()))
-        return DocumentRetriever(config=config)
+        return DocumentRetriever(config=config, **kwargs)
 
 
 def _get_text_embeddings_inference_kwargs(
