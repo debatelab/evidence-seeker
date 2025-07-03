@@ -305,6 +305,8 @@ def _get_text_embeddings_inference_kwargs(
     if embed_backend_type == EmbedBackendType.HUGGINGFACE:
         return {
             "model_name": embed_model_name,
+            # see https://github.com/UKPLab/sentence-transformers/issues/3212
+            "token": token if token else False,
             # ToDo/Check: How to add additional arguments?
             "embed_batch_size": embed_batch_size,
         }
