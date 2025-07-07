@@ -45,7 +45,8 @@ from .evidence_seeker import (
 
 from .datamodels import (
     CheckedClaim,
-    Document
+    Document,
+    EvidenceSeekerResult
 )
 
 # Use __all__ to let type checkers know what is part of the public API.
@@ -69,6 +70,7 @@ __all__ = [
 #    "ConfirmationAnalyzer",
     "CheckedClaim",
     "Document",
+    "EvidenceSeekerResult",
     #"results_to_markdown",
     "describe_result"
 #    "SimpleConfirmationAnalysisWorkflow"
