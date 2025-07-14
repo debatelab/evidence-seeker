@@ -112,6 +112,7 @@ class DocumentRetriever:
     def __init__(self, config: RetrievalConfig | None = None, **kwargs):
         if config is None:
             config = RetrievalConfig()
+        self.config = config
 
         self.embed_model_name = config.embed_model_name
         self.embed_backend_type = config.embed_backend_type
