@@ -46,6 +46,9 @@ from .evidence_seeker import (
 from .datamodels import (
     CheckedClaim,
     Document,
+)
+
+from .results import (
     EvidenceSeekerResult
 )
 
