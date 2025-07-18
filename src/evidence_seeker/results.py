@@ -15,13 +15,9 @@ class EvidenceSeekerResult(pydantic.BaseModel):
     request_uid: str | None = None
     request: str | None = None
     request_time: str | None = None
-    retrieval_config: RetrievalConfig | None = RetrievalConfig(env_file=None)
-    confirmation_config: ConfirmationAnalyzerConfig | None = (
-        ConfirmationAnalyzerConfig()
-    )
-    preprocessing_config: ClaimPreprocessingConfig | None = (
-        ClaimPreprocessingConfig()
-    )
+    retrieval_config: RetrievalConfig | None = None
+    confirmation_config: ConfirmationAnalyzerConfig | None = None
+    preprocessing_config: ClaimPreprocessingConfig | None = None
     claims: list[dict] = []
     feedback: dict[str, Any] = {
         # TODO: perhaps better with an enum.Enum?
