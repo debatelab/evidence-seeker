@@ -1,24 +1,43 @@
 "PreprocessingConfig"
 
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import pydantic
 from loguru import logger
+from llama_index.core import ChatPromptTemplate
+
+from evidence_seeker.backend import GuidanceType
+
+
+class PipelineModelStepConfig(pydantic.BaseModel):
+    prompt_template: str
+    system_prompt: str | None = None
+    # Fields used for constrained decoding
+    guidance_type: Optional[str] = GuidanceType.JSON.value
+
+    @pydantic.field_validator('guidance_type')
+    @classmethod
+    def validate_guidance_type(cls, v):
+        allowed_values = {GuidanceType.JSON.value}
+        if v not in allowed_values:
+            raise ValueError(
+                f'guidance_type must be one of {allowed_values}, got {v}'
+            )
+        return v
 
 
 class PipelineStepConfig(pydantic.BaseModel):
     name: str
     description: str
-    prompt_template: str
     used_model_key: str | None = None
-    system_prompt: str | None = None
+    llm_specific_configs: Dict[str, PipelineModelStepConfig]
 
 
 class ClaimPreprocessingConfig(pydantic.BaseModel):
     config_version: str = "v0.1"
     description: str = "Erste Version einer Konfiguration für den Preprocessor der EvidenceSeeker Boilerplate."
     system_prompt: str = (
-        "You are a helpful assistant with outstanding expertise in critical thinking and logico-semantic analysis. "
+        "You are a helpful assistant with outstanding expertise in critical thinking and logico-semantic analysis. \n"
         "You have a background in philosophy and experience in fact checking and debate analysis.\n"
         "You read instructions carefully and follow them precisely. You give concise and clear answers."
     )
@@ -32,7 +51,13 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
         cls,
         config: 'ClaimPreprocessingConfig'
     ) -> 'ClaimPreprocessingConfig':
-        if config.env_file is not None:
+        if config.env_file is None:
+            logger.warning(
+                "No environment file with API keys specified for preprocessor."
+                " Please set 'env_file' to a valid path if you want "
+                "to load environment variables from a file."
+            )
+        else:
             # check if the env file exists
             from os import path
             if not path.exists(config.env_file):
@@ -58,137 +83,165 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
         default_factory=lambda: PipelineStepConfig(
             name="freetext_descriptive_analysis",
             description="Instruct the assistant to carry out free-text factual/descriptive analysis.",
-            prompt_template=(
-                "The following {language} claim has been submitted for fact-checking.\n\n"
-                "<claim>{claim}</claim>\n\n"
-                "Before we proceed with retrieving evidence items, we carefully analyse the claim. "
-                "Your task is to contribute to this preparatory analysis, as detailed below.\n"
-                "In particular, you should thoroughly discuss whether the claim contains or implies "
-                "factual or descriptive statements, which can be verified or falsified by empirical "
-                "observation or through scientific analysis, and which may include, for example, "
-                "descriptive reports, historical facts, or scientific claims.\n"
-                "If so, try to identify them and render them in your own words.\n"
-                "In doing so, watch out for ambiguity and vagueness in the claim. Make alternative "
-                "interpretations explicit.\n"
-                "End your analysis with a short list of all identified factual or descriptive statements in {language}. "
-                "Formulate each statement in a concise manner and such that its factual nature stands "
-                "out clearly."
-            ),
+            llm_specific_configs={
+                "default": PipelineModelStepConfig(
+                    prompt_template=(
+                        "The following {language} claim has been submitted for fact-checking.\n\n"
+                        "<claim>{claim}</claim>\n\n"
+                        "Before we proceed with retrieving evidence items, we carefully analyse the claim. "
+                        "Your task is to contribute to this preparatory analysis, as detailed below.\n"
+                        "In particular, you should thoroughly discuss whether the claim contains or implies "
+                        "factual or descriptive statements, which can be verified or falsified by empirical "
+                        "observation or through scientific analysis, and which may include, for example, "
+                        "descriptive reports, historical facts, or scientific claims.\n"
+                        "If so, try to identify them and render them in your own words.\n"
+                        "In doing so, watch out for ambiguity and vagueness in the claim. Make alternative "
+                        "interpretations explicit.\n"
+                        "End your analysis with a short list of all identified factual or descriptive statements in {language}. "
+                        "Formulate each statement in a concise manner and such that its factual nature stands "
+                        "out clearly."
+                    ),
+                )
+            }
         )
     )
     list_descriptive_statements: PipelineStepConfig = pydantic.Field(
         default_factory=lambda: PipelineStepConfig(
             name="list_descriptive_statements",
             description="Instruct the assistant to list factual claims.",
-            prompt_template=(
-                "We have previously analysed the descriptive content of the following {language} claim:\n"
-                "<claim>{claim}</claim>\n"
-                "The analysis yielded the following results:\n\n"
-                "<results>\n"
-                "{descriptive_analysis}\n"
-                "</results>\n\n"
-                "Your task is to list all factual or descriptive {language} statements identified "
-                "in the previous analysis. Only include clear cases, i.e. statements that are unambiguously "
-                "factual or descriptive.\n"
-                "Format your (possibly empty) list of statements as a JSON object.\n"
-                "Do not include any other text than the JSON object."
-            ),
+            llm_specific_configs={
+                "default": PipelineModelStepConfig(
+                    prompt_template=(
+                        "We have previously analysed the descriptive content of the following {language} claim:\n"
+                        "<claim>{claim}</claim>\n"
+                        "The analysis yielded the following results:\n\n"
+                        "<results>\n"
+                        "{descriptive_analysis}\n"
+                        "</results>\n\n"
+                        "Your task is to list all factual or descriptive {language} statements identified "
+                        "in the previous analysis. Only include clear cases, i.e. statements that are unambiguously "
+                        "factual or descriptive.\n"
+                        "Format your (possibly empty) list of statements as a JSON object.\n"
+                        "Do not include any other text than the JSON object."
+                    ),
+                )
+            },
         ),
     )
     freetext_ascriptive_analysis: PipelineStepConfig = pydantic.Field(
         default_factory=lambda: PipelineStepConfig(
             name="freetext_ascriptive_analysis",
             description="Instruct the assistant to carry out free-text ascriptions analysis.",
-            prompt_template=(
-                "The following {language} claim has been submitted for fact-checking.\n\n"
-                "<claim>{claim}</claim>\n\n"
-                "Before we proceed with retrieving evidence items, we carefully analyse the claim. "
-                "Your task is to contribute to this preparatory analysis, as detailed below.\n"
-                "In particular, you should thoroughly discuss whether the claim makes any explicit "
-                "ascriptions, that is, whether it explicitly ascribes a statement to a person or an "
-                "organisation (e.g., as something the person has said, believes, acts on etc.) "
-                "rather than plainly asserting that statement straightaway.\n"
-                "If so, clarify which statements are ascribed to whom exactly and in which ways.\n"
-                "In doing so, watch out for ambiguity and vagueness in the claim. Make alternative "
-                "interpretations explicit.\n"
-                "Conclude your analysis with a short list of all identified ascriptions: "
-                "Formulate each statement in a concise manner, and such that it is transparent to "
-                "whom it is attributed. Render the clarified ascriptions in {language}."
-            ),
+            llm_specific_configs={
+                "default": PipelineModelStepConfig(
+                    prompt_template=(
+                        "The following {language} claim has been submitted for fact-checking.\n\n"
+                        "<claim>{claim}</claim>\n\n"
+                        "Before we proceed with retrieving evidence items, we carefully analyse the claim. "
+                        "Your task is to contribute to this preparatory analysis, as detailed below.\n"
+                        "In particular, you should thoroughly discuss whether the claim makes any explicit "
+                        "ascriptions, that is, whether it explicitly ascribes a statement to a person or an "
+                        "organisation (e.g., as something the person has said, believes, acts on etc.) "
+                        "rather than plainly asserting that statement straightaway.\n"
+                        "If so, clarify which statements are ascribed to whom exactly and in which ways.\n"
+                        "In doing so, watch out for ambiguity and vagueness in the claim. Make alternative "
+                        "interpretations explicit.\n"
+                        "Conclude your analysis with a short list of all identified ascriptions: "
+                        "Formulate each statement in a concise manner, and such that it is transparent to "
+                        "whom it is attributed. Render the clarified ascriptions in {language}."
+                    ),
+                )
+            },
         )
     )
     list_ascriptive_statements: PipelineStepConfig = pydantic.Field(
         default_factory=lambda: PipelineStepConfig(
             name="list_ascriptive_statements",
             description="Instruct the assistant to list ascriptions.",
-            prompt_template=(
-                "The following {language} claim has been submitted for ascriptive content analysis.\n"
-                "<claim>{claim}</claim>\n"
-                "The analysis yielded the following results:\n\n"
-                "<results>\n"
-                "{ascriptive_analysis}\n"
-                "</results>\n\n"
-                "Your task is to list all ascriptions identified in this analysis. "
-                "Clearly state each ascription as a concise {language} "
-                "statement, such that it is transparent to whom it is attributed. Only include "
-                "ascriptions that are explicitly attributed to a specific person or organisation.\n"
-                "Format your (possibly empty) list of statements as a JSON object.\n"
-                "Do not include any other text than the JSON object."
-            ),
+            llm_specific_configs={
+                "default": PipelineModelStepConfig(
+                    prompt_template=(
+                        "The following {language} claim has been submitted for ascriptive content analysis.\n"
+                        "<claim>{claim}</claim>\n"
+                        "The analysis yielded the following results:\n\n"
+                        "<results>\n"
+                        "{ascriptive_analysis}\n"
+                        "</results>\n\n"
+                        "Your task is to list all ascriptions identified in this analysis. "
+                        "Clearly state each ascription as a concise {language} "
+                        "statement, such that it is transparent to whom it is attributed. Only include "
+                        "ascriptions that are explicitly attributed to a specific person or organisation.\n"
+                        "Format your (possibly empty) list of statements as a JSON object.\n"
+                        "Do not include any other text than the JSON object."
+                    ),
+                )
+            },
         ),
     )
     freetext_normative_analysis: PipelineStepConfig = pydantic.Field(
         default_factory=lambda: PipelineStepConfig(
             name="freetext_normative_analysis",
             description="Instruct the assistant to carry out free-text normative analysis.",
-            prompt_template=(
-                "The following {language} claim has been submitted for fact-checking.\n\n"
-                "<claim>{claim}</claim>\n\n"
-                "Before we proceed with retrieving evidence items, we carefully analyse the claim. "
-                "Your task is to contribute to this preparatory analysis, as detailed below.\n"
-                "In particular, you should thoroughly discuss whether the claim contains or implies "
-                "normative statements, such as value judgements, recommendations, or evaluations. "
-                "If so, try to identify them and render them in your own words.\n"
-                "In doing so, watch out for ambiguity and vagueness in the claim. Make alternative "
-                "interpretations explicit. "
-                "However, avoid reading normative content into the claim without textual evidence.\n\n"
-                "End your analysis with a short list of all identified normative statements in {language}. "
-                "Formulate each statement in a concise manner and such that its normative nature "
-                "stands out clearly."
-            ),
+            llm_specific_configs={
+                "default": PipelineModelStepConfig(
+                    prompt_template=(
+                        "The following {language} claim has been submitted for fact-checking.\n\n"
+                        "<claim>{claim}</claim>\n\n"
+                        "Before we proceed with retrieving evidence items, we carefully analyse the claim. "
+                        "Your task is to contribute to this preparatory analysis, as detailed below.\n"
+                        "In particular, you should thoroughly discuss whether the claim contains or implies "
+                        "normative statements, such as value judgements, recommendations, or evaluations. "
+                        "If so, try to identify them and render them in your own words.\n"
+                        "In doing so, watch out for ambiguity and vagueness in the claim. Make alternative "
+                        "interpretations explicit. "
+                        "However, avoid reading normative content into the claim without textual evidence.\n\n"
+                        "End your analysis with a short list of all identified normative statements in {language}. "
+                        "Formulate each statement in a concise manner and such that its normative nature "
+                        "stands out clearly."
+                    ),
+                )
+            },
         ),
     )
     list_normative_statements: PipelineStepConfig = pydantic.Field(
         default_factory=lambda: PipelineStepConfig(
             name="list_normative_statements",
             description="Instruct the assistant to list normative claims.",
-            prompt_template=(
-                "The following {language} claim has been submitted for normative content analysis.\n"
-                "<claim>{claim}</claim>\n"
-                "The analysis yielded the following results:\n\n"
-                "<results>\n"
-                "{normative_analysis}\n"
-                "</results>\n\n"
-                "Your task is to list all normative statements identified in this analysis "
-                "(e.g., value judgements, recommendations, or evaluations) in {language}.\n"
-                "Format your (possibly empty) list of statements as a JSON object.\n"
-                "Do not include any other text than the JSON object."
-            ),
+            llm_specific_configs={
+                "default": PipelineModelStepConfig(
+                    prompt_template=(
+                        "The following {language} claim has been submitted for normative content analysis.\n"
+                        "<claim>{claim}</claim>\n"
+                        "The analysis yielded the following results:\n\n"
+                        "<results>\n"
+                        "{normative_analysis}\n"
+                        "</results>\n\n"
+                        "Your task is to list all normative statements identified in this analysis "
+                        "(e.g., value judgements, recommendations, or evaluations) in {language}.\n"
+                        "Format your (possibly empty) list of statements as a JSON object.\n"
+                        "Do not include any other text than the JSON object."
+                    ),
+                )
+            },
         ),
     )
     negate_claim: PipelineStepConfig = pydantic.Field(
         default_factory=lambda: PipelineStepConfig(
             name="negate_claim",
             description="Instruct the assistant to negate a claim.",
-            prompt_template=(
-                "Your task is to express the opposite of the following statement in plain "
-                "and unequivocal language.\n"
-                "Please generate a single {language} sentence that clearly states the negation.\n"
-                "<statement>\n"
-                "{statement}\n"
-                "</statement>\n"
-                "Provide only the negated statement in {language} without any additional comments."
-            ),
+            llm_specific_configs={
+                "default": PipelineModelStepConfig(
+                    prompt_template=(
+                        "Your task is to express the opposite of the following statement in plain "
+                        "and unequivocal language.\n"
+                        "Please generate a single {language} sentence that clearly states the negation.\n"
+                        "<statement>\n"
+                        "{statement}\n"
+                        "</statement>\n"
+                        "Provide only the negated statement in {language} without any additional comments."
+                    ),
+                )
+            },
         ),
     )
     models: Dict[str, Dict[str, Any]] = pydantic.Field(
@@ -218,3 +271,104 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
             },
         }
     )
+
+    # ==helper functions==
+    def _step_config(
+        self,
+        step_config: Optional[PipelineStepConfig] = None,
+        step_name: Optional[str] = None
+    ) -> PipelineStepConfig:
+        """Internal convenience function."""
+        if step_config is None and step_name is None:
+            raise ValueError("Either pass a step config of a name of the pipeline step")
+        if step_config is None:
+            if step_name == "freetext_descriptive_analysis":
+                return self.freetext_descriptive_analysis
+            elif step_name == "list_descriptive_statements":
+                return self.list_descriptive_statements
+            elif step_name == "freetext_ascriptive_analysis":
+                return self.freetext_ascriptive_analysis
+            elif step_name == "list_ascriptive_statements":
+                return self.list_ascriptive_statements
+            elif step_name == "freetext_normative_analysis":
+                return self.freetext_normative_analysis
+            elif step_name == "list_normative_statements":
+                return self.list_normative_statements
+            elif step_name == "negate_claim":
+                return self.negate_claim
+            else:
+                raise ValueError(f"Did not found step config for {step_name}")
+        else:
+            return step_config
+
+    def get_step_config(
+            self,
+            step_name: Optional[str] = None,
+            step_config: Optional[PipelineStepConfig] = None
+    ) -> PipelineModelStepConfig:
+        """Get the model specific step config for the given step name.
+
+        The requested `PipelineModelStepConfig` is determined by either 
+        the provided `step_name` or the provided `step_config`. If both
+        are given, the `step_config` is used.
+        """
+        step_config = self._step_config(step_config, step_name)
+        # used model for this step
+        if step_config.used_model_key:
+            model_key = step_config.used_model_key
+        else:
+            model_key = self.used_model_key
+        # do we have a model-specific config?
+        if step_config.llm_specific_configs.get(model_key):
+            model_specific_conf = step_config.llm_specific_configs[model_key]
+        else:
+            if step_config.llm_specific_configs.get("default") is None:
+                msg = (
+                    f"Default step config for {step_config.name} "
+                    "not found in config."
+                )
+                logger.error(msg)
+                raise ValueError(msg)
+            model_specific_conf = step_config.llm_specific_configs["default"]
+        return model_specific_conf
+
+    def get_chat_template(
+            self,
+            step_name: Optional[str] = None,
+            step_config: Optional[PipelineStepConfig] = None
+    ) -> ChatPromptTemplate:
+        step_config = self._step_config(step_config, step_name)
+        model_specific_conf = self.get_step_config(step_config=step_config)
+        prompt_template = model_specific_conf.prompt_template
+
+        return ChatPromptTemplate.from_messages(
+            [
+                ("system", self.get_system_prompt(step_config=step_config)),
+                ("user", prompt_template),
+            ]
+        )
+
+    def get_system_prompt(
+            self,
+            step_name: Optional[str] = None,
+            step_config: Optional[PipelineStepConfig] = None
+    ) -> str:
+        """Get the system prompt for a specific step of the workflow."""
+        step_config = self._step_config(step_config, step_name)
+        model_specific_conf = self.get_step_config(step_config=step_config)
+        if model_specific_conf.system_prompt:
+            return model_specific_conf.system_prompt
+        else:
+            return self.system_prompt
+
+    def get_model_key(
+            self,
+            step_name: Optional[str] = None,
+            step_config: Optional[PipelineStepConfig] = None
+    ) -> str:
+        """Get the model key for a specific step of the workflow."""
+        step_config = self._step_config(step_config, step_name)
+        if step_config.used_model_key:
+            return step_config.used_model_key
+        else:
+            return self.used_model_key
