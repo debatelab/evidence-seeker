@@ -1,16 +1,44 @@
-api_key_name: HF_TOKEN_EVIDENCE_SEEKER
 config_version: v0.1
-description: "Erste Version einer Konfiguration f\xFCr den Retriever der EvidenceSeeker\
-  \ Boilerplate."
-document_input_dir: null
-document_input_files: null
-embed_base_url: https://ibpp4xgm0kspxkjb.us-east-1.aws.endpoints.huggingface.cloud
-embed_batch_size: 32
+description: Configuration of EvidenceSeeker's retriever component.
+# The type of embedding backend to use.
+# Options are: 'huggingface', 'tei' and 'huggingface_inference_api'.
+embed_backend_type: huggingface
+# The name of the embedding model to use. 
+# E.g., "sentence-transformers/paraphrase-multilingual-mpnet-base-v2", which 
+# is used by default. For more information, see:
+# https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2
 embed_model_name: sentence-transformers/paraphrase-multilingual-mpnet-base-v2
+embed_base_url: null
+# Names of relevant API keys that should be set as environment variables.
+api_key_name: null
+# Key/token name for accessing index from Hugging Face Hub
+hub_key_name: null
+# Optional: Path to a file containing API keys for the embedding model. 
+# Should have the format:
+# <your_api_key_name>=<your_api_token>
+env_file: null
+# Used if Huggingface Inference Provider is used and billing should be
+# done via organization on Hugging Face
+# See: https://huggingface.co/docs/inference-providers/pricing (30.06.2025)
+bill_to: null
+# statement types that are ignored for confirmation analysis
 ignore_statement_types:
 - normative
-index_hub_path: DebateLabKIT/apuz-index-es
 index_id: default_index_id
+# Path where the index is stored locally and/or loaded from.
+# At least, one of the following two paths must be set.
+# EvidenceSeeker's example index hub path: DebateLabKIT/apuz-index-es
+# see: https://huggingface.co/datasets/DebateLabKIT/apuz-index-es
+index_hub_path: null
 index_persist_path: null
+# Path to a JSON file containing metadata for the documents.
+# (Used during creation of the index.)
+meta_data_file: null
+# Path to the directory containing the documents to be indexed.
+document_input_dir: null
+# Alternatively, you can provide a list of files to be indexed.
+document_input_files: null
+# Some model parameters
 top_k: 8
 window_size: 3
+embed_batch_size: 32

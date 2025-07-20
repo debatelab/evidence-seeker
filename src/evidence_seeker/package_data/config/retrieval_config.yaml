@@ -1,3 +1,5 @@
+# default starting config provided by the EvidenceSeeker client
+# for the retriever component
 api_key_name: API_TOKEN_EMBEDDING_MODEL
 bill_to: null
 config_version: v0.1

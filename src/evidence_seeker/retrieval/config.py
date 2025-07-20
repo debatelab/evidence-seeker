@@ -21,23 +21,27 @@ class EmbedBackendType(enum.Enum):
 
 
 class RetrievalConfig(pydantic.BaseModel):
-    # TODO: Add field Descriptions about embed_backend_type
+    # TODO: Add field Descriptions
     config_version: str = "v0.1"
     description: str = "Configuration of EvidenceSeeker's retriever component."
     embed_base_url: str | None = None
+    # https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2
     embed_model_name: str = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
     embed_backend_type: str = "huggingface"
+    # Used if Huggingface Inference Provider is used and billing should be
+    # done via organization on Hugging Face
+    # See: https://huggingface.co/docs/inference-providers/pricing (30.06.2025)
     bill_to: str | None = None
-    api_key_name: str | None = "API_TOKEN_EMBEDDING_MODEL"
-    hub_key_name: str | None = "HF_HUB_TOKEN"
+    api_key_name: str | None = None
+    hub_key_name: str | None = None
     embed_batch_size: int = 32
-    document_input_dir: str | None = "./knowledge_base/data_files"
-    meta_data_file: str | None = "./knowledge_base/meta_data.json"
-    env_file: str | None = "./config/api_keys.txt"
+    document_input_dir: str | None = None
+    meta_data_file: str | None = None
+    env_file: str | None = None
     document_input_files: list[str] | None = None
     window_size: int = 3
     index_id: str = "default_index_id"
-    index_persist_path: str | None = "./embeddings"
+    index_persist_path: str | None = None
     index_hub_path: str | None = None
     top_k: int = 8
     ignore_statement_types: list[str] = [StatementType.NORMATIVE.value]
@@ -85,7 +89,7 @@ class RetrievalConfig(pydantic.BaseModel):
                 f"Check whether you need an API token for your backend "
                 f"('{config.embed_backend_type}'). If you need one, set an "
                 "`api_key_name` in the retriever config and provide the "
-                " api token as an environment variable with that name."
+                "api token as an environment variable with that name."
             )
             logger.warning(msg)
         return config
@@ -104,7 +108,7 @@ class RetrievalConfig(pydantic.BaseModel):
                 "your index to/from the Hugging Face Hub. "
                 "If you need one, set an "
                 "`hub_key_name` in the retriever config and provide the "
-                " token as an environment variable with that name."
+                "token as an environment variable with that name."
             )
             logger.warning(msg)
         return config
@@ -131,7 +135,13 @@ class RetrievalConfig(pydantic.BaseModel):
         cls,
         config: 'RetrievalConfig'
     ) -> 'RetrievalConfig':
-        if config.env_file is not None:
+        if config.env_file is None:
+            logger.warning(
+                "No environment file with API keys specified for retriever. "
+                "Please set 'env_file' to a valid path if you want "
+                "to load environment variables from a file."
+            )
+        else:
             # check if the env file exists
             from os import path
             if not path.exists(config.env_file):
