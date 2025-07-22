@@ -28,9 +28,18 @@ from .retrieval.config import (
 )
 
 from .preprocessing.base import ClaimPreprocessor
-from .preprocessing.config import ClaimPreprocessingConfig
+from .preprocessing.config import (
+    ClaimPreprocessingConfig,
+    PreprocessorStepConfig,
+    PreprocessorModelStepConfig
+)
 from .confirmation_analysis.base import ConfirmationAnalyzer
-from .confirmation_analysis.config import ConfirmationAnalyzerConfig
+from .confirmation_analysis.config import (
+    ConfirmationAnalyzerConfig,
+    ConfirmationAnalyzerModelStepConfig,
+    ConfirmationAnalyzerStepConfig,
+    MultipleChoiceTaskStepConfig,
+)
 from .confirmation_aggregation.base import ConfirmationAggregator
 
 from .utils import (
@@ -59,9 +68,14 @@ __all__ = [
     "IndexBuilder",
     "RetrievalConfig",
     "ClaimPreprocessingConfig",
+    "PreprocessorStepConfig",
+    "PreprocessorModelStepConfig",
     "ClaimPreprocessor",
     "ConfirmationAnalyzer",
     "ConfirmationAnalyzerConfig",
+    "ConfirmationAnalyzerModelStepConfig",
+    "ConfirmationAnalyzerStepConfig",
+    "MultipleChoiceTaskStepConfig",
     "ConfirmationAggregator",
 #    "ClaimPreprocessor",
 #    "DictInitializedEvent",

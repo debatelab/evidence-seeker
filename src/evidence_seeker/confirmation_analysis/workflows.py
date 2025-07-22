@@ -27,7 +27,7 @@ from .config import (
     ConfirmationAnalyzerConfig,
     LogProbsType,
     GuidanceType,
-    PipelineModelStepConfig
+    ConfirmationAnalyzerModelStepConfig
 )
 
 
@@ -304,7 +304,7 @@ class RandomlyOrderedAnswerOptions():
 def _extract_answer_label(
     answer_labels: list[str],
     chat_response: ChatResponse,
-    model_specific_conf: PipelineModelStepConfig
+    model_specific_conf: ConfirmationAnalyzerModelStepConfig
 ) -> Optional[str]:
     """
     Returns the answer label based on the chat response
@@ -360,7 +360,7 @@ def _extract_answer_label(
 def _get_logprobs(
         answer_labels: list[str],
         chat_response: ChatResponse,
-        model_specific_conf: PipelineModelStepConfig,
+        model_specific_conf: ConfirmationAnalyzerModelStepConfig,
         randomized_answer_options: RandomlyOrderedAnswerOptions
 ) -> Optional[dict[str, float]]:
     """
@@ -408,7 +408,7 @@ def _get_logprobs(
 def _extract_logprobs(
         answer_labels: list[str],
         chat_response: ChatResponse,
-        model_specific_conf: PipelineModelStepConfig,
+        model_specific_conf: ConfirmationAnalyzerModelStepConfig,
         randomized_answer_options: RandomlyOrderedAnswerOptions
 ) -> dict[str, Optional[float]]:
     """
@@ -528,7 +528,9 @@ def _extract_logprobs(
         )
 
 
-def _guidance_regex(model_specific_conf: PipelineModelStepConfig) -> str:
+def _guidance_regex(
+        model_specific_conf: ConfirmationAnalyzerModelStepConfig
+) -> str:
     # Construct the regex programmatically, if not given in config
     if model_specific_conf.constrained_decoding_regex:
         return model_specific_conf.constrained_decoding_regex

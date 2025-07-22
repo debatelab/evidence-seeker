@@ -1,23 +1,53 @@
+# For a detailed instruction of how to configure the confirmation analyzer, 
+# see the documentation X.
 config_version: v0.2
-description: "Erste Version einer Konfiguration f\xFCr den ConfirmationAnalyzerConfig\
-  \ der EvidenceSeeker Boilerplate."
+description: Configuration of EvidenceSeeker's confirmation analyzer component.
+# Uncomment the "env_file" line to load environment 
+# variables for API keys from a file.
+# The file should contain lines of the following format:
+# <YOUR_API_KEY_NAME>=<your_api_key_value>
+# env_file: <path/to/your/api_keys.txt>
 system_prompt: 'You are a helpful assistant with outstanding expertise in critical
-  thinking and logico-semantic analysis. You have a background in philosophy and experience
-  in fact checking and debate analysis.
+  thinking and logico-semantic analysis.
+
+  You have a background in philosophy and experience in fact checking and debate analysis.
 
   You read instructions carefully and follow them precisely. You give concise and
   clear answers.'
-timeout: 360
-used_model_key: 'lmstudio'
+timeout: 900
+used_model_key: <key_model_one>
+# Whether or not the workflow/pipeline should print additional informative messages
+# during execution.
 verbose: false
+# Configuration of language models for the component (you can configure different models)
+models:
+  <key_model_one>:
+    api_key: <your_api_key_name>
+    backend_type: <backend_type_of_your_model>
+    base_url: <your_base_url>
+    description: <description_of_your_model>
+    max_tokens: 1024
+    model: <your_model_identifier>
+    name: <your_model_name>
+    temperature: 0.2
+    timeout: 260
+  <key_model_two>:
+    api_key: <your_api_key_name>
+    backend_type: <backend_type_of_your_model>
+    base_url: <your_base_url>
+    description: <description_of_your_model>
+    max_tokens: 1024
+    model: <your_model_identifier>
+    name: <your_model_name>
+    temperature: 0.2
+    timeout: 260
+# Configurations for the different steps of the preprocessing component
 freetext_confirmation_analysis:
   description: Instruct the assistant to carry out free-text RTE analysis.
+  name: freetext_confirmation_analysis
+  used_model_key: null
   llm_specific_configs:
     default:
-      delim_str: .
-      guidance_type: json
-      logprobs_type: openai_like
-      n_repetitions_mcq: 1
       prompt_template: 'Determine the relationship between the following two texts:
 
         <TEXT>{evidence_item}</TEXT>
@@ -36,15 +66,17 @@ freetext_confirmation_analysis:
         Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS.
 
         Please discuss this question thoroughly before providing your final answer.'
-  name: freetext_confirmation_analysis
+      system_prompt: null
 multiple_choice_confirmation_analysis:
   description: Multiple choice RTE task given CoT trace.
+  name: multiple_choice_confirmation_analysis
+  used_model_key: null
   llm_specific_configs:
-    default:
+    key_model_one:
       answer_labels:
-      - (A
-      - (B
-      - (C
+      - A
+      - B
+      - C
       answer_options:
       - 'Entailment: The TEXT provides sufficient evidence to support the HYPOTHESIS.'
       - 'Contradiction: The TEXT provides evidence that contradicts the HYPOTHESIS.'
@@ -52,10 +84,11 @@ multiple_choice_confirmation_analysis:
       claim_option: 'Entailment: The TEXT provides sufficient evidence to support
         the HYPOTHESIS.'
       constrained_decoding_grammar: null
-      constrained_decoding_regex: ^(\(A|\(B|\(C)$
-      delim_str: )
-      guidance_type: json
-      logprobs_type: openai_like
+      constrained_decoding_regex: null
+      delim_str: ''
+      guidance_type: <guidance_type>
+      json_schema: null
+      logprobs_type: <logprobs_type>
       n_repetitions_mcq: 1
       prompt_template: 'Your task is to sum up the results of a rich textual entailment
         analysis.
@@ -78,49 +111,6 @@ multiple_choice_confirmation_analysis:
 
 
         Please sum up this result by deciding which of the following choices is correct.
-        Just answer with the label of the correct choice.
-
-
-        {answer_options}
-
-
-        '
-    lmstudio:
-      answer_labels:
-      - A
-      - B
-      - C
-      answer_options:
-      - 'Entailment: The TEXT provides sufficient evidence to support the HYPOTHESIS.'
-      - 'Contradiction: The TEXT provides evidence that contradicts the HYPOTHESIS.'
-      - 'Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS.'
-      claim_option: 'Entailment: The TEXT provides sufficient evidence to support
-        the HYPOTHESIS.'
-      delim_str: .
-      guidance_type: prompted
-      logprobs_type: estimate
-      n_repetitions_mcq: 3
-      prompt_template: 'Your task is to sum up the results of a rich textual entailment
-        analysis.
-
-
-        <TEXT>{evidence_item}</TEXT>
-
-
-        <HYPOTHESIS>{statement}</HYPOTHESIS>
-
-
-        Our previous analysis has yielded the following result:
-
-
-        <RESULT>
-
-        {freetext_confirmation_analysis}
-
-        </RESULT>
-
-
-        Please sum up this result by deciding which of the following choices is correct.
 
 
         {answer_options}
@@ -130,81 +120,5 @@ multiple_choice_confirmation_analysis:
 
 
         '
-      validation_regex: ^[\.\(]?(A|B|C)[\.\):]?$
-    together.ai:
-      answer_labels:
-      - A
-      - B
-      - C
-      answer_options:
-      - 'Entailment: The TEXT provides sufficient evidence to support the HYPOTHESIS.'
-      - 'Contradiction: The TEXT provides evidence that contradicts the HYPOTHESIS.'
-      - 'Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS.'
-      claim_option: 'Entailment: The TEXT provides sufficient evidence to support
-        the HYPOTHESIS.'
-      delim_str: .
-      guidance_type: prompted
-      logprobs_type: estimate
-      n_repetitions_mcq: 3
-      prompt_template: 'Your task is to sum up the results of a rich textual entailment
-        analysis.
-
-
-        <TEXT>{evidence_item}</TEXT>
-
-
-        <HYPOTHESIS>{statement}</HYPOTHESIS>
-
-
-        Our previous analysis has yielded the following result:
-
-
-        <RESULT>
-
-        {freetext_confirmation_analysis}
-
-        </RESULT>
-
-
-        Please sum up this result by deciding which of the following choices is correct.
-
-
-        {answer_options}
-
-
-        Just answer with the label (''A'', ''B'' or ''C'') of the correct choice.
-
-
-        '
-      validation_regex: ^[\.\(]?(A|B|C)[\.\):]?$
-  name: multiple_choice_confirmation_analysis
-models:
-  lmstudio:
-    api_key: not_needed
-    backend_type: openai
-    base_url: http://127.0.0.1:1234/v1/
-    description: Local model served via LMStudio
-    max_tokens: 1024
-    model: meta-llama-3.1-8b-instruct
-    name: llama-3.2-1b-instruct
-    temperature: 0.2
-    timeout: 260
-  model_1:
-    api_key_name: HF_TOKEN_EVIDENCE_SEEKER
-    backend_type: openai
-    base_url: https://api-inference.huggingface.co/v1/
-    description: HF inference API
-    max_tokens: 1024
-    model: mistralai/Mistral-7B-Instruct-v0.2
-    name: Mistral-7B-Instruct-v0.2
-    temperature: 0.2
-  together.ai:
-    api_key_name: hf_debatelab_inference_provider
-    backend_type: openai
-    base_url: https://router.huggingface.co/together/v1
-    description: Model served via Together.ai over HuggingFace
-    max_tokens: 1024
-    model: meta-llama/Meta-Llama-3-8B-Instruct-Turbo
-    name: Meta-Llama-3-8B-Instruct-Turbo
-    temperature: 0.2
-    timeout: 260
+      system_prompt: null
+      validation_regex: null

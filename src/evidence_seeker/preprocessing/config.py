@@ -19,7 +19,7 @@ class PreprocessorModelStepConfig(pydantic.BaseModel):
     @classmethod
     def validate_guidance_type(cls, v):
         allowed_values = {GuidanceType.JSON.value}
-        if v not in allowed_values:
+        if (v is not None) and (v not in allowed_values):
             raise ValueError(
                 f'guidance_type must be one of {allowed_values}, got {v}'
             )
@@ -28,9 +28,9 @@ class PreprocessorModelStepConfig(pydantic.BaseModel):
 
 class PreprocessorStepConfig(pydantic.BaseModel):
     name: str
-    description: str
+    description: str | None = None
     used_model_key: str | None = None
-    llm_specific_configs: Dict[str, PreprocessorModelStepConfig]
+    llm_specific_configs: Dict[str, PreprocessorModelStepConfig] = dict()
 
 
 class ClaimPreprocessingConfig(pydantic.BaseModel):
@@ -261,7 +261,7 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
     ) -> PreprocessorStepConfig:
         """Internal convenience function."""
         if step_config is None and step_name is None:
-            raise ValueError("Either pass a step config of a name of the pipeline step")
+            raise ValueError("Either pass a step config or a name of the pipeline step")
         if step_config is None:
             if step_name == "freetext_descriptive_analysis":
                 return self.freetext_descriptive_analysis
