@@ -13,7 +13,7 @@ class PipelineModelStepConfig(pydantic.BaseModel):
     prompt_template: str
     system_prompt: str | None = None
     # Fields used for constrained decoding
-    guidance_type: Optional[str] = GuidanceType.JSON.value
+    guidance_type: Optional[str] = None
 
     @pydantic.field_validator('guidance_type')
     @classmethod
@@ -35,7 +35,7 @@ class PipelineStepConfig(pydantic.BaseModel):
 
 class ClaimPreprocessingConfig(pydantic.BaseModel):
     config_version: str = "v0.1"
-    description: str = "Erste Version einer Konfiguration für den Preprocessor der EvidenceSeeker Boilerplate."
+    description: str = "Configuration of EvidenceSeeker's preprocessing component."
     system_prompt: str = (
         "You are a helpful assistant with outstanding expertise in critical thinking and logico-semantic analysis. \n"
         "You have a background in philosophy and experience in fact checking and debate analysis.\n"
@@ -43,6 +43,8 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
     )
     language: str = "DE"
     timeout: int = 900
+    # Whether or not the workflow/pipeline should print additional informative messages
+    # during execution.
     verbose: bool = False
     env_file: str | None = None
 
@@ -78,7 +80,7 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
 
         return config
 
-    used_model_key: str = "together.ai"
+    used_model_key: str
     freetext_descriptive_analysis: PipelineStepConfig = pydantic.Field(
         default_factory=lambda: PipelineStepConfig(
             name="freetext_descriptive_analysis",
@@ -124,6 +126,7 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
                         "Format your (possibly empty) list of statements as a JSON object.\n"
                         "Do not include any other text than the JSON object."
                     ),
+                    guidance_type=GuidanceType.JSON.value
                 )
             },
         ),
@@ -174,6 +177,7 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
                         "Format your (possibly empty) list of statements as a JSON object.\n"
                         "Do not include any other text than the JSON object."
                     ),
+                    guidance_type=GuidanceType.JSON.value
                 )
             },
         ),
@@ -221,6 +225,7 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
                         "Format your (possibly empty) list of statements as a JSON object.\n"
                         "Do not include any other text than the JSON object."
                     ),
+                    guidance_type=GuidanceType.JSON.value
                 )
             },
         ),
@@ -245,31 +250,7 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
         ),
     )
     models: Dict[str, Dict[str, Any]] = pydantic.Field(
-        default_factory=lambda: {
-            'lmstudio': {
-                "name": "mllama-3.2-1b-instruct",
-                "description": "Local model served via LMStudio",
-                "base_url": "http://127.0.0.1:1234/v1/",
-                "model": "llama-3.2-1b-instruct",
-                "backend_type": "openai",
-                "max_tokens": 1024,
-                "temperature": 0.2,
-                "api_key": "not_needed",
-                "timeout": 260
-            },
-            'together.ai': {
-                "name": "Meta-Llama-3-Instruct",
-                "description": "Model served via Together.ai over HuggingFace",
-                "base_url": "https://router.huggingface.co/together/v1",
-                "model": "meta-llama/Llama-3.2-3B-Instruct-Turbo",
-                "api_key_name": "hf_debatelab_inference_provider",
-                "backend_type": "openai",
-                "default_headers": {"X-HF-Bill-To": "DebateLabKIT"},
-                "max_tokens": 1024,
-                "temperature": 0.2,
-                "timeout": 260
-            },
-        }
+        default_factory=lambda: dict()
     )
 
     # ==helper functions==
