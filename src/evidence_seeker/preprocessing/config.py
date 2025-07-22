@@ -9,7 +9,7 @@ from llama_index.core import ChatPromptTemplate
 from evidence_seeker.backend import GuidanceType
 
 
-class PipelineModelStepConfig(pydantic.BaseModel):
+class PreprocessorModelStepConfig(pydantic.BaseModel):
     prompt_template: str
     system_prompt: str | None = None
     # Fields used for constrained decoding
@@ -26,11 +26,11 @@ class PipelineModelStepConfig(pydantic.BaseModel):
         return v
 
 
-class PipelineStepConfig(pydantic.BaseModel):
+class PreprocessorStepConfig(pydantic.BaseModel):
     name: str
     description: str
     used_model_key: str | None = None
-    llm_specific_configs: Dict[str, PipelineModelStepConfig]
+    llm_specific_configs: Dict[str, PreprocessorModelStepConfig]
 
 
 class ClaimPreprocessingConfig(pydantic.BaseModel):
@@ -81,12 +81,12 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
         return config
 
     used_model_key: str
-    freetext_descriptive_analysis: PipelineStepConfig = pydantic.Field(
-        default_factory=lambda: PipelineStepConfig(
+    freetext_descriptive_analysis: PreprocessorStepConfig = pydantic.Field(
+        default_factory=lambda: PreprocessorStepConfig(
             name="freetext_descriptive_analysis",
             description="Instruct the assistant to carry out free-text factual/descriptive analysis.",
             llm_specific_configs={
-                "default": PipelineModelStepConfig(
+                "default": PreprocessorModelStepConfig(
                     prompt_template=(
                         "The following {language} claim has been submitted for fact-checking.\n\n"
                         "<claim>{claim}</claim>\n\n"
@@ -107,12 +107,12 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
             }
         )
     )
-    list_descriptive_statements: PipelineStepConfig = pydantic.Field(
-        default_factory=lambda: PipelineStepConfig(
+    list_descriptive_statements: PreprocessorStepConfig = pydantic.Field(
+        default_factory=lambda: PreprocessorStepConfig(
             name="list_descriptive_statements",
             description="Instruct the assistant to list factual claims.",
             llm_specific_configs={
-                "default": PipelineModelStepConfig(
+                "default": PreprocessorModelStepConfig(
                     prompt_template=(
                         "We have previously analysed the descriptive content of the following {language} claim:\n"
                         "<claim>{claim}</claim>\n"
@@ -131,12 +131,12 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
             },
         ),
     )
-    freetext_ascriptive_analysis: PipelineStepConfig = pydantic.Field(
-        default_factory=lambda: PipelineStepConfig(
+    freetext_ascriptive_analysis: PreprocessorStepConfig = pydantic.Field(
+        default_factory=lambda: PreprocessorStepConfig(
             name="freetext_ascriptive_analysis",
             description="Instruct the assistant to carry out free-text ascriptions analysis.",
             llm_specific_configs={
-                "default": PipelineModelStepConfig(
+                "default": PreprocessorModelStepConfig(
                     prompt_template=(
                         "The following {language} claim has been submitted for fact-checking.\n\n"
                         "<claim>{claim}</claim>\n\n"
@@ -157,12 +157,12 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
             },
         )
     )
-    list_ascriptive_statements: PipelineStepConfig = pydantic.Field(
-        default_factory=lambda: PipelineStepConfig(
+    list_ascriptive_statements: PreprocessorStepConfig = pydantic.Field(
+        default_factory=lambda: PreprocessorStepConfig(
             name="list_ascriptive_statements",
             description="Instruct the assistant to list ascriptions.",
             llm_specific_configs={
-                "default": PipelineModelStepConfig(
+                "default": PreprocessorModelStepConfig(
                     prompt_template=(
                         "The following {language} claim has been submitted for ascriptive content analysis.\n"
                         "<claim>{claim}</claim>\n"
@@ -182,12 +182,12 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
             },
         ),
     )
-    freetext_normative_analysis: PipelineStepConfig = pydantic.Field(
-        default_factory=lambda: PipelineStepConfig(
+    freetext_normative_analysis: PreprocessorStepConfig = pydantic.Field(
+        default_factory=lambda: PreprocessorStepConfig(
             name="freetext_normative_analysis",
             description="Instruct the assistant to carry out free-text normative analysis.",
             llm_specific_configs={
-                "default": PipelineModelStepConfig(
+                "default": PreprocessorModelStepConfig(
                     prompt_template=(
                         "The following {language} claim has been submitted for fact-checking.\n\n"
                         "<claim>{claim}</claim>\n\n"
@@ -207,12 +207,12 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
             },
         ),
     )
-    list_normative_statements: PipelineStepConfig = pydantic.Field(
-        default_factory=lambda: PipelineStepConfig(
+    list_normative_statements: PreprocessorStepConfig = pydantic.Field(
+        default_factory=lambda: PreprocessorStepConfig(
             name="list_normative_statements",
             description="Instruct the assistant to list normative claims.",
             llm_specific_configs={
-                "default": PipelineModelStepConfig(
+                "default": PreprocessorModelStepConfig(
                     prompt_template=(
                         "The following {language} claim has been submitted for normative content analysis.\n"
                         "<claim>{claim}</claim>\n"
@@ -230,12 +230,12 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
             },
         ),
     )
-    negate_claim: PipelineStepConfig = pydantic.Field(
-        default_factory=lambda: PipelineStepConfig(
+    negate_claim: PreprocessorStepConfig = pydantic.Field(
+        default_factory=lambda: PreprocessorStepConfig(
             name="negate_claim",
             description="Instruct the assistant to negate a claim.",
             llm_specific_configs={
-                "default": PipelineModelStepConfig(
+                "default": PreprocessorModelStepConfig(
                     prompt_template=(
                         "Your task is to express the opposite of the following statement in plain "
                         "and unequivocal language.\n"
@@ -256,9 +256,9 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
     # ==helper functions==
     def _step_config(
         self,
-        step_config: Optional[PipelineStepConfig] = None,
+        step_config: Optional[PreprocessorStepConfig] = None,
         step_name: Optional[str] = None
-    ) -> PipelineStepConfig:
+    ) -> PreprocessorStepConfig:
         """Internal convenience function."""
         if step_config is None and step_name is None:
             raise ValueError("Either pass a step config of a name of the pipeline step")
@@ -285,11 +285,11 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
     def get_step_config(
             self,
             step_name: Optional[str] = None,
-            step_config: Optional[PipelineStepConfig] = None
-    ) -> PipelineModelStepConfig:
+            step_config: Optional[PreprocessorStepConfig] = None
+    ) -> PreprocessorModelStepConfig:
         """Get the model specific step config for the given step name.
 
-        The requested `PipelineModelStepConfig` is determined by either 
+        The requested `PreprocessorModelStepConfig` is determined by either
         the provided `step_name` or the provided `step_config`. If both
         are given, the `step_config` is used.
         """
@@ -316,7 +316,7 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
     def get_chat_template(
             self,
             step_name: Optional[str] = None,
-            step_config: Optional[PipelineStepConfig] = None
+            step_config: Optional[PreprocessorStepConfig] = None
     ) -> ChatPromptTemplate:
         step_config = self._step_config(step_config, step_name)
         model_specific_conf = self.get_step_config(step_config=step_config)
@@ -332,7 +332,7 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
     def get_system_prompt(
             self,
             step_name: Optional[str] = None,
-            step_config: Optional[PipelineStepConfig] = None
+            step_config: Optional[PreprocessorStepConfig] = None
     ) -> str:
         """Get the system prompt for a specific step of the workflow."""
         step_config = self._step_config(step_config, step_name)
@@ -345,7 +345,7 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
     def get_model_key(
             self,
             step_name: Optional[str] = None,
-            step_config: Optional[PipelineStepConfig] = None
+            step_config: Optional[PreprocessorStepConfig] = None
     ) -> str:
         """Get the model key for a specific step of the workflow."""
         step_config = self._step_config(step_config, step_name)
