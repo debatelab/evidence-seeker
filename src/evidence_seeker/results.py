@@ -36,3 +36,6 @@ class EvidenceSeekerResult(pydantic.BaseModel):
         with open(path, encoding = "utf-8") as f:
             res = yaml.full_load(f)
         return cls(**res)
+    
+    def count_claims(self) -> dict[str, Any]:
+            return {x : [c["statement_type"].value for c in self.claims].count(x) for x in ["normative", "descriptive", "ascriptive"]}
