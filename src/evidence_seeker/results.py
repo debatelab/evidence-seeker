@@ -23,11 +23,11 @@ class EvidenceSeekerResult(pydantic.BaseModel):
         "binary" : None
     }
 
-    def yaml_dump(self, stream):
+    def yaml_dump(self, stream) -> None | str | bytes:
         yaml.add_representer(np.ndarray, representer=(lambda dumper, data: dumper.represent_sequence(u'!nparray', [float(x) for x in data])))
-        yaml.add_representer(np.float_, representer=(lambda dumper, data: dumper.represent_float(float(data))))
-        yaml.dump(self.model_dump(), stream, allow_unicode=True, default_flow_style=False, encoding='utf-8')
-
+        yaml.add_representer(np.float64, representer=(lambda dumper, data: dumper.represent_float(float(data))))
+        return yaml.dump(self.model_dump(), stream, allow_unicode=True, default_flow_style=False, encoding='utf-8')
+        
     @classmethod
     def from_logfile(cls, path) -> "EvidenceSeekerResult":
         yaml.add_constructor("!python/object/apply:evidence_seeker.datamodels.StatementType", constructor=(lambda _, node: StatementType(node.value[0].value)))
