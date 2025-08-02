@@ -32,11 +32,17 @@ dependencies = [
   "loguru",
   "llama-index",
   "llama-index-llms-openai-like",
-  "llama-index-embeddings-text-embeddings-inference==0.3.0",
+  #"llama-index-embeddings-text-embeddings-inference==0.3.0",
+  "llama-index-embeddings-text-embeddings-inference",
+  "llama-index-embeddings-huggingface",
+  "llama_index.embeddings.ollama",
+  "huggingface_hub",
   "numpy",
   "pydantic",
-  "wrapt<=1.16.0",
-  "httpx==0.27.2",
+  #"wrapt<=1.16.0",
+  #"httpx==0.27.2",
+  "wrapt",
+  "httpx",
 ]
 
 [project.readme]
@@ -91,13 +97,14 @@ lock-filename = "locks/{env_name}.lock"
 dependencies = [
   "jupyter",
   "ipywidgets",
-  "llama-index-callbacks-arize-phoenix",
-  "llama-index-utils-workflow",
-  "pip-tools",
-  "pytest",
+  #"llama-index-callbacks-arize-phoenix",
+  #"llama-index-utils-workflow",
+  #"pip-tools",
+  #"pytest",
   "llama-index-embeddings-huggingface",
-  "llama-index-embeddings-instructor",
-  "llama-index-embeddings-ollama"
+  "llama_index.embeddings.ollama",
+  #"llama-index-embeddings-instructor",
+  "llama-index-llms-openai-like"
 ]
 
 [[tool.hatch.envs.evse-dev_env.matrix]]
