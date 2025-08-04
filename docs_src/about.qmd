@@ -1,0 +1,48 @@
+---
+title: "📜 About _EvidenceSeeker Boilerplate_"
+---
+
+_EvidenceSeeker Boilerplate_ is part of the [CompPhil²MMAE](https://compphil2mmae.github.io/) research project "Using Large Language Models to Strengthen Deliberation" (**[KIdeKu](https://compphil2mmae.github.io/research/kideku/)**) at the Karlsruhe Institute of Technology.
+
+## 🏛️ Funding 
+
+KIdeKu is funded by the *Federal Ministry of Education, Family Affairs, Senior Citizens, Woman and Youth ([BMBFSFJ](https://www.bmbfsfj.bund.de/bmbfsfj/meta/en))*.
+
+
+::: {.w-50 .float-start}
+[![](./img/funding.png)](https://www.bmfsfj.de/bmfsfj)
+:::
+
+::: {.clearfix}
+:::
+
+## 🙏 Acknowledgements
+
+###  🛠️ Used third-party tools
+
+ *EvidenceSeeker Boilerplate* would not be possible without the wonderful open source community and relies on the following libraries, amongst others:
+
+- **[LLamaIndex](https://docs.llamaindex.ai/en/stable/)** for the implementation of the workflow.
+- **[Pydantic](https://pydantic.dev/)** for modeling the configs.
+
+All other dependencies can be found in the `pyproject.toml` file in our  [GitHub repo](https://github.com/debatelab/evidence-seeker).
+
+
+### 🤝 Collaborations
+
+We presented the project at the [politechathon workshop](https://www.wahlexe.de/en/) in December 2024 and received very constructive feedback.
+
+## 👥 Team
+
+The *EvidenceSeeker Boilerplate* is developed by the [KIdeKu](https://compphil2mmae.github.io/research/kideku/) team, including:
+
++ Gregor Betz: Project Lead, Core Developer
++ Sebastian Cacean: Core Developer
++ Leonie Wahl: Contributor
++ Reta Lüscher-Rieger: Community Manager 
+
+## 📄 License
+
+*EvidenceSeeker Boilerplate* is licensed under the [MIT License](https://opensource.org/licenses/MIT).
+
+

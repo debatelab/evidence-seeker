@@ -1,0 +1,11 @@
+/* css styles */
+.g-col-4 {
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Ensures the column takes full height if rows have different content heights */
+}
+
+.learn-more {
+  margin-top: auto; /* Pushes this element to the bottom of the flex container */
+  padding-top: 1rem; /* Optional: Adds some space above the learn more link */
+}

@@ -1,0 +1,106 @@
+---
+title: "Example Configuration: Local Models with LMStudio"
+---
+
+The *EvidenceSeeker* pipeline can be configured to use local models. This allows you to run the pipeline without relying on external APIs, which can be beneficial for privacy, cost, and performance reasons. We illustrate how to set up the *EvidenceSeeker* pipeline using local models with [LMStudio](https://lmstudio.ai/) and Hugging Face. We will use: 
+
++ LMStudio to serve [Llama-3.2-1B-Instruct]() as LLM for the preprocessor and confirmation analyser components, and
++ [paraphrase-multilingual-mpnet-base-v2](https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2) as embedding model, which will be loaded locally by using the Hugging Face Transformers library.
+
+## Prerequisites
+
+To run the *EvidenceSeeker* pipeline with local models served by LMStudio, you have to install LMStudio, download the Llama-3.2-1B-Instruct model within LMStudio, and load the model in LMStudio (see [here](https://lmstudio.ai/docs/app/basics) for details). LMStudio will expose the model via a local HTTP server, which the *EvidenceSeeker* pipeline can access.
+
+## Configuration
+
+### Retriever Component
+
+The retriever component can be configured with the following YAML configuration file:
+
+```yaml
+embed_backend_type: huggingface
+embed_model_name: sentence-transformers/paraphrase-multilingual-mpnet-base-v2
+env_file: <path/to/your/api_keys.txt>
+# Hugging Face Hub Path (optional), from where the index can be loaded. We use
+# EvidenceSeeker's example index hub path: DebateLabKIT/apuz-index-es
+# see: https://huggingface.co/datasets/DebateLabKIT/apuz-index-es
+index_hub_path: DebateLabKIT/apuz-index-es
+# token name for accessing index from Hugging Face Hub
+hub_key_name: <your_hub_key_name>
+# Path where the index is stored locally and/or loaded from.
+index_persist_path: <path/for/storing/the/index>
+```
+
+**Clarifications:**
+
++ Setting `embed_backend_type` to `huggingface` tells the retriever component to use the Hugging Face Transformers library to load the embedding model locally.
++ `hub_key_name` is the name of the environment variable that contains your API key for accessing the index from Hugging Face Hub.
++ Here, were load the [APUZ example index](https://huggingface.co/datasets/DebateLabKIT/apuz-index-es) from a Hugging Face Hub repository (via `index_hub_path`) and store it locally as specified by `index_persist_path` (for alternative configuration see [here](./advanced_configuration.qmd#knowledge-base)).
+
+### Preprocessor
+
+
+Similar to the [configuration of using Hugging Face’s Inference Provider](./example_hf_inference_provider.qmd), the preprocessor component can be configured by specifying the model and endpoint in the configuration file. The following example shows how to configure the preprocessor component with the Llama-3.2-1B-Instruct model served by LMStudio:
+
+```yaml
+timeout: 1200
+used_model_key: lmstudio
+models:
+  lmstudio:
+    name: llama-3.2-1b-instruct
+    description: Local model served via LMStudio
+    base_url: http://127.0.0.1:1234/v1/
+    model: llama-3.2-1b-instruct
+    backend_type: openai
+    max_tokens: 1024
+    temperature: 0.2
+    api_key: not_needed
+    timeout: 260
+```
+
+**Clarifications:**
+
++ We define a model with the identifier `lmstudio`. The defined model is set as the global model for the preprocessor component via `used_model_key`. (Alternatively, you can assign models to specific steps in the preprocessor pipeline. See [here](./advanced_configuration.qmd#step-configurations) for details.)
++ `backend_type` is set to `openai` since LMStudio allows inference calls to be made via an OpenAI-compatible API.
++ `base_url` is set to the local URL where LMStudio serves the model. If you have configured LMStudio to use a different port, make sure to adjust the port number.
++ `model` is set to the model's name as it is configured in LMStudio.
++ `name` and `description` are arbitrary identifiers you can choose to describe the model.
+
+### Confirmation Analyser
+
+The configuration of the confirmation analyser component is trickier since it requires the correct configuration of how to calculate degrees of confirmation (see [here](../workflow.qmd# confirmation-analyser) for details) within the pipeline of the confirmation analyser:
+
+```yaml
+timeout: 1200
+used_model_key: lmstudio
+models:
+  lmstudio:
+    name: llama-3.2-1b-instruct
+    description: Local model served via LMStudio
+    base_url: http://127.0.0.1:1234/v1/
+    model: llama-3.2-1b-instruct
+    backend_type: openai
+    max_tokens: 1024
+    temperature: 0.2
+    api_key: not_needed
+    timeout: 260
+# step configuration of the multiple choice task
+multiple_choice_confirmation_analysis:
+  description: Multiple choice RTE task given CoT trace.
+  name: multiple_choice_confirmation_analysis
+  llm_specific_configs:
+    lmstudio:
+      guidance_type: json
+      logprobs_type: estimate
+      n_repetitions_mcq: 30
+```
+
+**Clarifications:**
+
++ The model configuration is the same as that of the preprocessor component.
++ The `multiple_choice_confirmation_analysis` section configures the multiple choice step of the confirmation analyser component. With `lmstudio` under `llm_specific_configs`, we specify a model-specific step configuration.
+    + Since LMStudio does not return logprobs, we set `logprobs_type` to `estimate` and `n_repetitions_mcq` to $30$ to estimate the logprobs by repeating the inference request $30$ times (for details, see [here](./advanced_configuration.qmd#logprobs)).
+
+::: {.callout-warning}
+There is a trade-off when estimating logprobs by repeating inference requests: To increase the accuracy of logprobs estimation, you should set a sufficiently high value for `n_repetitions_mcq` (>100). However, this will also increase the inference time and cost. Using `n_repetitions_mcq=30` should be considered as a mere proof of concept. Using a model that supports an explicit logprobs output is always preferable.
+:::

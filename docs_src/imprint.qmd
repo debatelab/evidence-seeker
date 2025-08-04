@@ -1,0 +1,8 @@
+---
+title: "Imprint"
+---
+
+The following persons are responsible for the content of this website:
+
++ *Gregor Betz* (Karlsruher Institut für Technologie, Institut für Philosophie, Douglasstraße 24, 76133 Karlsruhe)
++ *Sebastian Cacean* (Karlsruher Institut für Technologie, Institut für Philosophie, Douglasstraße 24, 76133 Karlsruhe)

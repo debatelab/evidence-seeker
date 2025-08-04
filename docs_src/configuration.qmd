@@ -1,0 +1,57 @@
+---
+title: "⚙️ Configuration"
+---
+
+The *EvidenceSeeker* pipeline has three main components: a preprocessor, a retriever, and a confirmation analysis component. These components are only loosely coupled and can be configured independently. This allows you to adapt the *EvidenceSeeker* pipeline to your specific needs and use cases. You can configure, for instance, 
+
++ the language models used for preprocessing and confirmation analysis,
++ the embedding model used for creating and searching the index of your knowledge base,
++ the knowledge base used for fact-checking and 
++ the used prompts for the different components.
+
+There are two ways to configure your *EvidenceSeeker* instance: Initialising configuration objects or via YAML configuration files. If you use the EvidenceSeeker client (see ["Getting Started"](./getting_started.qmd)) to set up your *EvidenceSeeker* instance, you will find the configuration files in the `config/` directory of your *EvidenceSeeker* instance. 
+
+If you initialise your *EvidenceSeeker* instance programmatically, you can pass config files:
+
+```python
+from evidence_seeker import EvidenceSeeker
+import asyncio
+
+pipeline = EvidenceSeeker(
+    retrieval_config_file="<path/to/retrieval_config.yaml>",
+    confirmation_analysis_config_file="<path/to/confirmation_analysis_config.yaml>",
+    preprocessing_config_file="<path/to/preprocessing_config.yaml>",
+)
+# run the pipeline
+results = asyncio.run(pipeline("<your statement to fact-check>"))
+```
+
+or config objects:
+
+```python
+from evidence_seeker (
+ EvidenceSeeker,
+ RetrievalConfig,
+ ConfirmationAnalysisConfig,
+ PreprocessingConfig,
+)
+import asyncio
+
+preprocessing_config = PreprocessingConfig(
+    # passing config params ... 
+)
+retrieval_config = RetrievalConfig(
+    # passing config params ...
+)
+confirmation_analysis_config = ConfirmationAnalysisConfig(
+    # passing config params ... 
+)
+
+pipeline = EvidenceSeeker(
+    preprocessing_config=preprocessing_config,
+    retrieval_config=retrieval_config,
+    confirmation_analysis_config=confirmation_analysis_config,
+)
+# run the pipeline
+results = asyncio.run(pipeline("your statement to fact-check"))
+```

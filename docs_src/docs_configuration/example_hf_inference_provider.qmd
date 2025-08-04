@@ -1,0 +1,122 @@
+---
+title: "Example Configuration: HuggingFace Inference Provider"
+---
+
+Through [Hugging Face’s Inference Providers](https://huggingface.co/docs/inference-providers/en/index) you can use a wide range of language models and embedding models for your *EvidenceSeeker* instance hosted by Hugging Face or other providers. The following example shows how to configure the *EvidenceSeeker* pipeline with the following models accessed via Hugging Face’s Inference Provider:
+
+<!--
+TODO: Currently, the 70B model is not available due to imprecise pricing over together.ai. (Although the 3b model works fine)
+-->
+
++ [Llama-3.3-70B-Instruct](https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct) hosted by [together.ai](https://www.together.ai/inference) for the preprocessor and confirmation analysis component
++ [paraphrase-multilingual-mpnet-base-v2](https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2) hosted by Hugging Face as the embedding model for the retriever component
+
+## Retriever Component
+
+The retriever component can be configured with the following YAML configuration file:
+
+```yaml
+embed_backend_type: huggingface_inference_api
+embed_model_name: sentence-transformers/paraphrase-multilingual-mpnet-base-v2
+embed_base_url: https://router.huggingface.co/hf-inference/models/sentence-transformers/paraphrase-multilingual-mpnet-base-v2
+env_file: <path/to/your/api_keys.txt>
+# token name for API model access
+api_key_name: <your_api_key_name>
+# bill_to: <your_hugging_face_organisation>
+# Hugging Face Hub Path (optional), from where the index can be loaded. We use
+# EvidenceSeeker's example index hub path: DebateLabKIT/apuz-index-es
+# see: https://huggingface.co/datasets/DebateLabKIT/apuz-index-es
+index_hub_path: <hugging_face_hub_index_path>
+# token name for accessing index from Hugging Face Hub
+hub_key_name: <your_hub_key_name>
+# Path where the index is stored locally and/or loaded from.
+index_persist_path: <path/for/storing/the/index>
+```
+
+**Clarifications:**
+
++ `embed_backend_type` is set to `huggingface_inference_api` to use Hugging Face’s Inference Provider. For alternatives, see [here](./advanced_configuration.qmd#embedding-model).
++ `embed_model_name` and `embed_base_url` are set to the model and endpoint of the embedding model you want to use. If you want to use another model, you can find these settings on the model page of the embedding model on Hugging Face.
+    + *Important!:* Both `embed_model_name` and `embed_base_url` might change in the future. So, make sure to check the model page for the correct values.
++ `api_key_name` is the name of the environment variable that contains your API key for Hugging Face’s Inference Provider. You can set this environment variable in a file (as specified by `env_file`) or directly in your shell or script.
++ Similarly, `hub_key_name` is the name of the environment variable that contains your API key for accessing the index from Hugging Face Hub.
++ Use `bill_to` to specify your Hugging Face organisation if you want to bill the usage to your organisation (see <https://huggingface.co/docs/inference-providers/pricing#billing-for-team-and-enterprise-organizations>).
++ Here, were load the [APUZ example index](https://huggingface.co/datasets/DebateLabKIT/apuz-index-es) from a Hugging Face Hub repository (via `index_hub_path`) and store it locally as specified by `index_persist_path` (for alternative configuration see [here](./advanced_configuration.qmd#knowledge-base)).
+
+With the given configuration file, you can create an instance of the retriever component in your *EvidenceSeeker* pipeline as follows:
+
+```python
+from evidence_seeker import DocumentRetriever
+
+config_file = "path/to/your/config_file.yaml"
+
+retriever = DocumentRetriever.from_config_file(config_file)
+```
+
+## Preprocessor and Confirmation Analyser
+
+The default configuration values will suit most models provided via Hugging Face’s Inference Provider. You only have to ensure that the model can provide JSON as structured output. Additionally, you must specify the model and endpoint in the configuration file. The following example shows how to configure the preprocessor component with the Llama-3.3-70B-Instruct model:
+
+TODO: Update model
+
+```yaml
+# timeout for the whole preprocessor pipeline
+timeout: 1200
+env_file: <path/to/your/api_keys.txt>
+used_model_key: together.ai
+models:
+  together.ai:
+    name: Llama-3.3-70B-Instruct
+    description: Llama-3.3-70B served by Together.ai over HuggingFace
+    base_url: https://router.huggingface.co/v1
+    model: meta-llama/Llama-3.3-70B-Instruct:together
+    api_key_name: hf_debatelab_inference_provider
+    backend_type: openai
+    default_headers: 
+      X-HF-Bill-To: <your_hugging_face_organisation>
+    max_tokens: 1024
+    temperature: 0.2
+    # timeout for each request to the model
+    timeout: 260
+```
+
+**Clarifications:**
+
++ We define a model with the identifier `together.ai`. The defined model is set as the global model for the preprocessor component via `used_model_key`. (Alternatively, you can assign models to specific steps in the preprocessor pipeline. See [here](./advanced_configuration.qmd#step-configurations) for details.)
++ `backend_type` is set to `openai` since Hugging Face’s Inference Provider uses an OpenAI conform API for the models (for alternatives, see [here](./advanced_configuration.qmd#models)).
++ `X-HF-Bill-To` (optionally) serves the same purpose as `bill_to` in the retriever component. It specifies that the Hugging Face organisation should be billed for the usage.
++ `name` and `description` are arbitrary identifiers you can choose to describe the model.
++ The other fields play the same role as in the retriever component. 
+
+With the given configuration file, you can create an instance of the preprocessor and confirmation analyser component in your EvidenceSeeker pipeline as follows:
+
+```python
+from evidence_seeker import ClaimPreprocessor, ConfirmationAnalyzer
+
+config_file = "path/to/your/config_file.yaml"
+
+preprocessor = ClaimPreprocessor.from_config_file(config_file)
+confirmation_analyzer = ConfirmationAnalyzer.from_config_file(config_file)
+```
+
+Here, we use one configuration file for the preprocessor and the confirmation analyser. This is possible since both components use the same model for their processing steps. If you want to configure, for instance, the different steps of each component, you should use separate configuration files. See [here](./advanced_configuration.qmd#step-configurations) for details on how to configure the steps of the preprocessor and confirmation analyser components, and [here](./example_local_models.qmd) for a specific example. 
+
+## Executing the Pipeline
+
+With the retriever, preprocessor, and confirmation analyser components configured, you can run the *EvidenceSeeker* pipeline as follows:
+
+```python
+from evidence_seeker import EvidenceSeeker
+
+input = (
+    "<The claim you want to check>"
+)
+
+pipeline = EvidenceSeeker(
+    retriever=retriever,
+    preprocessor=preprocessor,
+    confirmation_analyzer=confirmation_analyzer
+)
+
+results = await pipeline(input)
+```

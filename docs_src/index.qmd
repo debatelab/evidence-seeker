@@ -1,0 +1,80 @@
+---
+title: "🕵️‍♀️ _EvidenceSeeker Boilerplate_"
+toc: false
+---
+
+### A code template for building customised fact-checkers 
+
+*EvidenceSeeker Boilerplate* is a Python code template that can be used to set up LLM-based fact-checking tools---we call them _EvidenceSeeker_:
+
++ An _EvidenceSeeker_ fact-checks a statement by searching for confirming and debunking information in a given knowledge base. 
++ _EvidenceSeeker Boilerplate_ is 100%-open source and is distributed under the very permissive MIT licence.
+
+::: {.grid}
+
+::: {.g-col-4}
+### Handling Input Ambiguities
+
+Deal with semantical ambiguities in the inputs that are fact-checked.
+
+::: {.learn-more}
+[Learn more »](workflow.qmd#input_ambiguities)
+:::
+:::
+
+
+::: {.g-col-4}
+### Model Independence
+_EvidenceSeeker_ do not rely on a specific language model. It is up to you: Use _EvidenceSeeker_ with your privately hosted LLMs or rely on inference service providers; use proprietary or open models.
+
+::: {.learn-more}
+[Learn more »](./docs_configuration/advanced_configuration.qmd#models)
+:::
+:::
+
+::: {.g-col-4}
+### Explainability & Transparency
+Stay in control of your fact-checking workflow. An _EvidenceSeeker_ is no black box. Its assessments can be explained and traced back to occurrences in your knowledge base.
+
+::: {.learn-more}
+[Learn more »](workflow.qmd#explainability)
+:::
+:::
+
+::: {.g-col-4}
+### 🚧 Easy Set-up
+Use the boilerplate to set up your custom-made _EvidenceSeeker_ without technical knowledge.
+
+::: {.learn-more}
+[Learn more »](getting_started.qmd#set_up)
+:::
+:::
+
+::: {.g-col-4}
+### 🚧 Integration
+Integrate _EvidenceSeeker_ into your existing workflows and AI apps. 
+
+::: {.learn-more}
+[Learn more »](getting_started.qmd#integration)
+:::
+:::
+
+::: {.g-col-4}
+### Domain-specific Fact-Checking
+Use your knowledge base (e.g., a bunch of PDFs) for fact-checking.
+
+::: {.learn-more}
+[Learn more »](getting_started.qmd#building_index)
+:::
+:::
+
+
+:::
+
+
+::: {.content-block .py-1 .grid}
+::: {.g-start-4 .g-col-6 .g-start-md-5 .g-col-md-3} 
+[Try it!](getting_started.qmd#try_it){.btn-action-primary  .btn-action .btn .btn-lg .bg-primary .text-white .py-1 .px-4 .rounded-pill role="button"}
+
+:::
+:::

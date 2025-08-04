@@ -1,0 +1,66 @@
+project:
+  type: website
+  output-dir: ../docs
+
+website:
+  title: "🕵️‍♀️ EvSe"
+  repo-url: https://github.com/debatelab/evidence-seeker
+  repo-actions: [issue]
+  page-navigation: true
+  navbar:
+    tools:
+        - icon: linkedin
+          href: https://www.linkedin.com/company/kideku/
+          text: KIdeKu LinkedIn
+        - icon: github
+          href: https://github.com/debatelab/evidence-seeker
+          text: EvSe GitHub
+  sidebar:
+      style: "floating"
+      search: true
+      collapse-level: 1
+      contents:
+        - href: index.qmd
+          text: "Home"
+        - href: getting_started.qmd
+          text: "Getting Started"
+        - href: workflow.qmd
+          text: "The Pipeline"
+        - section: "Configuration"
+          href: configuration.qmd
+          contents:
+          - href: docs_configuration/minimal_configuration.qmd
+            text: "Minimal Configuration"
+          - href: docs_configuration/advanced_configuration.qmd
+            text: "Advanced Configuration"
+          - href: docs_configuration/example_hf_inference_provider.qmd
+            text: "Example: Hugging Face Inference Provider"
+          - href: docs_configuration/example_local_models.qmd
+            text: "Example: Local Models with LM Studio"
+        - href: roadmap.qmd
+          text: "Contributing & Roadmap"
+        - href: about.qmd
+          text: "About"
+  page-footer: 
+    left: |
+      Part of [![](/img/logoKIdeKu.jpg){fig-alt="KIdeKu" width=20px }](https://compphil2mmae.github.io/research/kideku/)
+    center: |
+      [About](/about.qmd){.text-decoration-none} | [Imprint](/imprint.qmd){.text-decoration-none}
+      </br>
+      Copyright © 2024-2025 [CompPhil²MMAE](https://compphil2mmae.github.io/){.text-decoration-none} at KIT.
+format:
+  html:
+    theme:
+      - cosmo
+      - brand
+      - kideku
+    css: styles.css
+    # toc configuration for each page
+    toc: true
+    toc-expand: true
+    toc-depth: 4
+    link-external-newwindow: true
+
+
+
+

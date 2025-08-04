@@ -1,0 +1,22 @@
+---
+title: "🤝 Contributing & Roadmap"
+---
+
+## Roadmap
+
+*EvidenceSeeker Boilerplate* is a work in progress. We are constantly improving the code and the documentation. 
+
+Currently, we plan the following improvements:
+
++ **Hosted Service Platform:** We plan to develop a web-based portal that enables users to configure, deploy, and test EvidenceSeeker instances in a cloud environment. This will provide organisations with immediate access to evaluation capabilities without local setup requirements.
+
++ **Evaluation Framework Template:** We want to implement a standardised evaluation pipeline framework that facilitates the creation of domain-specific benchmarks and test suites, enabling systematic performance assessment against custom knowledge bases.
+
++ **Integration API and Workflow Compatibility:** We like to extend EvidenceSeeker's interoperability through standardised API interfaces, including Model Context Protocol (MCP) server support and RESTful APIs, to enable seamless integration into existing organisational workflows and third-party applications.
+
+## Contributing
+
+There are several ways you can contribute to the project:
+
++ We welcome **feedback and suggestions** to improve *EvidenceSeeker Boilerplate*. You can publicly issue suggestions and feedback on our [GitHub repo](https://github.com/debatelab/evidence-seeker/issues). Simply create a new issue! Alternatively, you can contact the KIdeKu Team via email at [kideku&#64;itz&#46;kit&#46;edu](mailto:kideku@itz.kit.edu).
++ **Partnership Opportunities:** We actively seek strategic partnerships with early adopters to refine and validate our approach across different use cases. If your organisation would benefit from domain-specific fact-checking capabilities, we invite you to reach out to us (via [kideku&#64;itz&#46;kit&#46;edu](mailto:kideku@itz.kit.edu)) to discuss potential collaboration opportunities.

@@ -1,0 +1,181 @@
+---
+title: "⚙️ Advanced Configuration"
+---
+
+Here, we will give an overview of the most important configuration parameters. You will find more information in the comments of the [default configuration files](https://github.com/debatelab/evidence-seeker/tree/main/configs). 
+
+Additionally, we give some example configurations, which illustrate how to configure the pipeline for two use cases:
+
++ [Using local models with EvidenceSeeker](./example_local_models.qmd): 
++ [Using HuggingFace Inference Provider with EvidenceSeeker](./example_hf_inference_provider.qmd):
+
+## Retriever Component
+
+For the retriever component, you can configure the used **embedding model** and the **knowledge base** used for fact-checking.
+
+### Embedding Model
+
+The used **embedding model** via the `embed_backend_type`, `embed_base_url`, and `embed_model_name` parameters.
+
++ As `embed_backend_type`, you can choose between 
+    + `tei` ([text embedding inference](https://github.com/huggingface/text-embeddings-inference)): API for serving embedding models, that can be used, for instance, with [dedicated endpoints for embedding models by Hugging Face](https://huggingface.co/learn/cookbook/en/enterprise_dedicated_endpoints).
+    + `huggingface`: This is for local models hosted on HuggingFace and used with the HuggingFace API. The retriever component will download the model from Hugging Face during the first use. You might need a lot of disk space and memory, depending on the model size. Additionally, it might take some time to create the index.
+    + `huggingface_inference_api`: This is for embedding models accessed via [Hugging Face Inference Provider](https://huggingface.co/docs/inference-providers/index).
++ For all these options, specify the `embed_base_url` and `embed_model_name` parameters. For instance, if you use [sentence-transformers/paraphrase-multilingual-mpnet-base-v2](https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2) as the embedding model and if you want to use it via Hugging Face inference provider, you would set:
+    + `base_url` to *"https://router.huggingface.co/hf-inference/models/sentence-transformers/paraphrase-multilingual-mpnet-base-v2"* and
+    + `embed_model_name` to *"sentence-transformers/paraphrase-multilingual-mpnet-base-v2"*
++ Depending on the backend type, you might also have to specify an `api_key_name` and `env_file` parameter to provide the API key for the embedding model (see [below](#api-keys) for details). If you use a local model, you can omit these parameters.
++ Some important model parameters for the embedding model include:
+  + `top_k` (default value: 8): The number of documents that are retrieved from the knowledge base by the embedding model (see [here](../workflow.qmd#retriever) for details). 
+  +  `window_size` (default value: 3): The adjacent content (measured in token size) is taken as context when creating an embedding.
+  + `embed_batch_size` (default value: 32): The number of text chunks processed simultaneously when creating an embedding.
+
+### Knowledge Base
+
+The most important parameters of working with your **knowledge base**:
+
++ `document_input_dir`: Path to the directory containing your PDF files you want to use as a knowledge base. Alternatively, you can provide a list of files via the `document_input_files` parameter.
++ `meta_data_file`: Path to a JSON file containing metadata for the files in your knowledge base.
+
+Currently, the index is loaded into the machine's memory, where the EvidenceSeeker pipeline runs. At least one of the following two paths must be set: `index_hub_path` or `index_persist_path` for the retriever component to locate the index of your knowledge base. These parameters have different roles during the creation and loading of the index: 
+
++ *Creating the index:* If you create the index of your knowledge base, the retriever component will store the index in the directory specified by `index_persist_path`. If you use a Hugging Face Hub repository, you can specify `index_hub_path` to store the index in a Hugging Face Hub repository.
++ *Loading the index:* When the retriever component is initialised, it will load the index from the path specified by `index_persist_path`. If you use a Hugging Face Hub repository, you can specify `index_hub_path` to load the index from a Hugging Face Hub repository. If both paths are specified and `index_persist_path` is empty, the index will be loaded (once) from the Hub path and saved to the local path.
++ `hub_key_name`: If you use a private Hugging Face Hub repository, you have to specify the name of the environment variable that contains your Hugging Face Hub API key (see [below](#api-keys) for details on how to set the API key). If you use a public repository, you can omit this parameter.
+
+## Preprocessor & Confirmation Analysis
+
+### Models
+
+You can define an arbitrary number of models in the configuration files for the preprocessor and the confirmation analysis component, and then assign these models to the whole pipeline or specific steps of the pipeline. In this way, you can easily switch between models and even use different models for different pipeline steps.
+
+In your configuration YAML files, you can define the models in the following way:
+
+```yaml
+models:
+  your_first_model:
+    api_key_name: <your_api_key_name>
+    backend_type: <backend_type_of_your_model>
+    base_url: <your_base_url>
+    description: <description_of_your_model>
+    model: <your_model_identifier>
+    name: <your_model_name>
+    # some optional parameters
+    temperature: 0.2
+    timeout: 260
+    max_tokens: 1024
+  your_second_model:
+    api_key_name: <your_api_key_name>
+    backend_type: <backend_type_of_your_model>
+    base_url: <your_base_url>
+    description: <description_of_your_model>
+    model: <your_model_identifier>
+    name: <your_model_name>
+    # some optional parameters
+    temperature: 0.2
+    timeout: 260
+    max_tokens: 1024
+```
+
+`<your_first_model>` and `<your_second_model>` are arbitrary identifiers for the models you use in your config to specify which model to use for which step of the pipeline. You can assign a defined model, say `<your_global_model>`, as "global" model via
+
+```yaml
+used_model_key: <your_global_model>
+```
+that is used for all pipeline steps that do not have a specific model attached via their step configuration (see below).
+
+**Further clarifications:**
+
++ **API Keys:** The *EvidenceSeeker* expects API keys to be set as environment variables with the name specified by `api_key_name` for each model. If you use a file with environment variables via `env_file`, the file should contain a line like this: `<name_of_your_api_key>=<your_api_key>`. Alternatively, you can set the environment variable directly in your shell or script before running the EvidenceSeeker pipeline (see [below](#api-keys)).
+    + If you do not need an API key (e.g., if you use a local model), you can omit the `env_file` and `api_key_name` parameters.
++ `base_url` and `model` are important since they specify the endpoint and model. 
+    + For instance, if you use [HuggingFace as inference provider with Llama-3.3-70B-Instruct](https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct?inference_api=true&language=python&inference_provider=hf-inference), you would set:
+        + `base_url` to *"https://router.huggingface.co/hf-inference/models/meta-llama/Llama-3.3-70B-Instruct/v1"* and
+        + `model` to *"meta-llama/Llama-3.3-70B-Instruct"*
+
+
+#### Model Backend Type
+
+The backend type of the model is configured via `backend_type` and used to specify the model's API client. The following backend types are currently supported:
+
++ `nim`: For models accessible via [Nvidia NIM API](https://docs.nvidia.com/nim/large-language-models/latest/introduction.html).
++ `tgi` (text generation inference): For models served via [TGI API](https://github.com/huggingface/text-generation-inference), for instance, dedicated Hugging Face endpoints.
++ `openai`: For inference endpoints accessible via APIs consistent with [OpenAI API](https://platform.openai.com/docs/api-reference/introduction), for instance, inference provider over Hugging Face.
+
+You can also use local models, e.g., with [LMStudio](https://lmstudio.ai/). Models served via LMStudio can be used with the `openai` backend type. In this case, you can omit the `api_key_name` and `env_file` parameters since no API key is needed for local models. You will find the relevant information about the `base_url` and the `model` identifier within LMStudio (see also the [example configuration with local models](example_local_models.qmd)). 
+
+### Step Configurations
+
+The preprocessor and the confirmation analysis components have several steps that can be configured independently. You can specify the model for each step via the `used_model_key` parameter. 
+
+Additionally, most of the step specific configuration parameters can be defined in a model-specific way. In this way, you can easily switch between different models for different steps of the pipeline and optimise the performance of each step for different models. For instance, you can provide different prompt templates for each step, optimised for different models.
+
+A typical step configuration within your config file would look like this:
+
+```yaml
+<step_identifier>:
+  description: Instruct the model to do ...
+  name: <step_name>
+  # defining the model to use for this step
+  used_model_key: <your_model_identifier>
+  llm_specific_configs:
+    # default configuration for the step
+    default:
+      prompt_template: <your_default_prompt_template>
+      system_prompt: <your_default_step_system_prompt>
+      ...
+    # configuration for a specific model that 
+    # is used for this step, if the model is specified
+    # via the `used_model_key` parameter
+    <your_model_identifier>:
+      prompt_template: <your_model_specific_prompt_template>
+      system_prompt: <your_model_specific_step_system_prompt>
+      ...
+    <alternative_model_identifier>:
+      ...
+```
+
+#### Default Step Configuration
+
+The field `llm_specific_configs` contains model-specific configuration settings for the step. If the list does not contain a model-specific configuration that matches the specified global or step-specific `used_model_key,` the `default` configuration is used.
+
+#### Guidance
+
+Some steps in the *EvidenceSeeker* pipeline presuppose that the language model supports *structured outputs*, that is, a model output in a specific format such as JSON. Since different language models have different capabilities, the EvidenceSeeker pipeline allows you to specify a `guidance_type` parameter in the step configuration that defines the expected output format. You have to check the documentation of the language model you use to see if it supports structured outputs and which formats it supports. 
+
+Currently, the EvidenceSeeker pipeline supports the following `guidance_type` values for the confirmation analyser component:
+
++ `json` if the model should be instructed to output a JSON string (currently supported by the backend types `openai`, `nim` and `tgi`).
++ `grammar` if the model should be instructed to output a string that conforms to a specific grammar (currently supported by the backend types `openai`).
++ `regex` if the model should be instructed to output a string that matches a specific regular expression (currently supported by the backend types `openai` and `tgi`).
++ `prompted` if there is no way to instruct the model to output a structured format. In this case, you can instruct the model to output a string that matches a specific format via the prompt. There is, however, no guarantee that the model will actually output a string that matches the expected format.
+  + If you use `prompted` to generate structured outputs, you should provide a `prompt_template` that contains the instructions for the LLM to output a string that matches the expected format.
+  + If you use `prompted` to generate structured outputs, you can provide a regular expression via `validation_regex` that will be used to validate the model output. If the model output does not match the regular expression, the EvidenceSeeker pipeline will raise an error.
+
+#### Logprobs
+
+The confirmation analyser component uses *logprobs* (also known as 'logits') to calculate the degree of confirmation for statements based on found evidence items in the knowledge base (see [here](../workflow.qmd# confirmation-analyser) for details). If the chosen model does not support the retrieval of logprobs, the EvidenceSeeker pipeline can estimate logprobs by repeating inference requests and taking the frequency of answers to estimate the logprobs. 
+
+This is done by setting the `logprobs_type` parameter in the step configuration to `estimate` and setting the number of repetitions `n_repetitions_mcq` to at least $30$. The default value for `logprobs_type` is `openai_like`, which assumes that logprobs are returned in a [format consistent with the OpenAI API](https://platform.openai.com/docs/api-reference/chat/create). 
+
+::: {.callout-warning}
+There is a trade-off when estimating logprobs by repeating inference requests: To increase the accuracy of logprobs estimation, you should set a sufficiently high value for `n_repetitions_mcq` (>100). However, this will also increase the inference time and cost. Using `n_repetitions_mcq=30` should be considered as a mere proof of concept. Using a model that supports an explicit logprobs output is always preferable.
+:::
+
+
+## API Keys
+If you use third-party APIs (e.g., OpenAI, HuggingFace, etc.) for the language models or embedding models, you must provide API keys for these services. The *EvidenceSeeker* pipeline assumes that these API keys are set via environment variables with the names specified in the configuration files (`api_key_name`).
+
+There are two ways to set these environment variables:
+
+1. You set these environment variables directly in your shell or script before running the EvidenceSeeker pipeline. For example, in a Unix-like shell, you can set an environment variable like this:
+
+ ```bash
+    export <YOUR_API_KEY_NAME>=<your_api_key_value>
+ ```
+
+2. You can use a file with environment variables specified in the configuration files via `env_file` (see above). This file should contain lines like this:
+
+ ```txt
+ <YOUR_API_KEY_NAME>=<your_api_key_value>
+ ```

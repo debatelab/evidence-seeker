@@ -1,0 +1,9 @@
+
+// class for the board in the index page
+// TODO: This does not work so far
+.index-board {
+  @extend .border;
+  @extend .border-2;
+  @extend .rounded;
+  @extend .bg-light;
+}
