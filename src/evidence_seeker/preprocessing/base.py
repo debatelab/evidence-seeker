@@ -10,11 +10,12 @@ from evidence_seeker.preprocessing.config import ClaimPreprocessingConfig
 
 class ClaimPreprocessor:
 
-    def __init__(self, config: ClaimPreprocessingConfig | None = None, **kwargs):
+    def __init__(
+        self, config: ClaimPreprocessingConfig,
+        **kwargs
+    ):
 
-        if config is None:
-            config = ClaimPreprocessingConfig()
-
+        self.config = config
         self.workflow = PreprocessingWorkflow(
             config=config, **kwargs
         )
