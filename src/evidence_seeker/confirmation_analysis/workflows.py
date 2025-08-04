@@ -73,12 +73,12 @@ class SimpleConfirmationAnalysisWorkflow(Workflow):
         )
         self.n_repetitions_mcq = mcq_config.n_repetitions_mcq
         if (
-            mcq_config.n_repetitions_mcq < 10
+            mcq_config.n_repetitions_mcq < 100
             and mcq_config.logprobs_type == LogProbsType.ESTIMATE.value
         ):
             logger.warning(
                 "For reliably estimating log probs (LogProbsType.ESTIMATE) "
-                "you should set `n_repetitions_mcq >= 10`!"
+                "you should set `n_repetitions_mcq >= 100`!"
             )
         logger.debug(
             f"Using {self.n_repetitions_mcq} repetitions for "
