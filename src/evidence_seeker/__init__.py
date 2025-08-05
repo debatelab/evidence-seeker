@@ -44,7 +44,8 @@ from .confirmation_aggregation.base import ConfirmationAggregator
 
 from .utils import (
     #results_to_markdown,
-    describe_result
+    describe_result,
+    result_as_markdown
 )
 
 
@@ -55,6 +56,7 @@ from .evidence_seeker import (
 from .datamodels import (
     CheckedClaim,
     Document,
+    StatementType
 )
 
 from .results import (
@@ -87,8 +89,9 @@ __all__ = [
 #    "ConfirmationAnalyzer",
     "CheckedClaim",
     "Document",
+    "StatementType",
     "EvidenceSeekerResult",
-    #"results_to_markdown",
+    "result_as_markdown",
     "describe_result"
 #    "SimpleConfirmationAnalysisWorkflow"
 ]

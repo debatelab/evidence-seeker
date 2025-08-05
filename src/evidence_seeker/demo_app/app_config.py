@@ -1,5 +1,5 @@
 import pydantic
-from typing import Optional, Dict, List
+from typing import Optional
 
 
 class AppConfig(pydantic.BaseModel):
@@ -17,7 +17,8 @@ class AppConfig(pydantic.BaseModel):
     github_token: str = "GITHUB_TOKEN"
     language: str = "de"
     example_inputs_file: str | None = None
-    example_inputs: Dict[str, List[str]] | None = {
+    # TODO: move to yaml
+    example_inputs: dict[str, list[str]] | None = {
         "de": [
             "Die Osterweiterung hat die EU-Institutionen nachhaltig geschwächt.",
             "In den knapp 70 Jahren seit ihrer Gründung hat es in der Bundeswehr "
@@ -34,17 +35,20 @@ class AppConfig(pydantic.BaseModel):
         "en": [],
     }
     markdown_template_file: str | None = None
-    markdown_template: Dict[str, str] | None = None
+    markdown_template: dict[str, str] | None = None
 
-    translation: dict[str, str] = {
-        "ascriptive": "askriptiv",
-        "descriptive": "deskriptiv",
-        "normative": "normativ",
-        "The claim is neither confirmed nor disconfirmed.": "Die Aussage wird weder bestätigt noch widerlegt.",
-        "The claim is strongly confirmed.": "Die Aussage wird im hohen Maße bestätigt.",
-        "The claim is strongly disconfirmed.": "Die Aussage wird im hohen Maße widerlegt.",
-        "The claim is weakly confirmed.": "Die Aussage wird in geringem Maße bestätigt.",
-        "The claim is weakly disconfirmed.": "Die Aussage wird in geringem Maße widerlegt.",
+    translations: dict[str, dict[str, str]] = {
+        "de": {
+            "ascriptive": "askriptiv",
+            "descriptive": "deskriptiv",
+            "normative": "normativ",
+            "The claim is neither confirmed nor disconfirmed.": "Die Aussage wird weder bestätigt noch widerlegt.",
+            "The claim is strongly confirmed.": "Die Aussage wird im hohen Maße bestätigt.",
+            "The claim is strongly disconfirmed.": "Die Aussage wird im hohen Maße widerlegt.",
+            "The claim is weakly confirmed.": "Die Aussage wird in geringem Maße bestätigt.",
+            "The claim is weakly disconfirmed.": "Die Aussage wird in geringem Maße widerlegt.",
+        },
+        "en": {}
     }
     warning_text: str = """
         <p>

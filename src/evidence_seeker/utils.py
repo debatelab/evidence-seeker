@@ -2,6 +2,84 @@
 
 from typing import Dict, List
 from jinja2 import Environment
+from jinja2 import Template
+from typing import Any
+
+from .results import EvidenceSeekerResult
+
+
+# TODO (refactor!): Using this function is very ideosynctratic
+# since it hinges on specfici meta-data (which is
+# specific to the EvSe Demo Dataset).
+def get_grouped_sources(
+        documents,
+        confirmation_by_document
+) -> Dict[str, Dict[str, Any]]:
+    docs_grouped_by_src_file = {}
+    # Group documents by filenname
+    for doc in documents:
+        file_name = doc["metadata"].get("file_name", None)
+        if file_name is None:
+            raise ValueError("No filename found in metadata")
+        else:
+            if file_name not in docs_grouped_by_src_file:
+                docs_grouped_by_src_file[file_name] = {
+                    "author": doc["metadata"]["author"],
+                    "url": doc["metadata"]["url"],
+                    "title": doc["metadata"]["title"].replace("{", "").replace("}", ""),
+                    "texts": [],
+                }
+            docs_grouped_by_src_file[file_name]["texts"].append({
+                "original_text": (
+                    doc["metadata"]["original_text"]
+                    .strip()
+                    .replace("\n", " ")
+                    .replace('"', "'")
+                ),
+                "conf": confirmation_by_document[doc["uid"]],
+                "full_text": (
+                    doc["text"]
+                    .strip()
+                    .replace("\n", "  ")
+                    .replace('"', "'")
+                ),
+            })
+    # Sort texts by confidence score (highest first)
+    for file_name in docs_grouped_by_src_file:
+        docs_grouped_by_src_file[file_name]["texts"] = sorted(
+            docs_grouped_by_src_file[file_name]["texts"],
+            key=lambda item: item["conf"],
+            reverse=True
+        )
+    return docs_grouped_by_src_file
+
+
+def result_as_markdown(
+    ev_result: EvidenceSeekerResult,
+    translations: dict[str, str],
+    jinja2_md_template: str
+) -> str:
+    # TODO: see task from `get_grouped_sources`
+    claims = [
+        (
+            claim,
+            get_grouped_sources(
+                claim["documents"],
+                claim["confirmation_by_document"]
+            )
+        )
+        for claim in ev_result.claims
+    ]
+    result_template = Template(jinja2_md_template)
+    md = result_template.render(
+        feedback=ev_result.feedback["binary"],
+        statement=ev_result.request,
+        time=ev_result.request_time,
+        claims=claims,
+        translation=translations,
+    )
+    return md
+
 
 _md_template_str = """
 # EvidenceSeeker Results

@@ -10,7 +10,6 @@ from datetime import datetime, timezone
 import yaml
 import uuid
 from glob import glob
-from jinja2 import Environment, FileSystemLoader, Template
 from argon2 import PasswordHasher
 from argon2.exceptions import VerificationError
 from github import Github, Auth, UnknownObjectException
@@ -18,8 +17,11 @@ from github import Github, Auth, UnknownObjectException
 
 from evidence_seeker.demo_app.app_config import AppConfig
 
-from evidence_seeker import EvidenceSeeker, EvidenceSeekerResult
-
+from evidence_seeker import (
+    EvidenceSeeker,
+    EvidenceSeekerResult,
+    result_as_markdown
+)
 
 from evidence_seeker import (
     CheckedClaim,
@@ -74,6 +76,7 @@ _dummy_claims = [
     ),
 ]
 
+
 def setup_from_app_config() -> EvidenceSeeker | None:
     global APP_CONFIG
     configs = {
@@ -86,78 +89,6 @@ def setup_from_app_config() -> EvidenceSeeker | None:
         return None
     else:
         return EvidenceSeeker(**configs)
-
-
-def get_sources(documents, confirmation_by_document) -> str | None:
-    grouped = {}
-    for doc in documents:
-        if doc["metadata"]["file_name"] not in grouped.keys():
-            grouped[doc["metadata"]["file_name"]] = {
-                "author": doc["metadata"]["author"],
-                "url": doc["metadata"]["url"],
-                "title": doc["metadata"]["title"].replace("{", "").replace("}", ""),
-                "texts": [
-                    {
-                        "original_text": doc["metadata"]["original_text"],
-                        "conf": confirmation_by_document[doc["uid"]],
-                        "full_text": doc["text"],
-                    }
-                ],
-            }
-        else:
-            grouped[doc["metadata"]["file_name"]]["texts"].append(
-                {
-                    "original_text": doc["metadata"]["original_text"],
-                    "conf": confirmation_by_document[doc["uid"]],
-                    "full_text": doc["text"],
-                }
-            )
-
-    t = []
-    for doc in grouped.keys():
-        grouped[doc]["texts"] = sorted(
-            grouped[doc]["texts"], key=lambda item: item["conf"], reverse=True
-        )
-        t.append(
-            f"- {grouped[doc]['author']}: *{grouped[doc]['title']}* ([Link]({grouped[doc]['url']})):"
-        )
-        for text in grouped[doc]["texts"]:
-            orig = text["original_text"].strip().replace("\n", " ").replace('"', "'")
-            short = f'"{orig}" **[{round(text["conf"],5)}]**'
-            detailed = (
-                '"  '
-                + text["full_text"].strip().replace("\n", "  ").replace('"', "'")
-                + '"'
-            )
-            part = f"  - {short}\n    <details>\n    <summary>Mehr Details</summary>\n\n    - {detailed}\n\n    </details>"
-            t.append(part)
-    if len(t) == 0:
-        return None
-    else:
-        t = "\n\n".join(t) + "\n\n"
-        return (
-            "\n\n<details>\n\n<summary>Quellenverweise</summary>\n\n"
-            + t
-            + "</details>\n\n"
-        )
-
-
-def describe(ev_result: EvidenceSeekerResult) -> str:
-    global APP_CONFIG
-    claims = [
-        (claim, get_sources(claim["documents"], claim["confirmation_by_document"]))
-        for claim in ev_result.claims
-    ]
-    translation = APP_CONFIG.translation
-    result_template = Template(APP_CONFIG.md_template)
-    md = result_template.render(
-        feedback=ev_result.feedback["binary"],
-        statement=ev_result.request,
-        time=ev_result.request_time,
-        claims=claims,
-        translation=translation,
-    )
-    return md
 
 
 def check_password(input_password: str, hash: str) -> bool:
@@ -226,14 +157,17 @@ async def check(statement: str, last_result: EvidenceSeekerResult):
         logger.log("INFO", f"Checking '{statement}'... This could take a while.")
         checked_claims = await EVIDENCE_SEEKER(statement)
         last_result.claims = checked_claims
-        result = describe(last_result)  # describe_result(statement, checked_claims)
     else:
         last_result.claims = [claim.model_dump() for claim in _dummy_claims]
         # result = gr.Markdown(value=f"{last_result.model_dump()}")
-        result = describe(last_result)
-    logger.log(
-        "INFO",
-        f"Result of statement '{statement}' checked (request {last_result.request_uid})",
+    result = result_as_markdown(
+        ev_result=last_result,
+        translations=APP_CONFIG.translations[APP_CONFIG.language],
+        jinja2_md_template=APP_CONFIG.md_template
+    )
+
+    logger.info(
+        f"Result of statement '{statement}' checked (uid: {last_result.request_uid})",
     )
     return result, last_result
 
@@ -302,11 +236,16 @@ def log_result(last_result: EvidenceSeekerResult):
         try:
             c = repo.get_contents(filepath)
             repo.update_file(
-                filepath, f"Update result ({last_result.request_uid})", content, c.sha
+                filepath,
+                f"Update result ({last_result.request_uid})",
+                content,
+                c.sha
             )
         except UnknownObjectException:
             repo.create_file(
-                filepath, f"Upload new result ({last_result.request_uid})", content
+                filepath,
+                f"Upload new result ({last_result.request_uid})",
+                content
             )
         return
     else:
