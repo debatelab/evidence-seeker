@@ -4,6 +4,10 @@ from typing import Dict, List
 from jinja2 import Environment
 from jinja2 import Template
 from typing import Any
+from datetime import datetime
+import os
+from glob import glob
+from github import Github, Auth, UnknownObjectException
 
 from .results import EvidenceSeekerResult
 
@@ -79,6 +83,94 @@ def result_as_markdown(
         translation=translations,
     )
     return md
+
+
+# TODO: Use enum type
+def _current_subdir(subdirectory_construction: str | None) -> str:
+    if subdirectory_construction is None:
+        return ""
+    now = datetime.now()
+    if subdirectory_construction == "monthly":
+        subdirectory_path = now.strftime("y%Y_m%m")
+    elif subdirectory_construction == "weekly":
+        year, week, _ = now.isocalendar()
+        subdirectory_path = f"y{year}_w{week}"
+    elif subdirectory_construction == "yearly":
+        subdirectory_path = now.strftime("y%Y")
+    elif subdirectory_construction == "daily":
+        subdirectory_path = now.strftime("%Y_%m_%d")
+    else:
+        subdirectory_path = ""
+    return subdirectory_path
+
+
+def log_result(
+    evse_result: EvidenceSeekerResult,
+    result_dir: str,
+    local_base: str = ".",
+    subdirectory_construction: str | None = None, 
+    write_on_github: bool = False,
+    github_token_name: str | None = None,
+    repo_name: str | None = None,
+):
+    # Do not log results if pipeline failed somehow
+    # TODO: use state field from result
+    if len(evse_result.claims) == 0:
+        return
+    if evse_result.request_time is None:
+        raise ValueError("Request time not set in result.")
+    ts = datetime.strptime(
+        evse_result.request_time, "%Y-%m-%d %H:%M:%S UTC"
+    ).strftime("%Y_%m_%d")
+    fn = f"request_{ts}_{evse_result.request_uid}.yaml"
+    subdir = _current_subdir(subdirectory_construction)
+    if write_on_github:
+        result_dir = result_dir
+        filepath = (
+            "/".join([result_dir, fn])
+            if subdir == ""
+            else "/".join([result_dir, subdir, fn])
+        )
+        if (
+            github_token_name is None
+            or github_token_name not in os.environ.keys()
+        ):
+            raise ValueError(
+                "Github token name not set or token not"
+                "found as env variable by the specified name."
+            )
+        auth = Auth.Token(os.environ[github_token_name])
+        g = Github(auth=auth)
+        repo = g.get_repo(repo_name)
+        content = evse_result.yaml_dump(stream=None)
+        try:
+            c = repo.get_contents(filepath)
+            repo.update_file(
+                filepath,
+                f"Update result ({evse_result.request_uid})",
+                content,
+                c.sha
+            )
+        except UnknownObjectException:
+            repo.create_file(
+                filepath,
+                f"Upload new result ({evse_result.request_uid})",
+                content
+            )
+        return
+    else:
+        # TODO: check whether this works with relative paths configs
+        if result_dir is None:
+            result_dir = ""
+        files = glob("/".join([local_base, result_dir, "**", fn]), recursive=True)
+        assert len(files) < 2
+        if len(files) == 0:
+            filepath = "/".join([local_base, result_dir, subdir, fn])
+            os.makedirs("/".join([local_base, result_dir, subdir]), exist_ok=True)
+        else:
+            filepath = files[0]
+        with open(filepath, encoding="utf-8", mode="w") as f:
+            evse_result.yaml_dump(f)
 
 
 _md_template_str = """

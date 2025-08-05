@@ -14,7 +14,7 @@ class AppConfig(pydantic.BaseModel):
     local_base: str = "./TMP"
     result_dir: str = "data"
     repo_name: str = "debatelab/evidence-seeker-results"
-    github_token: str = "GITHUB_TOKEN"
+    github_token_name: str = "GITHUB_TOKEN"
     language: str = "de"
     example_inputs_file: str | None = None
     # TODO: move to yaml

@@ -9,10 +9,8 @@ from typing import Any
 from datetime import datetime, timezone
 import yaml
 import uuid
-from glob import glob
 from argon2 import PasswordHasher
 from argon2.exceptions import VerificationError
-from github import Github, Auth, UnknownObjectException
 
 
 from evidence_seeker.demo_app.app_config import AppConfig
@@ -20,7 +18,8 @@ from evidence_seeker.demo_app.app_config import AppConfig
 from evidence_seeker import (
     EvidenceSeeker,
     EvidenceSeekerResult,
-    result_as_markdown
+    result_as_markdown,
+    log_result
 )
 
 from evidence_seeker import (
@@ -186,82 +185,6 @@ def initialize_result_state():
     last_result = EvidenceSeekerResult(**conf)
     return gr.State(last_result)
 
-
-def _current_subdir(subdirectory_construction: str | None) -> str:
-    if subdirectory_construction is None:
-        return ""
-    now = datetime.now()
-    if subdirectory_construction == "monthly":
-        subdirectory_path = now.strftime("y%Y_m%m")
-    elif subdirectory_construction == "weekly":
-        year, week, _ = now.isocalendar()
-        subdirectory_path = f"y{year}_w{week}"
-    elif subdirectory_construction == "yearly":
-        subdirectory_path = now.strftime("y%Y")
-    elif subdirectory_construction == "daily":
-        subdirectory_path = now.strftime("%Y_%m_%d")
-    else:
-        subdirectory_path = ""
-    return subdirectory_path
-
-
-def log_result(last_result: EvidenceSeekerResult):
-    global RUNS_ON_SPACES, APP_CONFIG
-
-    # Do not log results if pipeline failed somehow
-    if len(last_result.claims) == 0:
-        return
-
-    assert last_result.request_time is not None
-    ts = datetime.strptime(last_result.request_time, "%Y-%m-%d %H:%M:%S UTC").strftime(
-        "%Y_%m_%d"
-    )
-    fn = f"request_{ts}_{last_result.request_uid}.yaml"
-    subdir = _current_subdir(APP_CONFIG.subdirectory_construction)
-    if RUNS_ON_SPACES:
-        result_dir = APP_CONFIG.result_dir
-        filepath = (
-            "/".join([result_dir, fn])
-            if subdir == ""
-            else "/".join([result_dir, subdir, fn])
-        )
-        assert (
-            APP_CONFIG.github_token is not None
-            and APP_CONFIG.github_token in os.environ.keys()
-        )
-        auth = Auth.Token(os.environ[APP_CONFIG.github_token])
-        g = Github(auth=auth)
-        repo = g.get_repo(APP_CONFIG.repo_name)
-        content = last_result.yaml_dump(stream=None)
-        try:
-            c = repo.get_contents(filepath)
-            repo.update_file(
-                filepath,
-                f"Update result ({last_result.request_uid})",
-                content,
-                c.sha
-            )
-        except UnknownObjectException:
-            repo.create_file(
-                filepath,
-                f"Upload new result ({last_result.request_uid})",
-                content
-            )
-        return
-    else:
-        local_base = APP_CONFIG.local_base if APP_CONFIG.local_base else ""
-        result_dir = APP_CONFIG.result_dir if APP_CONFIG.result_dir else ""
-        files = glob("/".join([local_base, result_dir, "**", fn]), recursive=True)
-        assert len(files) < 2
-        if len(files) == 0:
-            filepath = "/".join([local_base, result_dir, subdir, fn])
-            os.makedirs("/".join([local_base, result_dir, subdir]), exist_ok=True)
-        else:
-            filepath = files[0]
-        with open(filepath, encoding="utf-8", mode="w") as f:
-            last_result.yaml_dump(f)
-
-
 if "RUNS_ON_SPACES" not in os.environ.keys():
     RUNS_ON_SPACES = False
     logger.info("Gradioapp runs locally.")
@@ -322,9 +245,17 @@ with gr.Blocks(title="EvidenceSeeker") as demo:
                     good.render()
                     bad.render()
 
-            def logging(r):
+            def logging(evse_result):
                 if a[1]:
-                    log_result(r)
+                    log_result(
+                        evse_result=evse_result,
+                        result_dir=APP_CONFIG.result_dir,
+                        local_base=APP_CONFIG.local_base,
+                        subdirectory_construction=APP_CONFIG.subdirectory_construction,
+                        write_on_github=RUNS_ON_SPACES,
+                        github_token_name=APP_CONFIG.github_token_name,
+                        repo_name=APP_CONFIG.repo_name,
+                    )
 
             check_btn.click(deactivate, None, [check_btn, good, bad, feedback]).then(
                 (
