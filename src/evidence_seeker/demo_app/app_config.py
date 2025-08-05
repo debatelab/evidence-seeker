@@ -16,8 +16,8 @@ class AppConfig(pydantic.BaseModel):
     repo_name: str = "debatelab/evidence-seeker-results"
     github_token: str = "GITHUB_TOKEN"
     language: str = "de"
-    example_file: str | None = None
-    example_inputs: Dict[str, List[str]] = {
+    example_inputs_file: str | None = None
+    example_inputs: Dict[str, List[str]] | None = {
         "de": [
             "Die Osterweiterung hat die EU-Institutionen nachhaltig geschwächt.",
             "In den knapp 70 Jahren seit ihrer Gründung hat es in der Bundeswehr "
@@ -33,7 +33,9 @@ class AppConfig(pydantic.BaseModel):
         ],
         "en": [],
     }
-    result_template_file: str = "./res/result.tmpl"
+    markdown_template_file: str | None = None
+    markdown_template: Dict[str, str] | None = None
+
     translation: dict[str, str] = {
         "ascriptive": "askriptiv",
         "descriptive": "deskriptiv",
@@ -65,8 +67,31 @@ class AppConfig(pydantic.BaseModel):
 
     @pydantic.computed_field
     @property
+    def md_template(self) -> str:
+        if self.markdown_template_file is None:
+            if self.markdown_template is None:
+                raise ValueError("No markdown template or file provided.")
+            tmpl = self.markdown_template.get(self.language, None)
+            if tmpl is None:
+                raise ValueError(
+                    "No markdown template available for the specified language."
+                )
+            return tmpl
+        else:
+            try:
+                with open(self.markdown_template_file, encoding="utf-8") as f:
+                    return f.read()
+            except Exception:
+                raise ValueError("Given 'markdown_template_file' not readable.")
+
+
+
+    @pydantic.computed_field
+    @property
     def examples(self) -> list[str]:
-        if self.example_file is None:
+        if self.example_inputs_file is None:
+            if self.example_inputs is None:
+                raise ValueError("No example inputs or example file provided.")
             example_inputs = self.example_inputs.get(self.language, [])
             if not example_inputs:
                 raise ValueError(
@@ -75,7 +100,7 @@ class AppConfig(pydantic.BaseModel):
             return example_inputs
         else:
             try:
-                with open(self.example_file, encoding="utf-8") as f:
+                with open(self.example_inputs_file, encoding="utf-8") as f:
                     return f.readlines()
             except Exception:
-                raise ValueError("Given 'example_file' not readable.")
+                raise ValueError("Given 'example_inputs_file' not readable.")

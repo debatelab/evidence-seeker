@@ -10,16 +10,69 @@ from datetime import datetime, timezone
 import yaml
 import uuid
 from glob import glob
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, Template
 from argon2 import PasswordHasher
 from argon2.exceptions import VerificationError
 from github import Github, Auth, UnknownObjectException
-from app_config import AppConfig
+
+
+from evidence_seeker.demo_app.app_config import AppConfig
 
 from evidence_seeker import EvidenceSeeker, EvidenceSeekerResult
 
+
+from evidence_seeker import (
+    CheckedClaim,
+    Document,
+    StatementType
+)
+
 dotenv.load_dotenv()
 
+_dummy_docs = [
+    Document(
+        text='While there is high confidence that oxygen levels have ...',
+        uid='1f47ce98-4105-4ddc-98a9-c4956dab2000',
+        metadata={
+            'page_label': '74',
+            'file_name': 'IPCC_AR6_WGI_TS.pdf',
+            'author': 'IPCC Working Group I',
+            'original_text': 'While there is low confidence in 20th century ...',
+            'url': 'www.dummy_url.com',
+            'title': 'Dummy Title'
+        }
+    ),
+    Document(
+        text='Based on recent refined \nanalyses of the ... ',
+        uid='6fcd6c0f-99a1-48e7-881f-f79758c54769',
+        metadata={
+            'page_label': '74', 
+            'file_name': 'IPCC_AR6_WGI_TS.pdf',
+            'author': 'IPCC Working Group I',
+            'original_text': 'The AMOC was relatively stable during the past ...',
+            'url': 'www.dummy_url.com',
+            'title': 'Dummy Title'
+        }
+    ),
+]
+
+_dummy_claims = [
+    CheckedClaim(
+        text="The AMOC is slowing down",
+        negation="The AMOC is not changing",
+        uid="123",
+        documents=_dummy_docs,
+        n_evidence=2,
+        statement_type=StatementType.DESCRIPTIVE,
+        average_confirmation=0.2,
+        evidential_uncertainty=0.1,
+        verbalized_confirmation="confirmed...",
+        confirmation_by_document={
+            "1f47ce98-4105-4ddc-98a9-c4956dab2000": 0.1,
+            "6fcd6c0f-99a1-48e7-881f-f79758c54769": 0.3,
+        },
+    ),
+]
 
 def setup_from_app_config() -> EvidenceSeeker | None:
     global APP_CONFIG
@@ -96,12 +149,7 @@ def describe(ev_result: EvidenceSeekerResult) -> str:
         for claim in ev_result.claims
     ]
     translation = APP_CONFIG.translation
-    env = Environment(
-        loader=FileSystemLoader(os.path.dirname(APP_CONFIG.result_template_file))
-    )
-    result_template = env.get_template(
-        os.path.basename(APP_CONFIG.result_template_file)
-    )
+    result_template = Template(APP_CONFIG.md_template)
     md = result_template.render(
         feedback=ev_result.feedback["binary"],
         statement=ev_result.request,
@@ -180,7 +228,9 @@ async def check(statement: str, last_result: EvidenceSeekerResult):
         last_result.claims = checked_claims
         result = describe(last_result)  # describe_result(statement, checked_claims)
     else:
-        result = gr.Markdown(value=f"{last_result.model_dump()}")
+        last_result.claims = [claim.model_dump() for claim in _dummy_claims]
+        # result = gr.Markdown(value=f"{last_result.model_dump()}")
+        result = describe(last_result)
     logger.log(
         "INFO",
         f"Result of statement '{statement}' checked (request {last_result.request_uid})",
