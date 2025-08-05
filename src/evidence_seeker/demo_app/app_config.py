@@ -1,5 +1,5 @@
 import pydantic
-from typing import Optional
+from typing import Optional, Dict, List
 
 class AppConfig(pydantic.BaseModel):
     dummy : Optional[bool] = False
@@ -12,7 +12,23 @@ class AppConfig(pydantic.BaseModel):
     result_dir : str = "data"
     repo_name : str = "debatelab/evidence-seeker-results"
     github_token: str = "GITHUB_TOKEN"
-    example_file : str = "./res/examples.txt"
+    language: str ="de"
+    example_file: str | None = None
+    example_inputs: Dict[str, List[str]] = {
+        'de': [
+            'Die Osterweiterung hat die EU-Institutionen nachhaltig geschwächt.',
+            'In den knapp 70 Jahren seit ihrer Gründung hat es in der Bundeswehr immer wieder rechtsextremistische Vorfälle gegeben.',
+            'In der Bundeswehr gibt es keinen politischen Extremismus.',
+            'Die BRICS-Staaten sorgen für eine Veränderung der westlich geprägten Weltordnung.',
+            'Die Genfer Konventionen sind oft hinter ihrem Anspruch, die Zivilbevölkerung zu schützen, zurückgeblieben.',
+            'Die Anzahl hybrider Kriege hat zugenommen.',
+            'Es ist für Deutschland wirtschaftlich ein Nachteil, dass viele Frauen in Teilzeit arbeiten.',
+            'Premier Modi hat Putin als seinen Freund bezeichnet.',
+            'Eine Minderheit der deutschen Bevölkerung befürwortet einen autoritären deutschen Staat.',
+        ],
+        'en': []
+    
+    }
     result_template_file : str = "./res/result.tmpl"
     translation : dict[str, str] = {
         "ascriptive": "askriptiv",
@@ -46,8 +62,16 @@ class AppConfig(pydantic.BaseModel):
     @pydantic.computed_field
     @property
     def examples(self) -> list[str]:
-        try:
-            with open(self.example_file, encoding="utf-8") as f:
-                return f.readlines()
-        except Exception:
-            raise ValueError("Given 'example_file' not readable.")
+        if self.example_file is None:
+            example_inputs = self.example_inputs.get(self.language, [])
+            if not example_inputs:
+                raise ValueError(
+                    "No example inputs available for the specified language."
+                )
+            return example_inputs
+        else:
+            try:
+                with open(self.example_file, encoding="utf-8") as f:
+                    return f.readlines()
+            except Exception:
+                raise ValueError("Given 'example_file' not readable.")
