@@ -1,36 +1,40 @@
 import pydantic
 from typing import Optional, Dict, List
 
+
 class AppConfig(pydantic.BaseModel):
-    dummy : Optional[bool] = False
-    logging : bool = True
-    subdirectory_construction : Optional[str] = None
-    confirmation_analysis_config_file : str | None = "./config/confirmation_analysis_config.yaml"
-    preprocessing_config_file : str | None = "./config/preprocessing_config.yaml"
-    retrieval_config_file : str | None = "./config/retrieval_config.yaml"
-    local_base : str = "./TMP"
-    result_dir : str = "data"
-    repo_name : str = "debatelab/evidence-seeker-results"
+    dummy: Optional[bool] = False
+    logging: bool = True
+    subdirectory_construction: Optional[str] = None
+    confirmation_analysis_config_file: str | None = (
+        "./config/confirmation_analysis_config.yaml"
+    )
+    preprocessing_config_file: str | None = "./config/preprocessing_config.yaml"
+    retrieval_config_file: str | None = "./config/retrieval_config.yaml"
+    local_base: str = "./TMP"
+    result_dir: str = "data"
+    repo_name: str = "debatelab/evidence-seeker-results"
     github_token: str = "GITHUB_TOKEN"
-    language: str ="de"
+    language: str = "de"
     example_file: str | None = None
     example_inputs: Dict[str, List[str]] = {
-        'de': [
-            'Die Osterweiterung hat die EU-Institutionen nachhaltig geschwächt.',
-            'In den knapp 70 Jahren seit ihrer Gründung hat es in der Bundeswehr immer wieder rechtsextremistische Vorfälle gegeben.',
-            'In der Bundeswehr gibt es keinen politischen Extremismus.',
-            'Die BRICS-Staaten sorgen für eine Veränderung der westlich geprägten Weltordnung.',
-            'Die Genfer Konventionen sind oft hinter ihrem Anspruch, die Zivilbevölkerung zu schützen, zurückgeblieben.',
-            'Die Anzahl hybrider Kriege hat zugenommen.',
-            'Es ist für Deutschland wirtschaftlich ein Nachteil, dass viele Frauen in Teilzeit arbeiten.',
-            'Premier Modi hat Putin als seinen Freund bezeichnet.',
-            'Eine Minderheit der deutschen Bevölkerung befürwortet einen autoritären deutschen Staat.',
+        "de": [
+            "Die Osterweiterung hat die EU-Institutionen nachhaltig geschwächt.",
+            "In den knapp 70 Jahren seit ihrer Gründung hat es in der Bundeswehr "
+            "immer wieder rechtsextremistische Vorfälle gegeben.",
+            "In der Bundeswehr gibt es keinen politischen Extremismus.",
+            "Die BRICS-Staaten sorgen für eine Veränderung der westlich geprägten Weltordnung.",
+            "Die Genfer Konventionen sind oft hinter ihrem Anspruch, "
+            "die Zivilbevölkerung zu schützen, zurückgeblieben.",
+            "Die Anzahl hybrider Kriege hat zugenommen.",
+            "Es ist für Deutschland wirtschaftlich ein Nachteil, dass viele Frauen in Teilzeit arbeiten.",
+            "Premier Modi hat Putin als seinen Freund bezeichnet.",
+            "Eine Minderheit der deutschen Bevölkerung befürwortet einen autoritären deutschen Staat.",
         ],
-        'en': []
-    
+        "en": [],
     }
-    result_template_file : str = "./res/result.tmpl"
-    translation : dict[str, str] = {
+    result_template_file: str = "./res/result.tmpl"
+    translation: dict[str, str] = {
         "ascriptive": "askriptiv",
         "descriptive": "deskriptiv",
         "normative": "normativ",
@@ -38,9 +42,9 @@ class AppConfig(pydantic.BaseModel):
         "The claim is strongly confirmed.": "Die Aussage wird im hohen Maße bestätigt.",
         "The claim is strongly disconfirmed.": "Die Aussage wird im hohen Maße widerlegt.",
         "The claim is weakly confirmed.": "Die Aussage wird in geringem Maße bestätigt.",
-        "The claim is weakly disconfirmed.": "Die Aussage wird in geringem Maße widerlegt."
+        "The claim is weakly disconfirmed.": "Die Aussage wird in geringem Maße widerlegt.",
     }
-    warning_text : str = """
+    warning_text: str = """
         <p>
         Alle Ausgaben werden von Sprachmodellen generiert und geben nicht die Einschätzung oder Meinung der Entwickler:innen wieder. 
         </p>
@@ -48,17 +52,17 @@ class AppConfig(pydantic.BaseModel):
         Eingegebene Daten werden von Sprachmodellen verarbeitet. Bitte beachte daher, keine personenbezogenen Daten einzugeben.
         </p>
     """
-    disclaimer_text : str = """
+    disclaimer_text: str = """
         Auf der Seite [hier einfügen](#) stellen wir beispielhaft Ergebnisse dar, die von der EvidenceSeeker-Pipeline durch die Interaktion mit Nutzer:innen über diese DemoApp erzeugt wurden.
 
         Wir verwenden **nur** von Nutzer:innen selbst eingegebene Daten, den Zeitpunkt der Eingabe, die Rückgabe der Pipeline und etwaiges Feedback durch die Nutzer:innen.
 
         Wenn du den Aufbau dieser Seite unterstützen möchtest, kannst du der Nutzung deiner Eingaben im folgenden zustimmen:
     """
-    consent_text : str = """
+    consent_text: str = """
         Ja, meine Anfragen an die EvidenceSeeker-Pipeline und deren Ergebnisse dürfen gespeichert und zur Information über das EvidenceSeeker-Projekt aufbereitet werden.
     """
-    
+
     @pydantic.computed_field
     @property
     def examples(self) -> list[str]:
