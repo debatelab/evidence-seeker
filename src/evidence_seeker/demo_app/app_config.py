@@ -1,5 +1,6 @@
 import pydantic
 from typing import Optional
+import yaml
 
 
 class AppConfig(pydantic.BaseModel):
@@ -14,6 +15,9 @@ class AppConfig(pydantic.BaseModel):
     repo_name: str
     write_on_github: bool = False
     github_token_name: str = "GITHUB_TOKEN"
+    password_protection: bool = False
+    password_env_name: str = "EVSE_APP_HASH"
+    force_agreement: bool = True
     language: str = "de"
     example_inputs_file: str | None = None
     example_inputs: dict[str, list[str]] | None = {
@@ -94,3 +98,9 @@ class AppConfig(pydantic.BaseModel):
                     return f.readlines()
             except Exception:
                 raise ValueError("Given 'example_inputs_file' not readable.")
+
+    @staticmethod
+    def from_file(file_path: str) -> "AppConfig":
+        with open(file_path) as f:
+            config = AppConfig(**yaml.safe_load(f))
+        return config

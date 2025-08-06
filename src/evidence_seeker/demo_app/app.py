@@ -5,12 +5,9 @@ import random
 import dotenv
 import os
 from loguru import logger
-from typing import Any
 from datetime import datetime, timezone
-import yaml
 from argon2 import PasswordHasher
 from argon2.exceptions import VerificationError
-
 
 from evidence_seeker.demo_app.app_config import AppConfig
 
@@ -27,12 +24,18 @@ from evidence_seeker import (
     StatementType
 )
 
+# ### APP CONFIGURATION ####
 dotenv.load_dotenv()
 
-# Turning dummy mode on/off
-# In 'UI_TEST_MODE' the UI can be tested (the pipeline will not be executed)
-UI_TEST_MODE: bool = True
+config_file_path = os.getenv("APP_CONFIG_FILE", None)
 
+if config_file_path is None:
+    raise ValueError("Missing configruation file.")
+APP_CONFIG = AppConfig.from_file(config_file_path)
+
+UI_TEST_MODE = os.getenv("UI_TEST_MODE", False)
+
+# used for UI_TEST_MODE
 _dummy_docs = [
     Document(
         text='While there is high confidence that oxygen levels have ...',
@@ -50,7 +53,7 @@ _dummy_docs = [
         text='Based on recent refined \nanalyses of the ... ',
         uid='6fcd6c0f-99a1-48e7-881f-f79758c54769',
         metadata={
-            'page_label': '74', 
+            'page_label': '74',
             'file_name': 'IPCC_AR6_WGI_TS.pdf',
             'author': 'IPCC Working Group I',
             'original_text': 'The AMOC was relatively stable during the past ...',
@@ -88,17 +91,17 @@ def check_password(input_password: str, hash: str) -> bool:
         return False
 
 
-def auth(pw: str, valid: bool):
+def auth(pw: str, password_authenticated: bool):
     output = ""
     b = gr.Textbox(value="")
-    if "APP_HASH" not in os.environ:
+    if APP_CONFIG.password_env_name not in os.environ:
         output = "Etwas ist auf unserer Seite schiefgegangen :-("
-    elif not check_password(pw, os.environ["APP_HASH"]):
+    elif not check_password(pw, os.environ[APP_CONFIG.password_env_name]):
         output = "Falsches Passwort. Bitte versuche es erneut."
     else:
         output = "Weiter..."
-        valid = True
-    return output, valid, b
+        password_authenticated = True
+    return output, password_authenticated, b
 
 
 def reactivate(check_btn, statement):
@@ -138,7 +141,7 @@ async def check(statement: str, last_result: EvidenceSeekerResult):
     request_time = datetime.now(timezone.utc)
     last_result.request_time = request_time.strftime("%Y-%m-%d %H:%M:%S UTC")
     last_result.request = statement
-    
+
     if UI_TEST_MODE:
         last_result.claims = [claim.model_dump() for claim in _dummy_claims]
     else:
@@ -158,20 +161,6 @@ async def check(statement: str, last_result: EvidenceSeekerResult):
     return result, last_result
 
 
-if "RUNS_ON_SPACES" not in os.environ.keys():
-    RUNS_ON_SPACES = False
-    logger.info("Gradioapp runs locally.")
-else:
-    RUNS_ON_SPACES = os.environ["RUNS_ON_SPACES"] == "True"
-    logger.info("Gradioapp runs on 🤗.")
-
-# TODO: refactor
-if "APP_CONFIG_FILE" in os.environ.keys():
-    with open(os.environ["APP_CONFIG_FILE"]) as f:
-        APP_CONFIG = AppConfig(**yaml.safe_load(f))
-else:
-    raise ValueError("Missing configruation file.")
-
 EVIDENCE_SEEKER = EvidenceSeeker(
     preprocessing_config_file=APP_CONFIG.preprocessing_config_file,
     retrieval_config_file=APP_CONFIG.retrieval_config_file,
@@ -187,8 +176,15 @@ with gr.Blocks(title="EvidenceSeeker") as demo:
         )
     )
     examples = gr.State(APP_CONFIG.examples)
-    valid = gr.State(value=not RUNS_ON_SPACES)
-    agreements = gr.State(value=(not RUNS_ON_SPACES, not RUNS_ON_SPACES))
+    password_authenticated = gr.State(
+        value=False if APP_CONFIG.password_protection else True
+    )
+    if APP_CONFIG.force_agreement:
+        allow_result_persistance = gr.State(value=False)
+        read_warning = gr.State(value=False)
+    else:
+        allow_result_persistance = gr.State(value=True)
+        read_warning = gr.State(value=True)
 
     good = gr.Button(value="👍", visible=False, interactive=False, render=False)
     bad = gr.Button(value="👎", visible=False, interactive=False, render=False)
@@ -196,9 +192,13 @@ with gr.Blocks(title="EvidenceSeeker") as demo:
         value="Wie zufrieden bist du mit der Antwort?", render=False, visible=False
     )
 
-    @gr.render(inputs=[valid, agreements])
-    def renderApp(v: bool, a: tuple[bool, bool]):
-        if v and a[0]:
+    @gr.render(inputs=[password_authenticated, read_warning, allow_result_persistance])
+    def renderApp(
+        password_authenticated_val: bool,
+        read_warning_val: bool,
+        allow_result_persistance_val: bool
+    ):
+        if password_authenticated_val and read_warning_val:
             gr.Markdown(
                 """
                     # 🕵️‍♀️ EvidenceSeeker DemoApp
@@ -208,20 +208,28 @@ with gr.Blocks(title="EvidenceSeeker") as demo:
             )
             with gr.Row():
                 statement = gr.Textbox(
-                    value=f"",
+                    value="",
                     label="Zu prüfende Aussage:",
                     interactive=True,
                     scale=10,
                     lines=3,
-                    key="statement",
+                    # key="statement",
                 )
                 with gr.Column(scale=1):
-                    example_btn = gr.Button("Zufälliges Beispiel", key="example_btn")
+                    example_btn = gr.Button(
+                        "Zufälliges Beispiel", 
+                        # key="example_btn"
+                    )
                     check_btn = gr.Button(
-                        "Prüfe Aussage", interactive=False, key="submit_btn"
+                        "Prüfe Aussage",
+                        interactive=False,
+                        # key="submit_btn"
                     )
             result = gr.Markdown(
-                "", min_height=80, key="results", show_copy_button=True
+                "", 
+                min_height=80,
+                # key="results",
+                show_copy_button=True
             )
             with gr.Column():
                 feedback.render()
@@ -230,7 +238,7 @@ with gr.Blocks(title="EvidenceSeeker") as demo:
                     bad.render()
 
             def logging(evse_result):
-                if a[1]:
+                if allow_result_persistance_val:
                     log_result(
                         evse_result=evse_result,
                         result_dir=APP_CONFIG.result_dir,
@@ -261,14 +269,14 @@ with gr.Blocks(title="EvidenceSeeker") as demo:
             example_btn.click(fn=draw_example, inputs=examples, outputs=statement)
             statement.change(
                 lambda s: (
-                    gr.Button("Prüfe Aussage", interactive=False, key="submit_btn")
+                    gr.Button("Prüfe Aussage", interactive=False) #, key="submit_btn")
                     if s.strip() == ""
-                    else gr.Button("Prüfe Aussage", interactive=True, key="submit_btn")
+                    else gr.Button("Prüfe Aussage", interactive=True) #,key="submit_btn")
                 ),
                 statement,
                 [check_btn],
             )
-        elif v:
+        elif password_authenticated_val:
             gr.Markdown("# Datenschutzhinweis & Disclaimer")
             gr.HTML(
                 f"""
@@ -285,7 +293,11 @@ with gr.Blocks(title="EvidenceSeeker") as demo:
                 info="**Einwilligung zur Datenweiterverarbeitung (Optional)**",
             )
             agree_button = gr.Button("Ich habe die Hinweise zur Kenntnis genommen")
-            agree_button.click(lambda c: (True, c), consent_box, agreements)
+            agree_button.click(
+                lambda consent_save_res: (True, consent_save_res),
+                inputs=consent_box,
+                outputs=[read_warning, allow_result_persistance]
+            )
         else:
             gr.Markdown(
                 """
@@ -299,7 +311,11 @@ with gr.Blocks(title="EvidenceSeeker") as demo:
                 submit_btn=True,
             )
             res = gr.Markdown(value="")
-            box.submit(auth, inputs=[box, valid], outputs=[res, valid, box])
+            box.submit(
+                auth,
+                inputs=[box, password_authenticated],
+                outputs=[res, password_authenticated, box]
+            )
 
 
 demo.launch()
