@@ -30,6 +30,10 @@ from evidence_seeker import (
 
 dotenv.load_dotenv()
 
+# Turning dummy mode on/off
+# In 'dummy mode' the UI can be tested (the pipeline will not be executed)
+DUMMY: bool = True
+
 _dummy_docs = [
     Document(
         text='While there is high confidence that oxygen levels have ...',
@@ -83,7 +87,7 @@ def setup_from_app_config() -> EvidenceSeeker | None:
         "retrieval_config_file": APP_CONFIG.retrieval_config_file,
         "confirmation_analysis_config_file": APP_CONFIG.confirmation_analysis_config_file,
     }
-    if APP_CONFIG.dummy:
+    if DUMMY:
         logger.info("Running in dummy mode, no EvidenceSeeker instance created.")
         return None
     else:
@@ -252,7 +256,7 @@ with gr.Blocks(title="EvidenceSeeker") as demo:
                         result_dir=APP_CONFIG.result_dir,
                         local_base=APP_CONFIG.local_base,
                         subdirectory_construction=APP_CONFIG.subdirectory_construction,
-                        write_on_github=RUNS_ON_SPACES,
+                        write_on_github=APP_CONFIG.write_on_github,
                         github_token_name=APP_CONFIG.github_token_name,
                         repo_name=APP_CONFIG.repo_name,
                     )

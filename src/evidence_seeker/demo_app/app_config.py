@@ -3,35 +3,21 @@ from typing import Optional
 
 
 class AppConfig(pydantic.BaseModel):
-    dummy: Optional[bool] = False
     logging: bool = True
+    # one of monthly, weekly, yearly, daily, None
     subdirectory_construction: Optional[str] = None
-    confirmation_analysis_config_file: str | None = (
-        "./config/confirmation_analysis_config.yaml"
-    )
-    preprocessing_config_file: str | None = "./config/preprocessing_config.yaml"
-    retrieval_config_file: str | None = "./config/retrieval_config.yaml"
-    local_base: str = "./TMP"
-    result_dir: str = "data"
-    repo_name: str = "debatelab/evidence-seeker-results"
+    confirmation_analysis_config_file: str
+    preprocessing_config_file: str
+    retrieval_config_file: str
+    local_base: str
+    result_dir: str
+    repo_name: str
+    write_on_github: bool = False
     github_token_name: str = "GITHUB_TOKEN"
     language: str = "de"
     example_inputs_file: str | None = None
-    # TODO: move to yaml
     example_inputs: dict[str, list[str]] | None = {
-        "de": [
-            "Die Osterweiterung hat die EU-Institutionen nachhaltig geschwächt.",
-            "In den knapp 70 Jahren seit ihrer Gründung hat es in der Bundeswehr "
-            "immer wieder rechtsextremistische Vorfälle gegeben.",
-            "In der Bundeswehr gibt es keinen politischen Extremismus.",
-            "Die BRICS-Staaten sorgen für eine Veränderung der westlich geprägten Weltordnung.",
-            "Die Genfer Konventionen sind oft hinter ihrem Anspruch, "
-            "die Zivilbevölkerung zu schützen, zurückgeblieben.",
-            "Die Anzahl hybrider Kriege hat zugenommen.",
-            "Es ist für Deutschland wirtschaftlich ein Nachteil, dass viele Frauen in Teilzeit arbeiten.",
-            "Premier Modi hat Putin als seinen Freund bezeichnet.",
-            "Eine Minderheit der deutschen Bevölkerung befürwortet einen autoritären deutschen Staat.",
-        ],
+        "de": [],
         "en": [],
     }
     markdown_template_file: str | None = None
