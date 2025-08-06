@@ -14,12 +14,15 @@ from evidence_seeker.retrieval.base import DocumentRetriever
 
 class EvidenceSeeker:
 
+    # TODO: Refactor: Work with explicitly defined arguments
     def __init__(self, **kwargs):
 
         if "preprocessing_config" in kwargs:
             self.preprocessor = ClaimPreprocessor(config=kwargs["preprocessing_config"])
         elif "preprocessing_config_file" in kwargs:
             self.preprocessor = ClaimPreprocessor.from_config_file(kwargs["preprocessing_config_file"])
+        elif "preprocessor" in kwargs:
+            self.preprocessor=kwargs["preprocessor"]
         else:
             self.preprocessor = ClaimPreprocessor()
 
@@ -40,6 +43,8 @@ class EvidenceSeeker:
             self.analyzer = ConfirmationAnalyzer(config=kwargs["confirmation_analysis_config"])
         elif "confirmation_analysis_config_file" in kwargs:
             self.analyzer = ConfirmationAnalyzer.from_config_file(kwargs["confirmation_analysis_config_file"])
+        elif "confirmation_analyzer" in kwargs:
+            self.analyzer = kwargs["confirmation_analyzer"]
         else:
             self.analyzer = ConfirmationAnalyzer()
 

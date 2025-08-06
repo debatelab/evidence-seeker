@@ -28,6 +28,9 @@ class CheckedClaim(pydantic.BaseModel):
     n_evidence: int | None = None
     average_confirmation: float | None = None
     evidential_uncertainty: float | None = None
+    # TODO: Better use enum type and then provide
+    # context (UI) dependent verbalizations (e.g. in a 
+    # specific language)
     verbalized_confirmation: str | None = None
     documents: list[Document] | None = None
     confirmation_by_document: Mapping[str, float] | None = None
