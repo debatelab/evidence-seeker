@@ -8,9 +8,35 @@ from datetime import datetime
 import os
 from glob import glob
 from github import Github, Auth, UnknownObjectException
+from enum import Enum
 
 from .results import EvidenceSeekerResult
 
+
+class ConfirmationLevel(Enum):
+    STRONGLY_CONFIRMED = "strongly_confirmed"
+    CONFIRMED = "confirmed"
+    WEAKLY_CONFIRMED = "weakly_confirmed"
+    INCONCLUSIVE_CONFIRMATION = "inconclusive_confirmation"
+    WEAKLY_DISCONFIRMED = "weakly_disconfirmed"
+    DISCONFIRMED = "disconfirmed"
+    STRONGLY_DISCONFIRMED = "strongly_disconfirmed"
+
+
+def confirmation_level(degree_of_confirmation: float) -> ConfirmationLevel:
+    if degree_of_confirmation > 0.6:
+        return ConfirmationLevel.STRONGLY_CONFIRMED
+    if degree_of_confirmation > 0.4:
+        return ConfirmationLevel.CONFIRMED
+    if degree_of_confirmation > 0.2:
+        return ConfirmationLevel.WEAKLY_CONFIRMED
+    if degree_of_confirmation < -0.6:
+        return ConfirmationLevel.STRONGLY_DISCONFIRMED
+    if degree_of_confirmation < -0.4:
+        return ConfirmationLevel.DISCONFIRMED
+    if degree_of_confirmation < -0.2:
+        return ConfirmationLevel.WEAKLY_DISCONFIRMED
+    return ConfirmationLevel.INCONCLUSIVE_CONFIRMATION
 
 # TODO (refactor!): Using this function is very ideosynctratic
 # since it hinges on specfici meta-data (which is
@@ -41,6 +67,7 @@ def get_grouped_sources(
                     .replace('"', "'")
                 ),
                 "conf": confirmation_by_document[doc["uid"]],
+                "conf_level": confirmation_level(confirmation_by_document[doc["uid"]]).value,
                 "full_text": (
                     doc["text"]
                     .strip()

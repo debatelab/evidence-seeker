@@ -32,6 +32,7 @@ config_file_path = os.getenv("APP_CONFIG_FILE", None)
 if config_file_path is None:
     raise ValueError("Missing configruation file.")
 APP_CONFIG = AppConfig.from_file(config_file_path)
+ui = APP_CONFIG.ui_texts[APP_CONFIG.language]
 
 UI_TEST_MODE = os.getenv("UI_TEST_MODE", False)
 
@@ -73,7 +74,7 @@ _dummy_claims = [
         statement_type=StatementType.DESCRIPTIVE,
         average_confirmation=0.2,
         evidential_uncertainty=0.1,
-        verbalized_confirmation="confirmed...",
+        verbalized_confirmation="The claim is weakly confirmed.",
         confirmation_by_document={
             "1f47ce98-4105-4ddc-98a9-c4956dab2000": 0.1,
             "6fcd6c0f-99a1-48e7-881f-f79758c54769": 0.3,
@@ -95,11 +96,11 @@ def auth(pw: str, password_authenticated: bool):
     output = ""
     b = gr.Textbox(value="")
     if APP_CONFIG.password_env_name not in os.environ:
-        output = "Etwas ist auf unserer Seite schiefgegangen :-("
+        output = ui['server_error']
     elif not check_password(pw, os.environ[APP_CONFIG.password_env_name]):
-        output = "Falsches Passwort. Bitte versuche es erneut."
+        output = ui['wrong_password']
     else:
-        output = "Weiter..."
+        output = ui['continue']
         password_authenticated = True
     return output, password_authenticated, b
 
@@ -189,7 +190,7 @@ with gr.Blocks(title="EvidenceSeeker") as demo:
     good = gr.Button(value="👍", visible=False, interactive=False, render=False)
     bad = gr.Button(value="👎", visible=False, interactive=False, render=False)
     feedback = gr.Markdown(
-        value="Wie zufrieden bist du mit der Antwort?", render=False, visible=False
+        value=ui['feedback_question'], render=False, visible=False
     )
 
     @gr.render(inputs=[password_authenticated, read_warning, allow_result_persistance])
@@ -200,35 +201,27 @@ with gr.Blocks(title="EvidenceSeeker") as demo:
     ):
         if password_authenticated_val and read_warning_val:
             gr.Markdown(
-                """
-                    # 🕵️‍♀️ EvidenceSeeker DemoApp
-                    Gib eine Aussage in das Textfeld ein und lass sie durch den EvidenceSeeker prüfen:
-                """,
-                key="intro",
+                f"# {ui['title']}\n"
+                f"{ui['info']}\n\n"
+                f"{ui['description']}"
             )
             with gr.Row():
                 statement = gr.Textbox(
                     value="",
-                    label="Zu prüfende Aussage:",
+                    label=ui['statement_label'],
                     interactive=True,
                     scale=10,
                     lines=3,
-                    # key="statement",
                 )
                 with gr.Column(scale=1):
-                    example_btn = gr.Button(
-                        "Zufälliges Beispiel", 
-                        # key="example_btn"
-                    )
+                    example_btn = gr.Button(ui['random_example'])
                     check_btn = gr.Button(
-                        "Prüfe Aussage",
+                        ui['check_statement'],
                         interactive=False,
-                        # key="submit_btn"
                     )
             result = gr.Markdown(
-                "", 
+                "",
                 min_height=80,
-                # key="results",
                 show_copy_button=True
             )
             with gr.Column():
@@ -251,7 +244,7 @@ with gr.Blocks(title="EvidenceSeeker") as demo:
 
             check_btn.click(deactivate, None, [check_btn, good, bad, feedback]).then(
                 (
-                    lambda: "### Aussage wird geprüft... Dies könnte ein paar Minuten dauern."
+                    lambda: ui['checking_message']
                 ),
                 None,
                 result,
@@ -269,43 +262,32 @@ with gr.Blocks(title="EvidenceSeeker") as demo:
             example_btn.click(fn=draw_example, inputs=examples, outputs=statement)
             statement.change(
                 lambda s: (
-                    gr.Button("Prüfe Aussage", interactive=False) #, key="submit_btn")
+                    gr.Button(ui['check_statement'], interactive=False)
                     if s.strip() == ""
-                    else gr.Button("Prüfe Aussage", interactive=True) #,key="submit_btn")
+                    else gr.Button(ui['check_statement'], interactive=True)
                 ),
                 statement,
                 [check_btn],
             )
         elif password_authenticated_val:
-            gr.Markdown("# Datenschutzhinweis & Disclaimer")
-            gr.HTML(
-                f"""
-                <div style="background-color:#fff7ed;padding:25px;border-radius: 10px;">
-                     <p>⚠️ <b>Achtung</b></p>
-                    <p>{APP_CONFIG.warning_text}</p>
-                </div>
-                """
-            )
-            gr.Markdown(APP_CONFIG.consent_text)
+            gr.Markdown(f"# {ui['privacy_title']}")
+            gr.HTML(ui['warning_text'])
+            gr.Markdown(ui['disclaimer_text'])
             consent_box = gr.Checkbox(
                 False,
-                label=APP_CONFIG.consent_text,
-                info="**Einwilligung zur Datenweiterverarbeitung (Optional)**",
+                label=ui['consent_text'],
+                info=ui['consent_info'],
             )
-            agree_button = gr.Button("Ich habe die Hinweise zur Kenntnis genommen")
+            agree_button = gr.Button(ui['agree_button'])
             agree_button.click(
                 lambda consent_save_res: (True, consent_save_res),
                 inputs=consent_box,
                 outputs=[read_warning, allow_result_persistance]
             )
         else:
-            gr.Markdown(
-                """
-                    # 🕵️ EvidenceSeeker DemoApp
-                """
-            )
+            gr.Markdown(f"# {ui['title']}")
             box = gr.Textbox(
-                label="Bitte für Zugriff Passwort eingeben",
+                label=ui['password_label'],
                 autofocus=True,
                 type="password",
                 submit_btn=True,

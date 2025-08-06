@@ -1,6 +1,7 @@
 import pydantic
 from typing import Optional
 import yaml
+import textwrap
 
 
 class AppConfig(pydantic.BaseModel):
@@ -32,6 +33,13 @@ class AppConfig(pydantic.BaseModel):
             "ascriptive": "askriptiv",
             "descriptive": "deskriptiv",
             "normative": "normativ",
+            "strongly_confirmed": "im hohen Maße bestätigt",
+            "confirmed": "bestätigt",
+            "weakly_confirmed": "im geringen Maße bestätigt",
+            "strongly_disconfirmed": "im hohen Maße widerlegt",
+            "disconfirmed": "widerlegt",
+            "weakly_disconfirmed": "im geringen Maße widerlegt",
+            "inconclusive_confirmation": "weder bestätigt noch widerlegt",
             "The claim is neither confirmed nor disconfirmed.": "Die Aussage wird weder bestätigt noch widerlegt.",
             "The claim is strongly confirmed.": "Die Aussage wird im hohen Maße bestätigt.",
             "The claim is strongly disconfirmed.": "Die Aussage wird im hohen Maße widerlegt.",
@@ -40,24 +48,111 @@ class AppConfig(pydantic.BaseModel):
         },
         "en": {}
     }
-    warning_text: str = """
-        <p>
-        Alle Ausgaben werden von Sprachmodellen generiert und geben nicht die Einschätzung oder Meinung der Entwickler:innen wieder. 
-        </p>
-        <p>
-        Eingegebene Daten werden von Sprachmodellen verarbeitet. Bitte beachte daher, keine personenbezogenen Daten einzugeben.
-        </p>
-    """
-    disclaimer_text: str = """
-        Auf der Seite [hier einfügen](#) stellen wir beispielhaft Ergebnisse dar, die von der EvidenceSeeker-Pipeline durch die Interaktion mit Nutzer:innen über diese DemoApp erzeugt wurden.
+    # Multi-language UI texts
+    ui_texts: dict[str, dict[str, str]] = {
+        "de": {
+            "title": "🕵️‍♀️ EvidenceSeeker DemoApp",
+            "info": textwrap.dedent("""
+                <details>
+                <summary>Informationen zur DemoApp</summary>
 
-        Wir verwenden **nur** von Nutzer:innen selbst eingegebene Daten, den Zeitpunkt der Eingabe, die Rückgabe der Pipeline und etwaiges Feedback durch die Nutzer:innen.
+                + **Grundidee der Pipeline:** Die Pipeline findet in einem ersten Schritt
+                unterschiedliche Interpretationen deiner Eingabe und unterscheidet 
+                dabei *deskriptive, zuschreibende und normative Aussagen*. Für die gefundenen
+                deskriptiven und zuschreibenden Interpretationen wird dann in einer
+                *Wissensbasis* nach relevanten Textstellen gesucht und analysiert, inwiefern 
+                die Textstellen die gefundene Interpretation bestätigen oder widerlegen.
+                Diese Einzelanalysen werden für jede Interpretation in Form eines
+                *Bestätigungslevels* aggregiert. Nähere Informationen
+                zur Pipeline findest Du [hier](XX).
+                + In dieser Demo App verwenden wir [XX](#) als Embedding Modell und
+                [XX](#) als generatives Sprachmodell. Als **Wissensbasis** dienen
+                alle Ausgaben von "Aus Politik und Zeitgeschichte" aus dem Jahr 2024
+                ([Link](https://www.bpb.de/shop/zeitschriften/apuz/?field_filter_thema=all&field_date_content=2024&d=1)).
+                + Eingaben anderer User:innen und die entsprechenden Ergebnisse der
+                Pipeline findest Du unter
+                <https://debatelab.github.io/evidence-seeker-results/>.
+                + Die EvidenceSeeker Demoapp ist Teil des vom BMBFSFJ geförderten
+                [KIdeKu Projekts](https://compphil2mmae.github.io/research/kideku/).
+                + Nähere Informationen zur *EvidenceSeeker Boilerplate* findest Du
+                [hier](https://debatelab.github.io/evidence-seeker-results).
+                </details>
+            """).strip(),
+            "description": "**Gib eine Aussage in das Textfeld ein und lass sie durch den EvidenceSeeker prüfen:**",
+            "statement_label": "Zu prüfende Aussage:",
+            "random_example": "Zufälliges Beispiel",
+            "check_statement": "Prüfe Aussage",
+            "checking_message": "### Aussage wird geprüft... Dies könnte ein paar Minuten dauern.",
+            "feedback_question": "Wie zufrieden bist du mit der Antwort?",
+            "privacy_title": "Datenschutzhinweis & Disclaimer",
+            "warning_label": "⚠️ <b>Achtung</b>",
+            "consent_info": "**Einwilligung zur Datenweiterverarbeitung (Optional)**",
+            "agree_button": "Ich habe die Hinweise zur Kenntnis genommen",
+            "password_label": (
+                "Die EvidenceSeeker DemoApp ist passwortgeschützt. "
+                "Bitte gib für den Zugriff auf die App das Passwort ein."
+            ),
+            "wrong_password": "Falsches Passwort. Bitte versuche es erneut.",
+            "continue": "Weiter...",
+            "server_error": "Etwas ist auf unserer Seite schiefgegangen :-(",
+            "warning_text": """
+                    <div style="background-color:#fff7ed;padding:25px;border-radius: 10px;">
+                    <p>⚠️ <b>Achtung</b></p>
+                    <p>
+                    <p>
+                    Alle Ausgaben werden von Sprachmodellen generiert und geben nicht
+                    zwangsläufig die Einschätzung oder Meinung der Entwickler:innen wieder.
+                    </p>
+                    <p>
+                    Eingegebene Daten werden von Sprachmodellen verarbeitet. Bitte
+                    beachte daher, keine personenbezogenen Daten einzugeben - auch weil
+                    die Daten unter Umständen gespeichert werden (siehe unten).
+                    </p>
+                    </p>
+                    </div>
+                """,
+            "disclaimer_text": """
+                    Auf der Seite <https://debatelab.github.io/evidence-seeker-results/>
+                    stellen wir beispielhaft
+                    Ergebnisse dar, die von der EvidenceSeeker-Pipeline durch
+                    die Interaktion mit Nutzer:innen über diese DemoApp erzeugt wurden.
 
-        Wenn du den Aufbau dieser Seite unterstützen möchtest, kannst du der Nutzung deiner Eingaben im folgenden zustimmen:
-    """
-    consent_text: str = """
-        Ja, meine Anfragen an die EvidenceSeeker-Pipeline und deren Ergebnisse dürfen gespeichert und zur Information über das EvidenceSeeker-Projekt aufbereitet werden.
-    """
+                    Wir erheben und verwenden **keine personenbezogenen Daten**
+                    (sofern sie nicht
+                    über das Freitextfeld selbst eingegeben werden) und verwenden
+                    **nur** von Nutzer:innen selbst eingegebene
+                    Daten sowie den Zeitpunkt der Eingabe, die Rückgabe der Pipeline
+                    und etwaiges Feedback durch die Nutzer:innen.
+
+                    Wenn du das EvidenceSeeker Projekt damit unterstützen möchtest,
+                    kannst du der Nutzung deiner Eingaben im Folgenden zustimmen:
+                """,
+            "consent_text": """
+                    Ja, meine Anfragen an die EvidenceSeeker Pipeline und deren
+                    Ergebnisse dürfen gespeichert und über das
+                    EvidenceSeeker Projekt weiter verarbeitet und
+                    veröffentlicht werden.
+                """,
+
+        },
+        "en": {
+            "title": "🕵️‍♀️ EvidenceSeeker DemoApp",
+            "description": "Enter a statement in the text field and have it checked by EvidenceSeeker:",
+            "statement_label": "Statement to check:",
+            "random_example": "Random Example",
+            "check_statement": "Check Statement",
+            "checking_message": "### Checking statement... This could take a few minutes.",
+            "feedback_question": "How satisfied are you with the answer?",
+            "privacy_title": "Privacy Notice & Disclaimer",
+            "warning_label": "⚠️ <b>Warning</b>",
+            "consent_info": "**Consent for data processing (Optional)**",
+            "agree_button": "I have taken note of the information",
+            "password_label": "Please enter password for access",
+            "wrong_password": "Wrong password. Please try again.",
+            "continue": "Continue...",
+            "server_error": "Something went wrong on our end :-("
+        }
+    }
 
     @pydantic.computed_field
     @property
