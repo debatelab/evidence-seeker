@@ -114,11 +114,14 @@ def log_result(
     repo_name: str | None = None,
 ):
     # Do not log results if pipeline failed somehow
-    # TODO: use state field from result
+    # TODO: Better to use state field (in 'EvSeResult') by catching
+    # errors and/or accessing the error codes from request
+    # (refactor workflows or pipeline for this)
     if len(evse_result.claims) == 0:
         return
     if evse_result.request_time is None:
         raise ValueError("Request time not set in result.")
+    # constructing file name
     ts = datetime.strptime(
         evse_result.request_time, "%Y-%m-%d %H:%M:%S UTC"
     ).strftime("%Y_%m_%d")

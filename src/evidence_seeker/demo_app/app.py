@@ -8,7 +8,6 @@ from loguru import logger
 from typing import Any
 from datetime import datetime, timezone
 import yaml
-import uuid
 from argon2 import PasswordHasher
 from argon2.exceptions import VerificationError
 
@@ -31,8 +30,8 @@ from evidence_seeker import (
 dotenv.load_dotenv()
 
 # Turning dummy mode on/off
-# In 'dummy mode' the UI can be tested (the pipeline will not be executed)
-DUMMY: bool = True
+# In 'UI_TEST_MODE' the UI can be tested (the pipeline will not be executed)
+UI_TEST_MODE: bool = True
 
 _dummy_docs = [
     Document(
@@ -78,20 +77,6 @@ _dummy_claims = [
         },
     ),
 ]
-
-
-def setup_from_app_config() -> EvidenceSeeker | None:
-    global APP_CONFIG
-    configs = {
-        "preprocessing_config_file": APP_CONFIG.preprocessing_config_file,
-        "retrieval_config_file": APP_CONFIG.retrieval_config_file,
-        "confirmation_analysis_config_file": APP_CONFIG.confirmation_analysis_config_file,
-    }
-    if DUMMY:
-        logger.info("Running in dummy mode, no EvidenceSeeker instance created.")
-        return None
-    else:
-        return EvidenceSeeker(**configs)
 
 
 def check_password(input_password: str, hash: str) -> bool:
@@ -150,19 +135,17 @@ def draw_example(examples: list[str]) -> str:
 
 
 async def check(statement: str, last_result: EvidenceSeekerResult):
-    global EVIDENCE_SEEKER
     request_time = datetime.now(timezone.utc)
     last_result.request_time = request_time.strftime("%Y-%m-%d %H:%M:%S UTC")
     last_result.request = statement
-    last_result.request_uid = str(uuid.uuid4())
-    last_result.feedback["binary"] = None
-    if EVIDENCE_SEEKER is not None:
+    
+    if UI_TEST_MODE:
+        last_result.claims = [claim.model_dump() for claim in _dummy_claims]
+    else:
         logger.log("INFO", f"Checking '{statement}'... This could take a while.")
         checked_claims = await EVIDENCE_SEEKER(statement)
         last_result.claims = checked_claims
-    else:
-        last_result.claims = [claim.model_dump() for claim in _dummy_claims]
-        # result = gr.Markdown(value=f"{last_result.model_dump()}")
+
     result = result_as_markdown(
         ev_result=last_result,
         translations=APP_CONFIG.translations[APP_CONFIG.language],
@@ -175,20 +158,6 @@ async def check(statement: str, last_result: EvidenceSeekerResult):
     return result, last_result
 
 
-def initialize_result_state():
-    global APP_CONFIG, EVIDENCE_SEEKER
-    conf: dict[str, Any] = APP_CONFIG.model_dump()
-    if EVIDENCE_SEEKER is not None:
-        conf["retrieval_config"] = EVIDENCE_SEEKER.retriever.config
-        conf["confirmation_config"] = EVIDENCE_SEEKER.analyzer.workflow.config
-        conf["preprocessing_config"] = EVIDENCE_SEEKER.preprocessor.workflow.config
-    else:
-        conf["retrieval_conf"] = None
-        conf["confirmation_config"] = None
-        conf["preprocessing_config"] = None
-    last_result = EvidenceSeekerResult(**conf)
-    return gr.State(last_result)
-
 if "RUNS_ON_SPACES" not in os.environ.keys():
     RUNS_ON_SPACES = False
     logger.info("Gradioapp runs locally.")
@@ -196,16 +165,27 @@ else:
     RUNS_ON_SPACES = os.environ["RUNS_ON_SPACES"] == "True"
     logger.info("Gradioapp runs on 🤗.")
 
+# TODO: refactor
 if "APP_CONFIG_FILE" in os.environ.keys():
     with open(os.environ["APP_CONFIG_FILE"]) as f:
         APP_CONFIG = AppConfig(**yaml.safe_load(f))
 else:
-    APP_CONFIG = AppConfig()
+    raise ValueError("Missing configruation file.")
 
-EVIDENCE_SEEKER = setup_from_app_config()
+EVIDENCE_SEEKER = EvidenceSeeker(
+    preprocessing_config_file=APP_CONFIG.preprocessing_config_file,
+    retrieval_config_file=APP_CONFIG.retrieval_config_file,
+    confirmation_analysis_config_file=APP_CONFIG.confirmation_analysis_config_file,
+)
 
 with gr.Blocks(title="EvidenceSeeker") as demo:
-    last_result = initialize_result_state()
+    last_result = gr.State(
+        EvidenceSeekerResult(
+            retrieval_config=EVIDENCE_SEEKER.retriever.config,
+            confirmation_config=EVIDENCE_SEEKER.analyzer.config,
+            preprocessing_config=EVIDENCE_SEEKER.preprocessor.config,
+        )
+    )
     examples = gr.State(APP_CONFIG.examples)
     valid = gr.State(value=not RUNS_ON_SPACES)
     agreements = gr.State(value=(not RUNS_ON_SPACES, not RUNS_ON_SPACES))

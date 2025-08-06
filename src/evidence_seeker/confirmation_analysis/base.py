@@ -13,7 +13,7 @@ class ConfirmationAnalyzer:
     def __init__(self, config: ConfirmationAnalyzerConfig | None = None, **kwargs):
         if config is None:
             config = ConfirmationAnalyzerConfig()
-
+        self.config = config
         self.workflow = SimpleConfirmationAnalysisWorkflow(
             config=config, **kwargs
         )
