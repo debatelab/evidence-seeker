@@ -161,7 +161,10 @@ class DocumentRetriever:
 
         if self.index_persist_path:
             persist_dir = self.index_persist_path
-            logger.info(f"Using index persist path: {persist_dir}")
+            logger.info(
+                "Using index persist path: "
+                f"{os.path.abspath(persist_dir)}"
+            )
             if (
                 not os.path.exists(self.index_persist_path)
                 # empty directory check

@@ -47,7 +47,7 @@ def main():
     parser = argparse.ArgumentParser(description="EvidenceSeeker CLI tool.")
     parser.add_argument(
         "action",
-        choices=['init', 'build-index', 'run'],
+        choices=['init', 'build-index', 'run','demo-app'],
         help="Action to perform")
     parser.add_argument(
         "-n", "--name",
@@ -98,6 +98,8 @@ def main():
             sys.exit(1)
         logger.info(f"Running pipeline with input: {input_string}")
         _run_pipeline(input_string, output_file)
+    elif args.action == "demo-app":
+        _run_demo_app()
     else:
         parser.print_help()
 
@@ -131,7 +133,8 @@ def _copy_package_data(target_directory: str = "."):
         "config/preprocessing_config.yaml",
         "config/retrieval_config.yaml",
         "config/confirmation_analysis_config.yaml",
-        "config/api_keys.txt"
+        "config/api_keys.txt",
+        "config/demo_app_config.yaml"
     ]
 
     for file_name in package_data_files:
@@ -215,6 +218,7 @@ def _run_pipeline(
         )
 
 
+# TODO: refactor this function to use a template engine
 def describe_results(claim: str, results: list) -> str:
     preamble_template = (
         '## EvidenceSeeker Results\n\n'
@@ -238,6 +242,50 @@ def describe_results(claim: str, results: list) -> str:
         rdict["statement_type"] = rdict["statement_type"].value
         markdown.append(result_template.format(**claim_dict))
     return ("\n".join(markdown))
+
+
+def _run_demo_app(base_dir: str = "."):
+    """Launch the Gradio demo app"""
+    try:
+        # Set environment variables for the app
+        import os
+        config_file = path.join(
+            base_dir,
+            _CONFIG_DIR_NAME,
+            "demo_app_config.yaml"
+        )
+        if not path.exists(config_file):
+            logger.error(
+                f"Demo app configuration file '{config_file}' does not exist. "
+                "Please run 'evse init' first, and ensure demo_app_config.yaml exists."
+            )
+            sys.exit(1)
+        else:
+            logger.info(f"Using the following config file: {config_file}")
+        # Set config path for the app
+        os.environ["APP_CONFIG_FILE"] = config_file
+
+        logger.info("Starting Gradio demo app...")
+        logger.info("The app will be available at http://localhost:7860")
+        # Import the demo app
+        from evidence_seeker.demo_app.app import evse_demo_app
+
+        # Launch the app
+        evse_demo_app.launch(
+            server_name="0.0.0.0",  # Allow external access
+            server_port=7860,       # Default Gradio port
+            share=False,            # Set to True for public sharing
+            debug=False,            # Set to True for development
+            show_error=True         # Show detailed errors
+        )
+
+    except ImportError as e:
+        logger.error(f"Failed to import demo app: {e}")
+        logger.error("Make sure the demo app dependencies are installed.")
+        sys.exit(1)
+    except Exception as e:
+        logger.error(f"Failed to start demo app: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

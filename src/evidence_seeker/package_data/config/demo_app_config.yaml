@@ -1,0 +1,60 @@
+subdirectory_construction: null
+confirmation_analysis_config_file: ./config/confirmation_analysis_config.yaml
+preprocessing_config_file: ./config/preprocessing_config.yaml
+retrieval_config_file: ./config/retrieval_config.yaml
+logging: True
+local_base: .
+result_dir: logs
+example_inputs:
+  de:
+  - Die Osterweiterung hat die EU-Institutionen nachhaltig geschwächt.
+  - In den knapp 70 Jahren seit ihrer Gründung hat es in der Bundeswehr immer wieder rechtsextremistische Vorfälle gegeben.
+  - In der Bundeswehr gibt es keinen politischen Extremismus.
+  - Die BRICS-Staaten sorgen für eine Veränderung der westlich geprägten Weltordnung.
+  - Die Genfer Konventionen sind oft hinter ihrem Anspruch, die Zivilbevölkerung zu schützen, zurückgeblieben.
+  - Die Anzahl hybrider Kriege hat zugenommen.
+  - Es ist für Deutschland wirtschaftlich ein Nachteil, dass viele Frauen in Teilzeit arbeiten.
+  - Premier Modi hat Putin als seinen Freund bezeichnet.
+  - Eine Minderheit der deutschen Bevölkerung befürwortet einen autoritären deutschen Staat.
+markdown_template:
+  de: |
+    ## Deine Eingabe:
+
+    **"{{ statement }}"**
+
+    ## Analyse des EvidenceSeekers:
+
+    Es folgen die von der Pipeline gefundenen Interpretationen der eingegebenen Aussage und deren Bestätigungslevel bezüglich der Wissensbasis.
+
+    {% for claim, sources in claims %}
+    ---
+
+    **Gefundene Interpretation:** _{{ claim.text }}_ <font color="orange">[Aussagentyp: {{ translation[claim.statement_type.value] }}e Aussage]</font>
+
+    **Bestätigungslevel**: {{ translation[claim.confirmation_level.value] }}
+
+    {% if sources is not none %}
+
+    <details>
+    
+    <summary>Einzelanalysen bzgl. relevanter Textstellen</summary>
+    
+    {% for doc_info in sources.values() %}
+    + **Quelle:** {{ doc_info.author }} - *{{ doc_info.title }}* ([Link]({{ doc_info.url }}))
+    {% for text in doc_info.texts %}
+      + *Textstelle:* "{{ text.original_text }}" (**Bestätigungslevel für die Interpretation:** *{{ translation[text.conf_level] }})*
+        <details>
+        <summary>Textstelle mit Textkontext</summary>
+
+        - "{{ text.full_text }}"
+
+        </details>
+    {% endfor %}
+    {% endfor %}
+
+    </details>
+
+    {% else %}
+    Aussagen vom Typ '{{ translation[claim.statement_type.value] }}' wurden vom EvidenceSeeker nicht geprüft.
+    {% endif %}
+    {% endfor %}

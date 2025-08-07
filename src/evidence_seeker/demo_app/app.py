@@ -26,7 +26,7 @@ from evidence_seeker import (
 )
 
 # ### APP CONFIGURATION ####
-dotenv.load_dotenv()
+# dotenv.load_dotenv()
 
 config_file_path = os.getenv("APP_CONFIG_FILE", None)
 
@@ -163,14 +163,19 @@ async def check(statement: str, last_result: EvidenceSeekerResult):
     )
     return result, last_result
 
-
+logger.info(
+    "Using the following config files to initiate pipeline:"
+    f"{APP_CONFIG.retrieval_config_file}\n"
+    f"{APP_CONFIG.confirmation_analysis_config_file}\n"
+    f"{APP_CONFIG.preprocessing_config_file}\n"
+)
 EVIDENCE_SEEKER = EvidenceSeeker(
     preprocessing_config_file=APP_CONFIG.preprocessing_config_file,
     retrieval_config_file=APP_CONFIG.retrieval_config_file,
     confirmation_analysis_config_file=APP_CONFIG.confirmation_analysis_config_file,
 )
 
-with gr.Blocks(title="EvidenceSeeker") as demo:
+with gr.Blocks(title="EvidenceSeeker") as evse_demo_app:
     last_result = gr.State(
         EvidenceSeekerResult(
             retrieval_config=EVIDENCE_SEEKER.retriever.config,
@@ -302,4 +307,4 @@ with gr.Blocks(title="EvidenceSeeker") as demo:
             )
 
 
-demo.launch()
+evse_demo_app.launch()

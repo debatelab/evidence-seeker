@@ -13,12 +13,12 @@ class AppConfig(pydantic.BaseModel):
     retrieval_config_file: str
     local_base: str
     result_dir: str
-    repo_name: str
+    repo_name: str | None = None
     write_on_github: bool = False
     github_token_name: str = "GITHUB_TOKEN"
     password_protection: bool = False
     password_env_name: str = "EVSE_APP_HASH"
-    force_agreement: bool = True
+    force_agreement: bool = False
     language: str = "de"
     example_inputs_file: str | None = None
     example_inputs: dict[str, list[str]] | None = {
@@ -30,7 +30,7 @@ class AppConfig(pydantic.BaseModel):
 
     translations: dict[str, dict[str, str]] = {
         "de": {
-            "ascriptive": "askriptiv",
+            "ascriptive": "zuschreibend",
             "descriptive": "deskriptiv",
             "normative": "normativ",
             "strongly_confirmed": "im hohen Maße bestätigt",
@@ -76,7 +76,7 @@ class AppConfig(pydantic.BaseModel):
                 Die EvidenceSeeker Demoapp ist Teil des vom BMBFSFJ geförderten
                 [KIdeKu Projekts](https://compphil2mmae.github.io/research/kideku/).
                 Nähere Informationen zur *EvidenceSeeker Boilerplate* findest Du
-                [hier](https://debatelab.github.io/evidence-seeker-results).
+                [hier](https://debatelab.github.io/evidence-seeker).
                 </details>
             """).strip(),
             "description": "**Gib eine Aussage in das Textfeld ein und lass sie durch den EvidenceSeeker prüfen:**",

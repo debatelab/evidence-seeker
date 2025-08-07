@@ -3,7 +3,7 @@
 from typing import Dict, List
 from jinja2 import Environment
 from jinja2 import Template
-from typing import Any
+from typing import Any, Mapping
 from datetime import datetime
 import os
 from glob import glob
@@ -13,40 +13,45 @@ from .results import EvidenceSeekerResult
 from .confirmation_aggregation.base import (
     confirmation_level
 )
+from .datamodels import Document
 
 
 # TODO (refactor!): Using this function is very ideosynctratic
 # since it hinges on specfici meta-data (which is
 # specific to the EvSe Demo Dataset).
+
 def get_grouped_sources(
-        documents,
-        confirmation_by_document
+        documents: list[Document] | None,
+        confirmation_by_document: Mapping[str, float] | None
 ) -> Dict[str, Dict[str, Any]]:
+    if documents is None or confirmation_by_document is None:
+        return dict()
     docs_grouped_by_src_file = {}
     # Group documents by filenname
     for doc in documents:
-        file_name = doc["metadata"].get("file_name", None)
+        file_name = doc.metadata.get("file_name", None)
         if file_name is None:
             raise ValueError("No filename found in metadata")
         else:
             if file_name not in docs_grouped_by_src_file:
                 docs_grouped_by_src_file[file_name] = {
-                    "author": doc["metadata"]["author"],
-                    "url": doc["metadata"]["url"],
-                    "title": doc["metadata"]["title"].replace("{", "").replace("}", ""),
+                    "author": doc.metadata["author"],
+                    "url": doc.metadata["url"],
+                    "title": doc.metadata["title"].replace("{", "").replace("}", ""),
                     "texts": [],
                 }
             docs_grouped_by_src_file[file_name]["texts"].append({
                 "original_text": (
-                    doc["metadata"]["original_text"]
+                    doc.metadata["original_text"]
                     .strip()
                     .replace("\n", " ")
                     .replace('"', "'")
                 ),
-                "conf": confirmation_by_document[doc["uid"]],
-                "conf_level": confirmation_level(confirmation_by_document[doc["uid"]]).value,
+                "conf": confirmation_by_document[doc.uid],
+                "conf_level":
+                    confirmation_level(confirmation_by_document[doc.uid]).value,
                 "full_text": (
-                    doc["text"]
+                    doc.text
                     .strip()
                     .replace("\n", "  ")
                     .replace('"', "'")
@@ -72,8 +77,8 @@ def result_as_markdown(
         (
             claim,
             get_grouped_sources(
-                claim["documents"],
-                claim["confirmation_by_document"]
+                claim.documents,
+                claim.confirmation_by_document
             )
         )
         for claim in ev_result.claims
@@ -230,6 +235,7 @@ def results_to_markdown(
         show_documents=show_documents
     )
     return markdown
+
 
 def describe_result(input, results) -> str:
     preamble_template = (
