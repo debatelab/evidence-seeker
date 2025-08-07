@@ -57,7 +57,8 @@ from .evidence_seeker import (
 from .datamodels import (
     CheckedClaim,
     Document,
-    StatementType
+    StatementType,
+    ConfirmationLevel,
 )
 
 from .results import (
@@ -91,6 +92,7 @@ __all__ = [
     "CheckedClaim",
     "Document",
     "StatementType",
+    "ConfirmationLevel",
     "EvidenceSeekerResult",
     "result_as_markdown",
     "log_result",

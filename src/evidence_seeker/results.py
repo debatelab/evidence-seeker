@@ -11,7 +11,11 @@ from datetime import datetime, timezone
 from evidence_seeker.preprocessing.config import ClaimPreprocessingConfig
 from evidence_seeker.retrieval.config import RetrievalConfig
 from evidence_seeker.confirmation_analysis.config import ConfirmationAnalyzerConfig
-from evidence_seeker.datamodels import StatementType
+from evidence_seeker.datamodels import (
+    StatementType,
+    ConfirmationLevel,
+    CheckedClaim
+)
 
 
 class EvidenceSeekerResult(pydantic.BaseModel):
@@ -21,13 +25,29 @@ class EvidenceSeekerResult(pydantic.BaseModel):
     retrieval_config: RetrievalConfig
     confirmation_config: ConfirmationAnalyzerConfig
     preprocessing_config: ClaimPreprocessingConfig
-    claims: list[dict] = []
+    claims: list[CheckedClaim] = []
     feedback: dict[str, Any] = {
         # TODO: perhaps better with an enum.Enum?
         "binary": None
     }
 
     def yaml_dump(self, stream) -> None | str | bytes:
+        yaml.add_representer(
+            StatementType,
+            representer=(
+                lambda dumper, data: dumper.represent_str(
+                    data.value
+                )
+            )
+        )
+        yaml.add_representer(
+            ConfirmationLevel,
+            representer=(
+                lambda dumper, data: dumper.represent_str(
+                    data.value
+                )
+            )
+        )
         yaml.add_representer(
             np.ndarray,
             representer=(
@@ -50,14 +70,14 @@ class EvidenceSeekerResult(pydantic.BaseModel):
 
     @classmethod
     def from_logfile(cls, path) -> "EvidenceSeekerResult":
-        yaml.add_constructor(
-            "!python/object/apply:evidence_seeker.datamodels.StatementType",
-            constructor=(lambda _, node: StatementType(node.value[0].value)),
-        )
-        yaml.add_constructor(
-            "tag:yaml.org,2002:python/object/apply:evidence_seeker.datamodels.StatementType",
-            constructor=(lambda _, node: StatementType(node.value[0].value)),
-        )
+        # yaml.add_constructor(
+        #     "!python/object/apply:evidence_seeker.datamodels.StatementType",
+        #     constructor=(lambda _, node: StatementType(node.value[0].value)),
+        # )
+        # yaml.add_constructor(
+        #     "tag:yaml.org,2002:python/object/apply:evidence_seeker.datamodels.StatementType",
+        #     constructor=(lambda _, node: StatementType(node.value[0].value)),
+        # )
         yaml.add_constructor(
             "!nparray",
             constructor=(
@@ -66,10 +86,12 @@ class EvidenceSeekerResult(pydantic.BaseModel):
         )
         with open(path, encoding="utf-8") as f:
             res = yaml.full_load(f)
-        return cls(**res)
+        # model_validate will handle str2enum convertion
+        return cls.model_validate(res)
 
-    def count_claims(self) -> dict[str, Any]:
+    def count_claims(self) -> dict[str, int]:
         return {
-            x: [c["statement_type"].value for c in self.claims].count(x)
+            x: [c.statement_type.value for c in self.claims
+                if c.statement_type is not None].count(x)
             for x in ["normative", "descriptive", "ascriptive"]
         }

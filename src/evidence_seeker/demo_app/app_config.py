@@ -65,16 +65,17 @@ class AppConfig(pydantic.BaseModel):
                 Diese Einzelanalysen werden für jede Interpretation in Form eines
                 *Bestätigungslevels* aggregiert. Nähere Informationen
                 zur Pipeline findest Du [hier](XX).
-                + In dieser Demo App verwenden wir [XX](#) als Embedding Modell und
-                [XX](#) als generatives Sprachmodell. Als **Wissensbasis** dienen
+                + **Verwendete Modelle und Wissensbasis:** In dieser Demo App verwenden wir [XX](#) als Embedding Modell und
+                [XX](#) als generatives Sprachmodell. Als Wissensbasis dienen
                 alle Ausgaben von "Aus Politik und Zeitgeschichte" aus dem Jahr 2024
                 ([Link](https://www.bpb.de/shop/zeitschriften/apuz/?field_filter_thema=all&field_date_content=2024&d=1)).
-                + Eingaben anderer User:innen und die entsprechenden Ergebnisse der
+                + **Beispiele:** Eingaben anderer User:innen und die entsprechenden Ergebnisse der
                 Pipeline findest Du unter
                 <https://debatelab.github.io/evidence-seeker-results/>.
-                + Die EvidenceSeeker Demoapp ist Teil des vom BMBFSFJ geförderten
+                
+                Die EvidenceSeeker Demoapp ist Teil des vom BMBFSFJ geförderten
                 [KIdeKu Projekts](https://compphil2mmae.github.io/research/kideku/).
-                + Nähere Informationen zur *EvidenceSeeker Boilerplate* findest Du
+                Nähere Informationen zur *EvidenceSeeker Boilerplate* findest Du
                 [hier](https://debatelab.github.io/evidence-seeker-results).
                 </details>
             """).strip(),
@@ -85,7 +86,6 @@ class AppConfig(pydantic.BaseModel):
             "checking_message": "### Aussage wird geprüft... Dies könnte ein paar Minuten dauern.",
             "feedback_question": "Wie zufrieden bist du mit der Antwort?",
             "privacy_title": "Datenschutzhinweis & Disclaimer",
-            "warning_label": "⚠️ <b>Achtung</b>",
             "consent_info": "**Einwilligung zur Datenweiterverarbeitung (Optional)**",
             "agree_button": "Ich habe die Hinweise zur Kenntnis genommen",
             "password_label": (
@@ -95,9 +95,9 @@ class AppConfig(pydantic.BaseModel):
             "wrong_password": "Falsches Passwort. Bitte versuche es erneut.",
             "continue": "Weiter...",
             "server_error": "Etwas ist auf unserer Seite schiefgegangen :-(",
-            "warning_text": """
+            "disclaimer_text": """
                     <div style="background-color:#fff7ed;padding:25px;border-radius: 10px;">
-                    <p>⚠️ <b>Achtung</b></p>
+                    <p>⚠️ <b>Disclaimer</b></p>
                     <p>
                     <p>
                     Alle Ausgaben werden von Sprachmodellen generiert und geben nicht
@@ -106,26 +106,33 @@ class AppConfig(pydantic.BaseModel):
                     <p>
                     Eingegebene Daten werden von Sprachmodellen verarbeitet. Bitte
                     beachte daher, keine personenbezogenen Daten einzugeben - auch weil
-                    die Daten unter Umständen gespeichert werden (siehe unten).
+                    deine Eingaben unter Umständen gespeichert werden (siehe unten).
                     </p>
                     </p>
                     </div>
                 """,
-            "disclaimer_text": """
-                    Auf der Seite <https://debatelab.github.io/evidence-seeker-results/>
+            "data_policy_text": """
+                    <div style="background-color:#fff7ed;padding:25px;border-radius: 10px;">
+                    <p>🗃️ <b>Datenschutzhinweis</b></p>
+                    <p>
+                    Auf der Seite <a href="https://debatelab.github.io/evidence-seeker-results/">https://debatelab.github.io/evidence-seeker-results/</a>
                     stellen wir beispielhaft
                     Ergebnisse dar, die von der EvidenceSeeker-Pipeline durch
                     die Interaktion mit Nutzer:innen über diese DemoApp erzeugt wurden.
-
-                    Wir erheben und verwenden **keine personenbezogenen Daten**
+                    </p>
+                    <p>
+                    Wir erheben und verwenden <strong>keine personenbezogenen Daten</strong>
                     (sofern sie nicht
                     über das Freitextfeld selbst eingegeben werden) und verwenden
-                    **nur** von Nutzer:innen selbst eingegebene
+                    <strong>nur</strong> von Nutzer:innen selbst eingegebene
                     Daten sowie den Zeitpunkt der Eingabe, die Rückgabe der Pipeline
                     und etwaiges Feedback durch die Nutzer:innen.
-
+                    </p>
+                    <p>
                     Wenn du das EvidenceSeeker Projekt damit unterstützen möchtest,
-                    kannst du der Nutzung deiner Eingaben im Folgenden zustimmen:
+                    kannst du der Nutzung deiner Eingaben im Folgenden zustimmen.
+                    </p>
+                    </div>
                 """,
             "consent_text": """
                     Ja, meine Anfragen an die EvidenceSeeker Pipeline und deren
@@ -136,6 +143,7 @@ class AppConfig(pydantic.BaseModel):
 
         },
         "en": {
+            # TODO: Check & Revise
             "title": "🕵️‍♀️ EvidenceSeeker DemoApp",
             "description": "Enter a statement in the text field and have it checked by EvidenceSeeker:",
             "statement_label": "Statement to check:",

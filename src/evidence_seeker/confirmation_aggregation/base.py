@@ -6,6 +6,23 @@ import pydantic
 import yaml
 
 from evidence_seeker.datamodels import CheckedClaim
+from evidence_seeker.datamodels import ConfirmationLevel
+
+
+def confirmation_level(degree_of_confirmation: float) -> ConfirmationLevel:
+    if degree_of_confirmation > 0.6:
+        return ConfirmationLevel.STRONGLY_CONFIRMED
+    if degree_of_confirmation > 0.4:
+        return ConfirmationLevel.CONFIRMED
+    if degree_of_confirmation > 0.2:
+        return ConfirmationLevel.WEAKLY_CONFIRMED
+    if degree_of_confirmation < -0.6:
+        return ConfirmationLevel.STRONGLY_DISCONFIRMED
+    if degree_of_confirmation < -0.4:
+        return ConfirmationLevel.DISCONFIRMED
+    if degree_of_confirmation < -0.2:
+        return ConfirmationLevel.WEAKLY_DISCONFIRMED
+    return ConfirmationLevel.INCONCLUSIVE_CONFIRMATION
 
 
 class ConfirmationAggregationConfig(pydantic.BaseModel):
@@ -18,7 +35,9 @@ class ConfirmationAggregator:
             config = ConfirmationAggregationConfig()
         self.config = config
 
-    async def verbalize_confirmation(self, claim: CheckedClaim) -> str:
+    async def verbalize_confirmation(self, claim: CheckedClaim) -> str | None:
+        if claim.average_confirmation is None:
+            return None
         if claim.average_confirmation > 0.6:
             return "The claim is strongly confirmed."
         if claim.average_confirmation > 0.4:
@@ -43,6 +62,9 @@ class ConfirmationAggregator:
         claim.n_evidence = len(relevant_conf_by_docs)
         claim.average_confirmation = float(
             np.mean(list(relevant_conf_by_docs.values())) if relevant_conf_by_docs else np.nan
+        )
+        claim.confirmation_level = confirmation_level(
+            claim.average_confirmation
         )
         claim.evidential_uncertainty = float(
             np.var(list(relevant_conf_by_docs.values())) if relevant_conf_by_docs else np.nan

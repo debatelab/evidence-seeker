@@ -15,7 +15,8 @@ from evidence_seeker import (
     EvidenceSeeker,
     EvidenceSeekerResult,
     result_as_markdown,
-    log_result
+    log_result,
+    ConfirmationLevel
 )
 
 from evidence_seeker import (
@@ -73,6 +74,7 @@ _dummy_claims = [
         n_evidence=2,
         statement_type=StatementType.DESCRIPTIVE,
         average_confirmation=0.2,
+        confirmation_level=ConfirmationLevel.WEAKLY_CONFIRMED,
         evidential_uncertainty=0.1,
         verbalized_confirmation="The claim is weakly confirmed.",
         confirmation_by_document={
@@ -271,8 +273,8 @@ with gr.Blocks(title="EvidenceSeeker") as demo:
             )
         elif password_authenticated_val:
             gr.Markdown(f"# {ui['privacy_title']}")
-            gr.HTML(ui['warning_text'])
-            gr.Markdown(ui['disclaimer_text'])
+            gr.HTML(ui['disclaimer_text'])
+            gr.HTML(ui['data_policy_text'])
             consent_box = gr.Checkbox(
                 False,
                 label=ui['consent_text'],

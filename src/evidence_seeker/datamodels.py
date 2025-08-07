@@ -4,14 +4,26 @@ from typing import Mapping
 import enum
 import pydantic
 
+
 class Language(enum.Enum):
     DE = "German"
     EN = "English"
+
 
 class StatementType(enum.Enum):
     DESCRIPTIVE = "descriptive"
     ASCRIPTIVE = "ascriptive"
     NORMATIVE = "normative"
+
+
+class ConfirmationLevel(enum.Enum):
+    STRONGLY_CONFIRMED = "strongly_confirmed"
+    CONFIRMED = "confirmed"
+    WEAKLY_CONFIRMED = "weakly_confirmed"
+    INCONCLUSIVE_CONFIRMATION = "inconclusive_confirmation"
+    WEAKLY_DISCONFIRMED = "weakly_disconfirmed"
+    DISCONFIRMED = "disconfirmed"
+    STRONGLY_DISCONFIRMED = "strongly_disconfirmed"
 
 
 class Document(pydantic.BaseModel):
@@ -28,9 +40,7 @@ class CheckedClaim(pydantic.BaseModel):
     n_evidence: int | None = None
     average_confirmation: float | None = None
     evidential_uncertainty: float | None = None
-    # TODO: Better use enum type and then provide
-    # context (UI) dependent verbalizations (e.g. in a 
-    # specific language)
+    confirmation_level: ConfirmationLevel | None = None
     verbalized_confirmation: str | None = None
     documents: list[Document] | None = None
     confirmation_by_document: Mapping[str, float] | None = None
