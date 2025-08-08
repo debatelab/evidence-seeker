@@ -69,7 +69,7 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
                     "Or set it to None if you don't need it and set the "
                     "API keys in other ways as environment variables."
                 )
-                logger.error(err_msg)
+                logger.warning(err_msg)
             else:
                 # load the env file
                 from dotenv import load_dotenv
