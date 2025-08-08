@@ -27,6 +27,7 @@ class AppConfig(pydantic.BaseModel):
     }
     markdown_template_file: str | None = None
     markdown_template: dict[str, str] | None = None
+    save_markdown: bool = True
 
     translations: dict[str, dict[str, str]] = {
         "de": {

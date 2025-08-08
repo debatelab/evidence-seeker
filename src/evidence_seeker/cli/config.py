@@ -2,6 +2,7 @@
 import pydantic
 from typing import Any, Dict
 
+
 class EvidenceSeekerClientConfig(pydantic.BaseModel):
     config_version: str = "v0.1"
     description: str = "First version of a configuration file for the Evidence Seeker client."
@@ -13,6 +14,5 @@ class EvidenceSeekerClientConfig(pydantic.BaseModel):
         "index": {},
         "logs": {},
     }
-    config_directory: str = "config",
-    index_directory: str = "logs",
-
+    config_directory: str = "config"
+    index_directory: str = "logs"

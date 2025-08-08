@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import gradio as gr
 import random
-import dotenv
 import os
 from loguru import logger
 from datetime import datetime, timezone
@@ -38,6 +37,8 @@ ui = APP_CONFIG.ui_texts[APP_CONFIG.language]
 UI_TEST_MODE = os.getenv("UI_TEST_MODE", False)
 
 # used for UI_TEST_MODE
+# TODO: provide the following dummy instance via util.py:
+# dummy claims, docs and dumy evse result
 _dummy_docs = [
     Document(
         text='While there is high confidence that oxygen levels have ...',
@@ -146,16 +147,17 @@ async def check(statement: str, last_result: EvidenceSeekerResult):
     last_result.request = statement
 
     if UI_TEST_MODE:
-        last_result.claims = [claim.model_dump() for claim in _dummy_claims]
+        last_result.claims = _dummy_claims
     else:
         logger.log("INFO", f"Checking '{statement}'... This could take a while.")
         checked_claims = await EVIDENCE_SEEKER(statement)
         last_result.claims = checked_claims
 
     result = result_as_markdown(
-        ev_result=last_result,
+        evse_result=last_result,
         translations=APP_CONFIG.translations[APP_CONFIG.language],
-        jinja2_md_template=APP_CONFIG.md_template
+        jinja2_md_template=APP_CONFIG.md_template,
+        group_docs_by_sources=True
     )
 
     logger.info(
@@ -247,6 +249,7 @@ with gr.Blocks(title="EvidenceSeeker") as evse_demo_app:
                         write_on_github=APP_CONFIG.write_on_github,
                         github_token_name=APP_CONFIG.github_token_name,
                         repo_name=APP_CONFIG.repo_name,
+                        additional_markdown_log=APP_CONFIG.save_markdown,
                     )
 
             check_btn.click(deactivate, None, [check_btn, good, bad, feedback]).then(

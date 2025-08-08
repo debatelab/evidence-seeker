@@ -11,6 +11,8 @@ import asyncio
 
 from evidence_seeker import (
     IndexBuilder,
+    EvidenceSeekerResult,
+    log_result
 )
 from evidence_seeker import EvidenceSeeker
 
@@ -197,20 +199,22 @@ def _run_pipeline(
     results = asyncio.run(pipeline(input_string))
 
     if results:
-        logger.info("Pipeline executed successfully. Results:")
-        results_str = describe_results(input_string, results)
+        logger.info("Pipeline executed successfully.")
         # write results to a file
-        if output_file is None:
-            from datetime import datetime
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            output_file = path.join(
-                base_dir,
-                _LOGS_DIR_NAME,
-                f"results_{timestamp}.md"
-            )
-        with open(output_file, "w", encoding="utf-8") as f:
-            f.write(results_str)
-        logger.info(f"Results written to {output_file}")
+
+        evse_result = EvidenceSeekerResult(
+            retrieval_config=pipeline.retriever.config,
+            confirmation_config=pipeline.analyzer.config,
+            preprocessing_config=pipeline.preprocessor.config,
+            request=input_string,
+            claims=results,
+        )
+        log_result(
+            evse_result=evse_result,
+            result_dir=_LOGS_DIR_NAME,
+            local_base=base_dir,
+            additional_markdown_log=True,
+        )
     else:
         logger.warning(
             "No results returned from the pipeline. "

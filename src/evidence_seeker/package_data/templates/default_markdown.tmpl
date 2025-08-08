@@ -1,0 +1,32 @@
+# EvidenceSeeker Result
+
+**Submitted input:** {{ statement }}
+
+## EvidenceSeeker Analysis
+
+{% for clarified_claim in claims %}
+
+#### "{{ clarified_claim['text'] }}"
+
+**Found interpretation:** <font color="orange">{{ clarified_claim.text }}</font> [type: {{clarified_claim.statement_type.value}}]
+
+**Confirmation level**: {{ clarified_claim.confirmation_level.value }}
+
+|Metric|Value|
+|:---|---:|
+|Average confirmation|{{ clarified_claim.average_confirmation | round(2) }}|
+|Evidential divergence|{{ clarified_claim.evidential_uncertainty | round(2) }}|
+|Width of evidential base|{{ clarified_claim.n_evidence }}|
+
+
+{% if show_documents %}
+**Documents:**
+{% for document in clarified_claim.documents %}
+
++ {{ document.text }}
+  - **Confirmation**: {{ clarified_claim.confirmation_by_document[document.uid] | round(3) }}
+
+{% endfor %}
+{% endif %}
+
+{% endfor %}

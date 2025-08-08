@@ -128,7 +128,6 @@ class SimpleConfirmationAnalysisWorkflow(Workflow):
     async def freetext_analysis(
         self, ctx: Context, ev: FreetextConfirmationAnalysisEvent
     ) -> MultipleChoiceConfirmationAnalysisEvent:
-        logger.debug("Confirmation analysis.")
 
         chat_template = self.config.get_chat_template(ev.name)
         messages = chat_template.format_messages(

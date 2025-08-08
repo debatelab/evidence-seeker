@@ -236,7 +236,7 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
             self,
             step_name: Optional[str] = None,
             step_config: Optional[ConfirmationAnalyzerStepConfig] = None
-    ) -> ConfirmationAnalyzerModelStepConfig:
+    ) -> ConfirmationAnalyzerModelStepConfig | MultipleChoiceTaskStepConfig:
         """Get the model specific step config for the given step name.
 
         The requested `ConfirmationAnalyzerModelStepConfig` is determined

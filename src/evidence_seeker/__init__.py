@@ -43,8 +43,6 @@ from .confirmation_analysis.config import (
 from .confirmation_aggregation.base import ConfirmationAggregator
 
 from .utils import (
-    #results_to_markdown,
-    describe_result,
     result_as_markdown,
     log_result,
 )
@@ -96,6 +94,5 @@ __all__ = [
     "EvidenceSeekerResult",
     "result_as_markdown",
     "log_result",
-    "describe_result"
 #    "SimpleConfirmationAnalysisWorkflow"
 ]
