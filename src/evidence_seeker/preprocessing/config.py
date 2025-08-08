@@ -70,10 +70,10 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
                     "API keys in other ways as environment variables."
                 )
                 logger.error(err_msg)
-                raise FileNotFoundError(err_msg)
-            # load the env file
-            from dotenv import load_dotenv
-            load_dotenv(config.env_file)
+            else:
+                # load the env file
+                from dotenv import load_dotenv
+                load_dotenv(config.env_file)
             logger.info(
                 f"Loaded environment variables from '{config.env_file}'"
             )
