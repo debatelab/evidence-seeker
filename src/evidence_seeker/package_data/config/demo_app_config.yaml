@@ -31,9 +31,9 @@ markdown_template:
 
     **Gefundene Interpretation:** _{{ claim.text }}_ <font color="orange">[Aussagentyp: {{ translation[claim.statement_type.value] }}e Aussage]</font>
 
-    **Bestätigungslevel**: {{ translation[claim.confirmation_level.value] }}
+    {% if sources %}
 
-    {% if sources is not none %}
+    **Bestätigungslevel**: {{ translation[claim.confirmation_level.value] }}
 
     <details>
     

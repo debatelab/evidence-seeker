@@ -73,7 +73,7 @@ class AppConfig(pydantic.BaseModel):
                 + **Beispiele:** Eingaben anderer User:innen und die entsprechenden Ergebnisse der
                 Pipeline findest Du unter
                 <https://debatelab.github.io/evidence-seeker-results/>.
-                
+
                 Die EvidenceSeeker Demoapp ist Teil des vom BMBFSFJ geförderten
                 [KIdeKu Projekts](https://compphil2mmae.github.io/research/kideku/).
                 Nähere Informationen zur *EvidenceSeeker Boilerplate* findest Du
