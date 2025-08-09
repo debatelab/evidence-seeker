@@ -74,9 +74,10 @@ def get_grouped_sources(
 def result_as_markdown(
     evse_result: EvidenceSeekerResult,
     translations: dict[str, str] = dict(),
-    jinja2_md_template: str | None = None,
+    jinja2_md_template: str | Template | None = None,
     group_docs_by_sources: bool = False,
-    show_documents: bool = True
+    show_documents: bool = True,
+    **kwargs,
 ) -> str:
     # TODO: see task from `get_grouped_sources`
     # also: `claims` is, depending from `group_docs_by_sources`
@@ -107,8 +108,13 @@ def result_as_markdown(
             )
         with open(str(template_path), encoding="utf-8") as f:
             jinja2_md_template = f.read()
-
-    result_template = Template(jinja2_md_template)
+            result_template = Template(jinja2_md_template)
+    elif isinstance(jinja2_md_template, str):
+        result_template = Template(jinja2_md_template)
+    elif isinstance(jinja2_md_template, Template):
+        result_template = jinja2_md_template
+    else:
+        raise ValueError("The template must be of type 'template', 'str' or 'None'.")
 
     md = result_template.render(
         feedback=evse_result.feedback["binary"],
@@ -117,6 +123,7 @@ def result_as_markdown(
         claims=claims,
         translation=translations,
         show_documents=show_documents,
+        **kwargs,
     )
     return md
 
