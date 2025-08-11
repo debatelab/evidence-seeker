@@ -92,8 +92,8 @@ dependencies = [
 ]
 
 [tool.hatch.envs.evse-dev_env]
-type = "pip-compile"
-lock-filename = "locks/{env_name}.lock"
+#type = "pip-compile"
+#lock-filename = "locks/{env_name}.lock"
 dependencies = [
   "jupyter",
   "ipywidgets",
@@ -104,7 +104,12 @@ dependencies = [
   "llama-index-embeddings-huggingface",
   "llama_index.embeddings.ollama",
   #"llama-index-embeddings-instructor",
-  "llama-index-llms-openai-like"
+  "llama-index-llms-openai-like",
+  #"gradio==5.38.2",
+  "gradio",
+  "pygithub",
+  "python-dotenv",
+  "jinja2",
 ]
 
 [[tool.hatch.envs.evse-dev_env.matrix]]
