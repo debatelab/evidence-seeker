@@ -143,7 +143,7 @@ def draw_example(examples: list[str]) -> str:
 
 async def check(statement: str, last_result: EvidenceSeekerResult):
     request_time = datetime.now(timezone.utc)
-    last_result.request_time = request_time.strftime("%Y-%m-%d %H:%M:%S UTC")
+    last_result.time = request_time.strftime("%Y-%m-%d %H:%M:%S UTC")
     last_result.request = statement
 
     if UI_TEST_MODE:
@@ -161,7 +161,7 @@ async def check(statement: str, last_result: EvidenceSeekerResult):
     )
 
     logger.info(
-        f"Result of statement '{statement}' checked (uid: {last_result.request_uid})",
+        f"Result of statement '{statement}' checked (uid: {last_result.uid})",
     )
     return result, last_result
 
@@ -211,9 +211,11 @@ with gr.Blocks(title="EvidenceSeeker") as evse_demo_app:
         if password_authenticated_val and read_warning_val:
             gr.Markdown(
                 f"# {ui['title']}\n"
-                f"{ui['info']}\n\n"
-                f"{ui['description']}"
+                # f"{ui['info']}\n\n"
+                # f"{ui['description']}"
             )
+            gr.HTML(ui['info'])
+            gr.Markdown(ui['description'])
             with gr.Row():
                 statement = gr.Textbox(
                     value="",
@@ -244,7 +246,7 @@ with gr.Blocks(title="EvidenceSeeker") as evse_demo_app:
                     log_result(
                         evse_result=evse_result,
                         result_dir=APP_CONFIG.result_dir,
-                        local_base=APP_CONFIG.local_base,
+                        local_base=APP_CONFIG.local_base if APP_CONFIG.local_base else "",
                         subdirectory_construction=APP_CONFIG.subdirectory_construction,
                         write_on_github=APP_CONFIG.write_on_github,
                         github_token_name=APP_CONFIG.github_token_name,

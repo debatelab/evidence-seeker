@@ -1,7 +1,6 @@
 "utils.py"
 
-from typing import Dict, List
-from jinja2 import Environment
+from typing import Callable
 from jinja2 import Template
 from typing import Any, Mapping
 from datetime import datetime
@@ -24,10 +23,11 @@ _DEFAULT_MD_TEMPLATE = "templates/default_markdown.tmpl"
 # since it hinges on specfici meta-data (which is
 # specific to the EvSe Demo Dataset).
 
+
 def get_grouped_sources(
         documents: list[Document] | None,
         confirmation_by_document: Mapping[str, float] | None
-) -> Dict[str, Dict[str, Any]]:
+) -> dict[str, dict[str, Any]]:
     if documents is None or confirmation_by_document is None:
         return dict()
     docs_grouped_by_src_file = {}
@@ -41,7 +41,11 @@ def get_grouped_sources(
                 docs_grouped_by_src_file[file_name] = {
                     "author": doc.metadata["author"],
                     "url": doc.metadata["url"],
-                    "title": doc.metadata["title"].replace("{", "").replace("}", ""),
+                    "title": (
+                        doc.metadata["title"]
+                        .replace("{", "")
+                        .replace("}", "")
+                    ),
                     "texts": [],
                 }
             docs_grouped_by_src_file[file_name]["texts"].append({
@@ -53,7 +57,9 @@ def get_grouped_sources(
                 ),
                 "conf": confirmation_by_document[doc.uid],
                 "conf_level":
-                    confirmation_level(confirmation_by_document[doc.uid]).value,
+                    confirmation_level(
+                        confirmation_by_document[doc.uid]
+                    ).value,
                 "full_text": (
                     doc.text
                     .strip()
@@ -114,12 +120,15 @@ def result_as_markdown(
     elif isinstance(jinja2_md_template, Template):
         result_template = jinja2_md_template
     else:
-        raise ValueError("The template must be of type 'template', 'str' or 'None'.")
+        raise ValueError(
+            "The template must be of type 'template', 'str' or 'None'."
+        )
 
     md = result_template.render(
+        evse_result=evse_result,
         feedback=evse_result.feedback["binary"],
         statement=evse_result.request,
-        time=evse_result.request_time,
+        time=evse_result.time,
         claims=claims,
         translation=translations,
         show_documents=show_documents,
@@ -156,6 +165,7 @@ def log_result(
     github_token_name: str | None = None,
     repo_name: str | None = None,
     additional_markdown_log: bool = False,
+    filename_without_suffix: Callable[[EvidenceSeekerResult], str] | str | None = None,
 ):
     # Do not log results if pipeline failed somehow
     # TODO: Better to use state field (in 'EvSeResult') by catching
@@ -163,14 +173,20 @@ def log_result(
     # (refactor workflows or pipeline for this)
     if len(evse_result.claims) == 0:
         return
-    if evse_result.request_time is None:
+    if evse_result.time is None:
         raise ValueError("Request time not set in result.")
     # constructing file name
-    ts = datetime.strptime(
-        evse_result.request_time, "%Y-%m-%d %H:%M:%S UTC"
-    ).strftime("%Y_%m_%d")
-    fn = f"request_{ts}_{evse_result.request_uid}.yaml"
-    md_fn = f"request_{ts}_{evse_result.request_uid}.md"
+    if filename_without_suffix is None:
+        ts = datetime.strptime(
+            evse_result.time, "%Y-%m-%d %H:%M:%S UTC"
+        ).strftime("%Y_%m_%d")
+        filename_without_suffix = f"{ts}_{evse_result.uid}"
+    elif callable(filename_without_suffix):
+        filename_without_suffix = filename_without_suffix(evse_result)
+
+    fn = f"{filename_without_suffix}.yaml"
+    md_fn = f"{filename_without_suffix}.md"
+
     subdir = _current_subdir(subdirectory_construction)
     if write_on_github and repo_name:
         filepath = os.path.join(result_dir, subdir, fn)
@@ -198,7 +214,7 @@ def log_result(
             c = repo.get_contents(filepath)
             repo.update_file(
                 filepath,
-                f"Update result ({evse_result.request_uid})",
+                f"Update result ({evse_result.uid})",
                 content,
                 c.sha
             )
@@ -206,30 +222,34 @@ def log_result(
                 c = repo.get_contents(md_filepath)
                 repo.update_file(
                     md_filepath,
-                    f"Update result ({evse_result.request_uid})",
+                    f"Update result ({evse_result.uid})",
                     md_content,
                     c.sha
                 )
         except UnknownObjectException:
             repo.create_file(
                 filepath,
-                f"Upload new result ({evse_result.request_uid})",
+                f"Upload new result ({evse_result.uid})",
                 content
             )
             if additional_markdown_log:
                 repo.create_file(
                     md_filepath,
-                    f"Upload new result ({evse_result.request_uid})",
+                    f"Upload new result ({evse_result.uid})",
                     md_content
                 )
         return
     else:
-        files = glob(os.path.join(local_base, result_dir, "**", fn), recursive=True)
+        files = glob(os.path.join(local_base, result_dir, "**", fn),
+                     recursive=True)
         if len(files) < 2:
             if len(files) == 0:
                 filepath = os.path.join(local_base, result_dir, subdir, fn)
-                md_filepath = os.path.join(local_base, result_dir, subdir, md_fn)
-                os.makedirs(os.path.join(local_base, result_dir, subdir), exist_ok=True)
+                md_filepath = os.path.join(
+                    local_base, result_dir, subdir, md_fn
+                )
+                os.makedirs(os.path.join(local_base, result_dir, subdir), 
+                            exist_ok=True)
             else:
                 filepath = files[0]
                 md_filepath = filepath.replace(".yaml", ".md")

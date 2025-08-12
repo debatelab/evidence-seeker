@@ -11,7 +11,7 @@ class AppConfig(pydantic.BaseModel):
     confirmation_analysis_config_file: str
     preprocessing_config_file: str
     retrieval_config_file: str
-    local_base: str
+    local_base: str | None = None
     result_dir: str
     repo_name: str | None = None
     write_on_github: bool = False
@@ -54,31 +54,63 @@ class AppConfig(pydantic.BaseModel):
         "de": {
             "title": "🕵️‍♀️ EvidenceSeeker DemoApp",
             "info": textwrap.dedent("""
-                <details>
-                <summary>Informationen zur DemoApp</summary>
-
-                + **Grundidee der Pipeline:** Die Pipeline findet in einem ersten Schritt
-                unterschiedliche Interpretationen deiner Eingabe und unterscheidet 
-                dabei *deskriptive, zuschreibende und normative Aussagen*. Für die gefundenen
-                deskriptiven und zuschreibenden Interpretationen wird dann in einer
-                *Wissensbasis* nach relevanten Textstellen gesucht und analysiert, inwiefern 
-                die Textstellen die gefundene Interpretation bestätigen oder widerlegen.
-                Diese Einzelanalysen werden für jede Interpretation in Form eines
-                *Bestätigungslevels* aggregiert. Nähere Informationen
-                zur Pipeline findest Du [hier](XX).
-                + **Verwendete Modelle und Wissensbasis:** In dieser Demo App verwenden wir [XX](#) als Embedding Modell und
-                [XX](#) als generatives Sprachmodell. Als Wissensbasis dienen
-                alle Ausgaben von "Aus Politik und Zeitgeschichte" aus dem Jahr 2024
-                ([Link](https://www.bpb.de/shop/zeitschriften/apuz/?field_filter_thema=all&field_date_content=2024&d=1)).
-                + **Beispiele:** Eingaben anderer User:innen und die entsprechenden Ergebnisse der
-                Pipeline findest Du unter
-                <https://debatelab.github.io/evidence-seeker-results/>.
-
-                Die EvidenceSeeker Demoapp ist Teil des vom BMBFSFJ geförderten
-                [KIdeKu Projekts](https://compphil2mmae.github.io/research/kideku/).
-                Nähere Informationen zur *EvidenceSeeker Boilerplate* findest Du
-                [hier](https://debatelab.github.io/evidence-seeker).
-                </details>
+                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 10px 0;">
+                    <details style="cursor: pointer;">
+                        <summary style="font-weight: 600; font-size: 16px; color: #374151; margin-bottom: 15px; outline: none;">
+                            📋 Informationen zur DemoApp
+                        </summary>
+                        <div style="margin-top: 15px; line-height: 1.6; color: #4b5563;">
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="color: #1f2937; margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">
+                                    🔍 Grundidee der Pipeline:
+                                </h4>
+                                <p style="margin: 0 0 12px 15px; font-size: 14px;">
+                                    Die Pipeline findet in einem ersten Schritt unterschiedliche Interpretationen deiner Eingabe und unterscheidet 
+                                    dabei <em>deskriptive, zuschreibende und normative Aussagen</em>. Für die gefundenen deskriptiven und 
+                                    zuschreibenden Interpretationen wird dann in einer <em>Wissensbasis</em> nach relevanten Textstellen gesucht 
+                                    und analysiert, inwiefern die Textstellen die gefundene Interpretation bestätigen oder widerlegen. 
+                                    Diese Einzelanalysen werden für jede Interpretation in Form eines <em>Bestätigungslevels</em> aggregiert. 
+                                    Nähere Informationen zur Pipeline findest Du 
+                                    <a href="#" style="color: #3b82f6; text-decoration: none;">hier</a>.
+                                </p>
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="color: #1f2937; margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">
+                                    🤖 Verwendete Modelle und Wissensbasis:
+                                </h4>
+                                <p style="margin: 0 0 12px 15px; font-size: 14px;">
+                                    In dieser Demo App verwenden wir <a href="#" style="color: #3b82f6; text-decoration: none;">XX</a> als Embedding Modell und 
+                                    <a href="#" style="color: #3b82f6; text-decoration: none;">XX</a> als generatives Sprachmodell. Als Wissensbasis dienen 
+                                    alle Ausgaben von "Aus Politik und Zeitgeschichte" aus dem Jahr 2024 
+                                    (<a href="https://www.bpb.de/shop/zeitschriften/apuz/?field_filter_thema=all&field_date_content=2024&d=1" 
+                                    style="color: #3b82f6; text-decoration: none;" target="_blank">Link</a>).
+                                </p>
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="color: #1f2937; margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">
+                                    💡 Beispiele:
+                                </h4>
+                                <p style="margin: 0 0 12px 15px; font-size: 14px;">
+                                    Eingaben anderer User:innen und die entsprechenden Ergebnisse der Pipeline findest Du unter 
+                                    <a href="https://debatelab.github.io/evidence-seeker-results/" 
+                                    style="color: #3b82f6; text-decoration: none;" target="_blank">
+                                        https://debatelab.github.io/evidence-seeker-results/
+                                    </a>.
+                                </p>
+                            </div>
+                            <div style="border-top: 1px solid #e5e7eb; padding-top: 15px; margin-top: 20px;">
+                                <p style="margin: 0; font-size: 13px; color: #6b7280;">
+                                    Die EvidenceSeeker Demoapp ist Teil des vom BMBFSFJ geförderten 
+                                    <a href="https://compphil2mmae.github.io/research/kideku/" 
+                                    style="color: #3b82f6; text-decoration: none;" target="_blank">KIdeKu Projekts</a>. 
+                                    Nähere Informationen zur <em>EvidenceSeeker Boilerplate</em> findest Du 
+                                    <a href="https://debatelab.github.io/evidence-seeker" 
+                                    style="color: #3b82f6; text-decoration: none;" target="_blank">hier</a>.
+                                </p>
+                            </div>
+                        </div>
+                    </details>
+                </div>
             """).strip(),
             "description": "**Gib eine Aussage in das Textfeld ein und lass sie durch den EvidenceSeeker prüfen:**",
             "statement_label": "Zu prüfende Aussage:",
