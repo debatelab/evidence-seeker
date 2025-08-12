@@ -236,10 +236,6 @@ class SimpleConfirmationAnalysisWorkflow(Workflow):
                     # claim's negation
                     prob_negation_claims.append(ev.prob_claim_entailed)
 
-        # TODO: remove this
-        logger.debug(f"Probs for the claim: {prob_claims}")
-        logger.debug(f"Probs for the negation: {prob_negation_claims}")
-
         if len(prob_claims) == 0 or len(prob_negation_claims) == 0:
             logger.error("Confirmation analysis failed.")
             raise ValueError("Confirmation analysis failed.")
