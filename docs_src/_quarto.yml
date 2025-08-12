@@ -47,7 +47,7 @@ website:
     center: |
       [About](/about.qmd){.text-decoration-none} | [Imprint](/imprint.qmd){.text-decoration-none}
       </br>
-      Copyright © 2024-2025 [CompPhil²MMAE](https://compphil2mmae.github.io/){.text-decoration-none} at KIT.
+      Copyright © 2024-2025 [CompPhil²MMAE](https://compphil2mmae.github.io/){.text-decoration-none} @ KIT.
 format:
   html:
     theme:

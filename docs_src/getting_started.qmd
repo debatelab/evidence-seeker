@@ -62,6 +62,7 @@ name_of_your_evidence_seeker/
 │   ├── preprocessor.yaml
 │   ├── retriever.yaml
 │   ├── confirmation_analysis.yaml
+│   ├── demo_app_config.yaml
 │   └── api_keys.txt # File for API keys
 ├── knowledge_base/
 │   ├── metadata.json # Metadata for the knowledge base files
@@ -128,19 +129,17 @@ For further details on configuring the EvidenceSeeker Retriever component, see [
 
 ### 6. Executing the Pipeline
 
-Once you built the index, you can run the *EvidenceSeeker* pipeline to fact-check statements against the knowledge base.
+Once you built the index, you can run the *EvidenceSeeker* pipeline to fact-check statements against the knowledge base. 
+
+#### Using the `evse` CLI
 
 With the `evse` cli, you can run the pipeline with:
 
 ```bash
 evse run --input "you statement to fact-check" 
 ```
-<!--
-TODO: What about JSON output? Would be better for further processing.
--->
 
 The output will be written as a Markdown file to the `logs/` directory of your *EvidenceSeeker* instance. 
-
 
 You can also specify the ouput file with the `--output` option:
 
@@ -148,7 +147,21 @@ You can also specify the ouput file with the `--output` option:
 evse run --input "you statement to fact-check" --output "path/to/output/file.md"
 ``` 
 
-**Alternatively**, you can run the pipeline with the following Python snippet: 
+#### Using the EvidenceSeeker Demoapp
+
+You can also run the pipeline via the *EvidenceSeeker Demoapp*, a small User Interface based on [Gradio](https://www.gradio.app/), which will be accessible via a web browser. 
+
+You can run the App locally with:
+
+```bash
+evse demo-app
+```
+
+This will start the app on your local machine, and you can access it via <http://localhost:7860> in your web browser.
+
+#### Programmatically using the `evidence-seeker` package
+
+Alternatively, you can run the pipeline with the following Python snippet: 
 
 ```python
 from evidence_seeker import EvidenceSeeker
