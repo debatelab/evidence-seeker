@@ -303,13 +303,15 @@ TODO: Currently, the 70B model is not available due to imprecise pricing over to
 <section id="preprocessor-and-confirmation-analyser" class="level2">
 <h2 class="anchored" data-anchor-id="preprocessor-and-confirmation-analyser">Preprocessor and Confirmation Analyser</h2>
 <p>The default configuration values will suit most models provided via Hugging Face’s Inference Provider. You only have to ensure that the model can provide JSON as structured output. Additionally, you must specify the model and endpoint in the configuration file. The following example shows how to configure the preprocessor component with the Llama-3.3-70B-Instruct model:</p>
-<p>TODO: Update model</p>
+<!--
+TODO: Update model
+-->
 <div class="sourceCode" id="cb3"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># timeout for the whole preprocessor pipeline</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">timeout</span><span class="kw">:</span><span class="at"> </span><span class="dv">1200</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">env_file</span><span class="kw">:</span><span class="at"> &lt;path/to/your/api_keys.txt&gt;</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">used_model_key</span><span class="kw">:</span><span class="at"> together.ai</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">used_model_key</span><span class="kw">:</span><span class="at"> Llama-3.3-70B-Instruct</span></span>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">models</span><span class="kw">:</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">together.ai</span><span class="kw">:</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">Llama-3.3-70B-Instruct</span><span class="kw">:</span></span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Llama-3.3-70B-Instruct</span></span>
 <span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">description</span><span class="kw">:</span><span class="at"> Llama-3.3-70B served by Together.ai over HuggingFace</span></span>
 <span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">base_url</span><span class="kw">:</span><span class="at"> https://router.huggingface.co/v1</span></span>
