@@ -8,7 +8,7 @@
   </p>
 </div>
 <br/>
----
+
 
 A code template for building AI-based apps that fact-check statements against a given knowledge base. 
 
