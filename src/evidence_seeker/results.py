@@ -19,9 +19,14 @@ from evidence_seeker.datamodels import (
 
 
 class EvidenceSeekerResult(pydantic.BaseModel):
-    request_uid: str = str(uuid.uuid4())
+    uid: str = pydantic.Field(
+        default_factory=lambda: str(uuid.uuid4())
+    )
     request: str | None = None
-    request_time: str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    time: str = pydantic.Field(
+        default_factory=lambda: datetime.now(
+            timezone.utc
+        ).strftime("%Y-%m-%d %H:%M:%S UTC"))
     retrieval_config: RetrievalConfig
     confirmation_config: ConfirmationAnalyzerConfig
     preprocessing_config: ClaimPreprocessingConfig
