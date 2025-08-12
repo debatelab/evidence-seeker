@@ -1,5 +1,5 @@
 # For a detailed instruction of how to configure the confirmation analyzer, 
-# see the documentation X.
+# see the documentation https://debatelab.github.io/evidence-seeker.
 config_version: v0.2
 description: Configuration of EvidenceSeeker's confirmation analyzer component.
 # Uncomment the "env_file" line to load environment 
@@ -22,7 +22,7 @@ verbose: false
 # Configuration of language models for the component (you can configure different models)
 models:
   <key_model_one>:
-    api_key: <your_api_key_name>
+    api_key_name: <your_api_key_name>
     backend_type: <backend_type_of_your_model>
     base_url: <your_base_url>
     description: <description_of_your_model>
@@ -32,7 +32,7 @@ models:
     temperature: 0.2
     timeout: 260
   <key_model_two>:
-    api_key: <your_api_key_name>
+    api_key_name: <your_api_key_name>
     backend_type: <backend_type_of_your_model>
     base_url: <your_base_url>
     description: <description_of_your_model>

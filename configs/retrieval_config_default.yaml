@@ -1,3 +1,5 @@
+# For a detailed instruction of how to configure the retriever, 
+# see the documentation https://debatelab.github.io/evidence-seeker.
 config_version: v0.1
 description: Configuration of EvidenceSeeker's retriever component.
 # The type of embedding backend to use.
@@ -9,9 +11,10 @@ embed_backend_type: huggingface
 # https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2
 embed_model_name: sentence-transformers/paraphrase-multilingual-mpnet-base-v2
 embed_base_url: null
-# Names of relevant API keys that should be set as environment variables.
+## Names of relevant API keys that should be set as environment variables.
+# token name for API model access
 api_key_name: null
-# Key/token name for accessing index from Hugging Face Hub
+# token name for accessing index from Hugging Face Hub
 hub_key_name: null
 # Optional: Path to a file containing API keys for the embedding model. 
 # Should have the format:
@@ -24,12 +27,17 @@ bill_to: null
 # statement types that are ignored for confirmation analysis
 ignore_statement_types:
 - normative
-index_id: default_index_id
+# You can provide a string as id for the index
+index_id: <your_id_of_the_index>
 # Path where the index is stored locally and/or loaded from.
 # At least, one of the following two paths must be set.
+# If both are specified, the index will be loaded (once) from the hub path
+# and saved to the local path.
 # EvidenceSeeker's example index hub path: DebateLabKIT/apuz-index-es
 # see: https://huggingface.co/datasets/DebateLabKIT/apuz-index-es
+# Hugging Face Hub Path (optional) where the index can be loaded from.
 index_hub_path: null
+# Local path to the index (optional).
 index_persist_path: null
 # Path to a JSON file containing metadata for the documents.
 # (Used during creation of the index.)
@@ -38,7 +46,8 @@ meta_data_file: null
 document_input_dir: null
 # Alternatively, you can provide a list of files to be indexed.
 document_input_files: null
-# Some model parameters
+# TODO: Some model parameters
 top_k: 8
 window_size: 3
 embed_batch_size: 32
+
