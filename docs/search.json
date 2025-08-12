@@ -1,0 +1,364 @@
+[
+  {
+    "objectID": "imprint.html",
+    "href": "imprint.html",
+    "title": "Imprint",
+    "section": "",
+    "text": "The following persons are responsible for the content of this website:\n\nGregor Betz (Karlsruher Institut für Technologie, Institut für Philosophie, Douglasstraße 24, 76133 Karlsruhe)\nSebastian Cacean (Karlsruher Institut für Technologie, Institut für Philosophie, Douglasstraße 24, 76133 Karlsruhe)"
+  },
+  {
+    "objectID": "docs_configuration/example_local_models.html",
+    "href": "docs_configuration/example_local_models.html",
+    "title": "Example Configuration: Local Models with LMStudio",
+    "section": "",
+    "text": "The EvidenceSeeker pipeline can be configured to use local models. This allows you to run the pipeline without relying on external APIs, which can be beneficial for privacy, cost, and performance reasons. We illustrate how to set up the EvidenceSeeker pipeline using local models with LMStudio and Hugging Face. We will use:",
+    "crumbs": [
+      "Configuration",
+      "Example: Local Models with LM Studio"
+    ]
+  },
+  {
+    "objectID": "docs_configuration/example_local_models.html#prerequisites",
+    "href": "docs_configuration/example_local_models.html#prerequisites",
+    "title": "Example Configuration: Local Models with LMStudio",
+    "section": "Prerequisites",
+    "text": "Prerequisites\nTo run the EvidenceSeeker pipeline with local models served by LMStudio, you have to install LMStudio, download the Llama-3.2-1B-Instruct model within LMStudio, and load the model in LMStudio (see here for details). LMStudio will expose the model via a local HTTP server, which the EvidenceSeeker pipeline can access.",
+    "crumbs": [
+      "Configuration",
+      "Example: Local Models with LM Studio"
+    ]
+  },
+  {
+    "objectID": "docs_configuration/example_local_models.html#configuration",
+    "href": "docs_configuration/example_local_models.html#configuration",
+    "title": "Example Configuration: Local Models with LMStudio",
+    "section": "Configuration",
+    "text": "Configuration\n\nRetriever Component\nThe retriever component can be configured with the following YAML configuration file:\nembed_backend_type: huggingface\nembed_model_name: sentence-transformers/paraphrase-multilingual-mpnet-base-v2\nenv_file: &lt;path/to/your/api_keys.txt&gt;\n# Hugging Face Hub Path (optional), from where the index can be loaded. We use\n# EvidenceSeeker's example index hub path: DebateLabKIT/apuz-index-es\n# see: https://huggingface.co/datasets/DebateLabKIT/apuz-index-es\nindex_hub_path: DebateLabKIT/apuz-index-es\n# token name for accessing index from Hugging Face Hub\nhub_key_name: &lt;your_hub_key_name&gt;\n# Path where the index is stored locally and/or loaded from.\nindex_persist_path: &lt;path/for/storing/the/index&gt;\nClarifications:\n\nSetting embed_backend_type to huggingface tells the retriever component to use the Hugging Face Transformers library to load the embedding model locally.\nhub_key_name is the name of the environment variable that contains your API key for accessing the index from Hugging Face Hub.\nHere, were load the APUZ example index from a Hugging Face Hub repository (via index_hub_path) and store it locally as specified by index_persist_path (for alternative configuration see here).\n\n\n\nPreprocessor\nSimilar to the configuration of using Hugging Face’s Inference Provider, the preprocessor component can be configured by specifying the model and endpoint in the configuration file. The following example shows how to configure the preprocessor component with the Llama-3.2-1B-Instruct model served by LMStudio:\ntimeout: 1200\nused_model_key: lmstudio\nmodels:\n  lmstudio:\n    name: llama-3.2-1b-instruct\n    description: Local model served via LMStudio\n    base_url: http://127.0.0.1:1234/v1/\n    model: llama-3.2-1b-instruct\n    backend_type: openai\n    max_tokens: 1024\n    temperature: 0.2\n    api_key: not_needed\n    timeout: 260\nClarifications:\n\nWe define a model with the identifier lmstudio. The defined model is set as the global model for the preprocessor component via used_model_key. (Alternatively, you can assign models to specific steps in the preprocessor pipeline. See here for details.)\nbackend_type is set to openai since LMStudio allows inference calls to be made via an OpenAI-compatible API.\nbase_url is set to the local URL where LMStudio serves the model. If you have configured LMStudio to use a different port, make sure to adjust the port number.\nmodel is set to the model’s name as it is configured in LMStudio.\nname and description are arbitrary identifiers you can choose to describe the model.\n\n\n\nConfirmation Analyser\nThe configuration of the confirmation analyser component is trickier since it requires the correct configuration of how to calculate degrees of confirmation (see here for details) within the pipeline of the confirmation analyser:\ntimeout: 1200\nused_model_key: lmstudio\nmodels:\n  lmstudio:\n    name: llama-3.2-1b-instruct\n    description: Local model served via LMStudio\n    base_url: http://127.0.0.1:1234/v1/\n    model: llama-3.2-1b-instruct\n    backend_type: openai\n    max_tokens: 1024\n    temperature: 0.2\n    api_key: not_needed\n    timeout: 260\n# step configuration of the multiple choice task\nmultiple_choice_confirmation_analysis:\n  description: Multiple choice RTE task given CoT trace.\n  name: multiple_choice_confirmation_analysis\n  llm_specific_configs:\n    lmstudio:\n      guidance_type: json\n      logprobs_type: estimate\n      n_repetitions_mcq: 30\nClarifications:\n\nThe model configuration is the same as that of the preprocessor component.\nThe multiple_choice_confirmation_analysis section configures the multiple choice step of the confirmation analyser component. With lmstudio under llm_specific_configs, we specify a model-specific step configuration.\n\nSince LMStudio does not return logprobs, we set logprobs_type to estimate and n_repetitions_mcq to \\(30\\) to estimate the logprobs by repeating the inference request \\(30\\) times (for details, see here).\n\n\n\n\n\n\n\n\nWarning\n\n\n\nThere is a trade-off when estimating logprobs by repeating inference requests: To increase the accuracy of logprobs estimation, you should set a sufficiently high value for n_repetitions_mcq (&gt;100). However, this will also increase the inference time and cost. Using n_repetitions_mcq=30 should be considered as a mere proof of concept. Using a model that supports an explicit logprobs output is always preferable.",
+    "crumbs": [
+      "Configuration",
+      "Example: Local Models with LM Studio"
+    ]
+  },
+  {
+    "objectID": "docs_configuration/advanced_configuration.html",
+    "href": "docs_configuration/advanced_configuration.html",
+    "title": "⚙️ Advanced Configuration",
+    "section": "",
+    "text": "Here, we will give an overview of the most important configuration parameters. You will find more information in the comments of the default configuration files.\nAdditionally, we give some example configurations, which illustrate how to configure the pipeline for two use cases:",
+    "crumbs": [
+      "Configuration",
+      "Advanced Configuration"
+    ]
+  },
+  {
+    "objectID": "docs_configuration/advanced_configuration.html#retriever-component",
+    "href": "docs_configuration/advanced_configuration.html#retriever-component",
+    "title": "⚙️ Advanced Configuration",
+    "section": "Retriever Component",
+    "text": "Retriever Component\nFor the retriever component, you can configure the used embedding model and the knowledge base used for fact-checking.\n\nEmbedding Model\nThe used embedding model via the embed_backend_type, embed_base_url, and embed_model_name parameters.\n\nAs embed_backend_type, you can choose between\n\ntei (text embedding inference): API for serving embedding models, that can be used, for instance, with dedicated endpoints for embedding models by Hugging Face.\nhuggingface: This is for local models hosted on HuggingFace and used with the HuggingFace API. The retriever component will download the model from Hugging Face during the first use. You might need a lot of disk space and memory, depending on the model size. Additionally, it might take some time to create the index.\nhuggingface_inference_api: This is for embedding models accessed via Hugging Face Inference Provider.\n\nFor all these options, specify the embed_base_url and embed_model_name parameters. For instance, if you use sentence-transformers/paraphrase-multilingual-mpnet-base-v2 as the embedding model and if you want to use it via Hugging Face inference provider, you would set:\n\nbase_url to “https://router.huggingface.co/hf-inference/models/sentence-transformers/paraphrase-multilingual-mpnet-base-v2” and\nembed_model_name to “sentence-transformers/paraphrase-multilingual-mpnet-base-v2”\n\nDepending on the backend type, you might also have to specify an api_key_name and env_file parameter to provide the API key for the embedding model (see below for details). If you use a local model, you can omit these parameters.\nSome important model parameters for the embedding model include:\n\ntop_k (default value: 8): The number of documents that are retrieved from the knowledge base by the embedding model (see here for details).\nwindow_size (default value: 3): The adjacent content (measured in token size) is taken as context when creating an embedding.\nembed_batch_size (default value: 32): The number of text chunks processed simultaneously when creating an embedding.\n\n\n\n\nKnowledge Base\nThe most important parameters of working with your knowledge base:\n\ndocument_input_dir: Path to the directory containing your PDF files you want to use as a knowledge base. Alternatively, you can provide a list of files via the document_input_files parameter.\nmeta_data_file: Path to a JSON file containing metadata for the files in your knowledge base.\n\nCurrently, the index is loaded into the machine’s memory, where the EvidenceSeeker pipeline runs. At least one of the following two paths must be set: index_hub_path or index_persist_path for the retriever component to locate the index of your knowledge base. These parameters have different roles during the creation and loading of the index:\n\nCreating the index: If you create the index of your knowledge base, the retriever component will store the index in the directory specified by index_persist_path. If you use a Hugging Face Hub repository, you can specify index_hub_path to store the index in a Hugging Face Hub repository.\nLoading the index: When the retriever component is initialised, it will load the index from the path specified by index_persist_path. If you use a Hugging Face Hub repository, you can specify index_hub_path to load the index from a Hugging Face Hub repository. If both paths are specified and index_persist_path is empty, the index will be loaded (once) from the Hub path and saved to the local path.\nhub_key_name: If you use a private Hugging Face Hub repository, you have to specify the name of the environment variable that contains your Hugging Face Hub API key (see below for details on how to set the API key). If you use a public repository, you can omit this parameter.",
+    "crumbs": [
+      "Configuration",
+      "Advanced Configuration"
+    ]
+  },
+  {
+    "objectID": "docs_configuration/advanced_configuration.html#preprocessor-confirmation-analysis",
+    "href": "docs_configuration/advanced_configuration.html#preprocessor-confirmation-analysis",
+    "title": "⚙️ Advanced Configuration",
+    "section": "Preprocessor & Confirmation Analysis",
+    "text": "Preprocessor & Confirmation Analysis\n\nModels\nYou can define an arbitrary number of models in the configuration files for the preprocessor and the confirmation analysis component, and then assign these models to the whole pipeline or specific steps of the pipeline. In this way, you can easily switch between models and even use different models for different pipeline steps.\nIn your configuration YAML files, you can define the models in the following way:\nmodels:\n  your_first_model:\n    api_key_name: &lt;your_api_key_name&gt;\n    backend_type: &lt;backend_type_of_your_model&gt;\n    base_url: &lt;your_base_url&gt;\n    description: &lt;description_of_your_model&gt;\n    model: &lt;your_model_identifier&gt;\n    name: &lt;your_model_name&gt;\n    # some optional parameters\n    temperature: 0.2\n    timeout: 260\n    max_tokens: 1024\n  your_second_model:\n    api_key_name: &lt;your_api_key_name&gt;\n    backend_type: &lt;backend_type_of_your_model&gt;\n    base_url: &lt;your_base_url&gt;\n    description: &lt;description_of_your_model&gt;\n    model: &lt;your_model_identifier&gt;\n    name: &lt;your_model_name&gt;\n    # some optional parameters\n    temperature: 0.2\n    timeout: 260\n    max_tokens: 1024\n&lt;your_first_model&gt; and &lt;your_second_model&gt; are arbitrary identifiers for the models you use in your config to specify which model to use for which step of the pipeline. You can assign a defined model, say &lt;your_global_model&gt;, as “global” model via\nused_model_key: &lt;your_global_model&gt;\nthat is used for all pipeline steps that do not have a specific model attached via their step configuration (see below).\nFurther clarifications:\n\nAPI Keys: The EvidenceSeeker expects API keys to be set as environment variables with the name specified by api_key_name for each model. If you use a file with environment variables via env_file, the file should contain a line like this: &lt;name_of_your_api_key&gt;=&lt;your_api_key&gt;. Alternatively, you can set the environment variable directly in your shell or script before running the EvidenceSeeker pipeline (see below).\n\nIf you do not need an API key (e.g., if you use a local model), you can omit the env_file and api_key_name parameters.\n\nbase_url and model are important since they specify the endpoint and model.\n\nFor instance, if you use HuggingFace as inference provider with Llama-3.3-70B-Instruct, you would set:\n\nbase_url to “https://router.huggingface.co/hf-inference/models/meta-llama/Llama-3.3-70B-Instruct/v1” and\nmodel to “meta-llama/Llama-3.3-70B-Instruct”\n\n\n\n\nModel Backend Type\nThe backend type of the model is configured via backend_type and used to specify the model’s API client. The following backend types are currently supported:\n\nnim: For models accessible via Nvidia NIM API.\ntgi (text generation inference): For models served via TGI API, for instance, dedicated Hugging Face endpoints.\nopenai: For inference endpoints accessible via APIs consistent with OpenAI API, for instance, inference provider over Hugging Face.\n\nYou can also use local models, e.g., with LMStudio. Models served via LMStudio can be used with the openai backend type. In this case, you can omit the api_key_name and env_file parameters since no API key is needed for local models. You will find the relevant information about the base_url and the model identifier within LMStudio (see also the example configuration with local models).\n\n\n\nStep Configurations\nThe preprocessor and the confirmation analysis components have several steps that can be configured independently. You can specify the model for each step via the used_model_key parameter.\nAdditionally, most of the step specific configuration parameters can be defined in a model-specific way. In this way, you can easily switch between different models for different steps of the pipeline and optimise the performance of each step for different models. For instance, you can provide different prompt templates for each step, optimised for different models.\nA typical step configuration within your config file would look like this:\n&lt;step_identifier&gt;:\n  description: Instruct the model to do ...\n  name: &lt;step_name&gt;\n  # defining the model to use for this step\n  used_model_key: &lt;your_model_identifier&gt;\n  llm_specific_configs:\n    # default configuration for the step\n    default:\n      prompt_template: &lt;your_default_prompt_template&gt;\n      system_prompt: &lt;your_default_step_system_prompt&gt;\n      ...\n    # configuration for a specific model that \n    # is used for this step, if the model is specified\n    # via the `used_model_key` parameter\n    &lt;your_model_identifier&gt;:\n      prompt_template: &lt;your_model_specific_prompt_template&gt;\n      system_prompt: &lt;your_model_specific_step_system_prompt&gt;\n      ...\n    &lt;alternative_model_identifier&gt;:\n      ...\n\nDefault Step Configuration\nThe field llm_specific_configs contains model-specific configuration settings for the step. If the list does not contain a model-specific configuration that matches the specified global or step-specific used_model_key, the default configuration is used.\n\n\nGuidance\nSome steps in the EvidenceSeeker pipeline presuppose that the language model supports structured outputs, that is, a model output in a specific format such as JSON. Since different language models have different capabilities, the EvidenceSeeker pipeline allows you to specify a guidance_type parameter in the step configuration that defines the expected output format. You have to check the documentation of the language model you use to see if it supports structured outputs and which formats it supports.\nCurrently, the EvidenceSeeker pipeline supports the following guidance_type values for the confirmation analyser component:\n\njson if the model should be instructed to output a JSON string (currently supported by the backend types openai, nim and tgi).\ngrammar if the model should be instructed to output a string that conforms to a specific grammar (currently supported by the backend types openai).\nregex if the model should be instructed to output a string that matches a specific regular expression (currently supported by the backend types openai and tgi).\nprompted if there is no way to instruct the model to output a structured format. In this case, you can instruct the model to output a string that matches a specific format via the prompt. There is, however, no guarantee that the model will actually output a string that matches the expected format.\n\nIf you use prompted to generate structured outputs, you should provide a prompt_template that contains the instructions for the LLM to output a string that matches the expected format.\nIf you use prompted to generate structured outputs, you can provide a regular expression via validation_regex that will be used to validate the model output. If the model output does not match the regular expression, the EvidenceSeeker pipeline will raise an error.\n\n\n\n\nLogprobs\nThe confirmation analyser component uses logprobs (also known as ‘logits’) to calculate the degree of confirmation for statements based on found evidence items in the knowledge base (see here for details). If the chosen model does not support the retrieval of logprobs, the EvidenceSeeker pipeline can estimate logprobs by repeating inference requests and taking the frequency of answers to estimate the logprobs.\nThis is done by setting the logprobs_type parameter in the step configuration to estimate and setting the number of repetitions n_repetitions_mcq to at least \\(30\\). The default value for logprobs_type is openai_like, which assumes that logprobs are returned in a format consistent with the OpenAI API.\n\n\n\n\n\n\nWarning\n\n\n\nThere is a trade-off when estimating logprobs by repeating inference requests: To increase the accuracy of logprobs estimation, you should set a sufficiently high value for n_repetitions_mcq (&gt;100). However, this will also increase the inference time and cost. Using n_repetitions_mcq=30 should be considered as a mere proof of concept. Using a model that supports an explicit logprobs output is always preferable.",
+    "crumbs": [
+      "Configuration",
+      "Advanced Configuration"
+    ]
+  },
+  {
+    "objectID": "docs_configuration/advanced_configuration.html#api-keys",
+    "href": "docs_configuration/advanced_configuration.html#api-keys",
+    "title": "⚙️ Advanced Configuration",
+    "section": "API Keys",
+    "text": "API Keys\nIf you use third-party APIs (e.g., OpenAI, HuggingFace, etc.) for the language models or embedding models, you must provide API keys for these services. The EvidenceSeeker pipeline assumes that these API keys are set via environment variables with the names specified in the configuration files (api_key_name).\nThere are two ways to set these environment variables:\n\nYou set these environment variables directly in your shell or script before running the EvidenceSeeker pipeline. For example, in a Unix-like shell, you can set an environment variable like this:\n\n   export &lt;YOUR_API_KEY_NAME&gt;=&lt;your_api_key_value&gt;\n\nYou can use a file with environment variables specified in the configuration files via env_file (see above). This file should contain lines like this:\n\n&lt;YOUR_API_KEY_NAME&gt;=&lt;your_api_key_value&gt;",
+    "crumbs": [
+      "Configuration",
+      "Advanced Configuration"
+    ]
+  },
+  {
+    "objectID": "configuration.html",
+    "href": "configuration.html",
+    "title": "⚙️ Configuration",
+    "section": "",
+    "text": "The EvidenceSeeker pipeline has three main components: a preprocessor, a retriever, and a confirmation analysis component. These components are only loosely coupled and can be configured independently. This allows you to adapt the EvidenceSeeker pipeline to your specific needs and use cases. You can configure, for instance,\n\nthe language models used for preprocessing and confirmation analysis,\nthe embedding model used for creating and searching the index of your knowledge base,\nthe knowledge base used for fact-checking and\nthe used prompts for the different components.\n\nThere are two ways to configure your EvidenceSeeker instance: Initialising configuration objects or via YAML configuration files. If you use the EvidenceSeeker client (see “Getting Started”) to set up your EvidenceSeeker instance, you will find the configuration files in the config/ directory of your EvidenceSeeker instance.\nIf you initialise your EvidenceSeeker instance programmatically, you can pass config files:\nfrom evidence_seeker import EvidenceSeeker\nimport asyncio\n\npipeline = EvidenceSeeker(\n    retrieval_config_file=\"&lt;path/to/retrieval_config.yaml&gt;\",\n    confirmation_analysis_config_file=\"&lt;path/to/confirmation_analysis_config.yaml&gt;\",\n    preprocessing_config_file=\"&lt;path/to/preprocessing_config.yaml&gt;\",\n)\n# run the pipeline\nresults = asyncio.run(pipeline(\"&lt;your statement to fact-check&gt;\"))\nor config objects:\nfrom evidence_seeker (\n EvidenceSeeker,\n RetrievalConfig,\n ConfirmationAnalysisConfig,\n PreprocessingConfig,\n)\nimport asyncio\n\npreprocessing_config = PreprocessingConfig(\n    # passing config params ... \n)\nretrieval_config = RetrievalConfig(\n    # passing config params ...\n)\nconfirmation_analysis_config = ConfirmationAnalysisConfig(\n    # passing config params ... \n)\n\npipeline = EvidenceSeeker(\n    preprocessing_config=preprocessing_config,\n    retrieval_config=retrieval_config,\n    confirmation_analysis_config=confirmation_analysis_config,\n)\n# run the pipeline\nresults = asyncio.run(pipeline(\"your statement to fact-check\"))",
+    "crumbs": [
+      "Configuration"
+    ]
+  },
+  {
+    "objectID": "getting_started.html",
+    "href": "getting_started.html",
+    "title": "🚀 Getting Started",
+    "section": "",
+    "text": "The EvidenceSeeker Boilerplate is in an early stage of development. Currently, we offer:\nFor subsequent releases, we are working on (hosted) versions of the boilerplate, which should make the setup and integration of EvidenceSeeker instances even easier.",
+    "crumbs": [
+      "Getting Started"
+    ]
+  },
+  {
+    "objectID": "getting_started.html#try_it",
+    "href": "getting_started.html#try_it",
+    "title": "🚀 Getting Started",
+    "section": "EvidenceSeeker Demoapp",
+    "text": "EvidenceSeeker Demoapp\nWe have set up a small EvidenceSeeker with all 2024 APuZ editions as knowledge base and provide access to this EvidenceSeeker via a small Gradio app, which provides a minimal user interface. Links:\n\nOur APuZ-EvidenceSeeker Demoapp: If you are interested in experimenting with this Demapp, contact us for access information!\nEvidenceSeeker Demoapp Logs: This is a collection of fact-checks and their results performed by our Demoapp. You can use this to get an idea of the capabilities of the EvidenceSeeker Demoapp.\n\nSide note: You can also run the EvidenceSeeker Demoapp locally if you want to experiment with your knowledge base or if you want to use a different language model.",
+    "crumbs": [
+      "Getting Started"
+    ]
+  },
+  {
+    "objectID": "getting_started.html#set_up",
+    "href": "getting_started.html#set_up",
+    "title": "🚀 Getting Started",
+    "section": "The evidence-seeker Python package",
+    "text": "The evidence-seeker Python package\nThe evidence-seeker Python package is available on PyPI. Follow the subsequent steps to set up your own EvidenceSeeker instance.\n\n1. Prerequisites\nYou need an installed Python (3.11 or 3.12) and pip.\n\nInstalling Python: You can choose between different ways to install Python, depending on your operating system. You can find instructions for installing Python, for instance,\n\non the Python wiki or\nin the Real-Python installation guide.\n\nInstalling pip: If you have installed Python, you should also have pip installed. You can check this by running pip --version in your terminal. If you do not have pip installed, you can find instructions on installing it here.\n\n\n\n\n2. Installation of the evidence-seeker package\nOpen a terminal and use pip to install the evidence-seeker package from PyPI:\npip install evidence-seeker\n\n\n3. Preparation\nGenerating a directory structure might be helpful before you begin configuring your EvidenceSeeker instance. There, you can put your configuration files, the knowledge base, the index, and possibly other resources. This is not strictly necessary as long as you specify the different locations in the configuration files.\nThe EvidenceSeeker boilerplate comes with a command line interface—the evse cli—that can create a directory structure for your EvidenceSeeker instance. Calling the evse cli with:\nevse init --name &lt;name_of_your_evidence_seeker&gt;\nwill create the following directory structure in the current working directory, and will contain configuration files with default values.\nname_of_your_evidence_seeker/\n├── config/ # Directory for configuration files\n│   ├── preprocessor.yaml\n│   ├── retriever.yaml\n│   ├── confirmation_analysis.yaml\n│   ├── demo_app_config.yaml\n│   └── api_keys.txt # File for API keys\n├── knowledge_base/\n│   ├── metadata.json # Metadata for the knowledge base files\n│   └── data_files/ # Directory for the knowledge base files (e.g., PDF files)\n│       ├── file1.pdf \n│       ├── file2.pdf \n│       └── ...\n├── logs/ # Directory for logging\n└── embeddings/ # Directory for the index\n\n\n4. Configuration\nThere are various ways to configure your EvidenceSeeker instance to your needs—either in your Python code or via YAML configuration files. At least, you have to specify the language models used during the different steps of the EvidenceSeeker pipeline and the indexed knowledge base used for fact-checking. For all other settings, sensible defaults allow starting with a minimal configuration.\nFor details, see the Configuration section.\n\n\n5. Building the index\nEvidenceSeeker instances fact-check statements relative to a specified knowledge base. The knowledge base can, for instance, comprise a set of PDF files. For an EvidenceSeeker instance to work, the knowledge base must be represented by a created index of the knowledge. More technically, an EvidenceSeeker works on created embeddings (a vector-based representation) of the knowledge base. Accordingly, you have to create such an index using an embedding model.\nIf you used evse init to create the directory structure, you can use the evse CLI to create an index in the following way:\n\nCopy all PDF files you want to use as knowledge base into the knowledge_base/data_files directory of your EvidenceSeeker instance.\nIf you want to provide the fact checker with metadata for the files in your knowledge base, create a file meta_data.json in the knowledge_base/ directory that contains metadata for each PDF file. The metadata should be in JSON format and can include fields like title, author, date, etc. For example:\n\n{\n    \"file1.pdf\": {\n        \"title\": \"Title of File 1\",\n        \"author\": \"Author of File 1\",\n        \"date\": \"2024-01-01\"\n },\n    \"file2.pdf\": {\n        \"title\": \"Title of File 2\",\n        \"author\": \"Author of File 2\",\n        \"date\": \"2024-02-01\"\n }\n}\n\nIn your terminal, change into the directory of your EvidenceSeeker instance, e.g., cd name_of_your_evidence_seeker/.\nEnsure you have set the environment variables for your API keys in the file config/api_keys.txt of your EvidenceSeeker instance.\nNow you can build the index using evse build-index. This will create an index of the PDF files in the knowledge_base/data_files directory and store it in the embeddings/ directory. The index will be created using the embedding model specified in the configuration file.\n\nAlternatively, you can use and adapt the following Python snippet to create an index:\nfrom evidence_seeker import RetrievalConfig, IndexBuilder\n\nconfig = RetrievalConfig(\n    ### Using local embedding model (via Huggingface API)\n    embed_backend_type=\"huggingface\",\n    embed_model_name=\"sentence-transformers/paraphrase-multilingual-mpnet-base-v2\",\n    # Path to the directory containing your PDF files\n    document_input_dir=\"path/to/your/pdf_files\",\n    # Path where the index will be stored\n    index_persist_path=\"path/to/your/index\",\n)\nindex_builder = IndexBuilder(config=config)\nindex_builder.build_index()\nFor further details on configuring the EvidenceSeeker Retriever component, see here and here.\n\n\n6. Executing the Pipeline\nOnce you built the index, you can run the EvidenceSeeker pipeline to fact-check statements against the knowledge base.\n\nUsing the evse CLI\nWith the evse cli, you can run the pipeline with:\nevse run --input \"you statement to fact-check\" \nThe output will be written as a Markdown file to the logs/ directory of your EvidenceSeeker instance.\nYou can also specify the ouput file with the --output option:\nevse run --input \"you statement to fact-check\" --output \"path/to/output/file.md\"\n\n\nUsing the EvidenceSeeker Demoapp\nYou can also run the pipeline via the EvidenceSeeker Demoapp, a small User Interface based on Gradio, which will be accessible via a web browser.\nYou can run the App locally with:\nevse demo-app\nThis will start the app on your local machine, and you can access it via http://localhost:7860 in your web browser.\n\n\nProgrammatically using the evidence-seeker package\nAlternatively, you can run the pipeline with the following Python snippet:\nfrom evidence_seeker import EvidenceSeeker\nimport asyncio\n\npipeline = EvidenceSeeker(\n    retrieval_config_file=\"path/to/retrieval_config.yaml\",\n    confirmation_analysis_config_file=\"path/to/confirmation_analysis_config.yaml\",\n    preprocessing_config_file=\"path/to/preprocessing_config.yaml\",\n)\n# run the pipeline\nresults = asyncio.run(pipeline(\"your statement to fact-check\"))\n\n\n\n7. 🚧 Integration into Existing Workflows\nCurrently, there are two ways to integrate EvidenceSeeker into your existing workflows:\n\nProgrammatically integrating your EvidenceSeeker instance by using the evidence-seeker package, or\nby exposing the EvidenceSeeker Demoapp as an MCP server (for details, see this HF blog post).",
+    "crumbs": [
+      "Getting Started"
+    ]
+  },
+  {
+    "objectID": "getting_started.html#development-version",
+    "href": "getting_started.html#development-version",
+    "title": "🚀 Getting Started",
+    "section": "Development Version",
+    "text": "Development Version\nIf you want to have more control over your EvidenceSeeker instance or if you want to implement an additional feature, you can use the development version of the EvidenceSeeker Boilerplate by git-cloning the EvidenceSeeker repository:\ngit clone git@github.com:debatelab/evidence-seeker.git\nBy default, we use hatch for Python package and environment management. The repository contains the description of a development environment with pinned dependencies. You can create and spawn a corresponding Python environment with\nhatch -v shell evse-dev_env.py3.11\nor\nhatch -v shell evse-dev_env.py3.12",
+    "crumbs": [
+      "Getting Started"
+    ]
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "📜 About EvidenceSeeker Boilerplate",
+    "section": "",
+    "text": "EvidenceSeeker Boilerplate is part of the CompPhil²MMAE research project “Using Large Language Models to Strengthen Deliberation” (KIdeKu) at the Karlsruhe Institute of Technology.",
+    "crumbs": [
+      "About"
+    ]
+  },
+  {
+    "objectID": "about.html#funding",
+    "href": "about.html#funding",
+    "title": "📜 About EvidenceSeeker Boilerplate",
+    "section": "🏛️ Funding",
+    "text": "🏛️ Funding\nKIdeKu is funded by the Federal Ministry of Education, Family Affairs, Senior Citizens, Women and Youth (BMBFSFJ).",
+    "crumbs": [
+      "About"
+    ]
+  },
+  {
+    "objectID": "about.html#acknowledgements",
+    "href": "about.html#acknowledgements",
+    "title": "📜 About EvidenceSeeker Boilerplate",
+    "section": "🙏 Acknowledgements",
+    "text": "🙏 Acknowledgements\n\n🛠️ Used third-party tools\nEvidenceSeeker Boilerplate would not be possible without the fantastic open source community and relies on the following libraries, amongst others:\n\nLLamaIndex for the implementation of the workflow.\nPydantic for modeling the configs.\n\nAll other dependencies are documented in the pyproject.toml file in our GitHub repo.\n\n\n🤝 Collaborations\nWe presented the project at the Politechathon Workshop in December 2024 and received very constructive feedback.",
+    "crumbs": [
+      "About"
+    ]
+  },
+  {
+    "objectID": "about.html#team",
+    "href": "about.html#team",
+    "title": "📜 About EvidenceSeeker Boilerplate",
+    "section": "👥 Team",
+    "text": "👥 Team\nThe EvidenceSeeker Boilerplate is developed by the KIdeKu team, including:\n\nGregor Betz: Project Lead, Core Developer\nSebastian Cacean: Core Developer\nLeonie Wahl: Contributor\nReta Lüscher-Rieger: Community Manager",
+    "crumbs": [
+      "About"
+    ]
+  },
+  {
+    "objectID": "about.html#license",
+    "href": "about.html#license",
+    "title": "📜 About EvidenceSeeker Boilerplate",
+    "section": "📄 License",
+    "text": "📄 License\nEvidenceSeeker Boilerplate is licensed under the MIT License.",
+    "crumbs": [
+      "About"
+    ]
+  },
+  {
+    "objectID": "roadmap.html",
+    "href": "roadmap.html",
+    "title": "🤝 Contributing & Roadmap",
+    "section": "",
+    "text": "EvidenceSeeker Boilerplate is a work in progress. We are constantly improving the code and the documentation.\nCurrently, we plan the following improvements:\n\nHosted Service Platform: We plan to develop a web-based portal that enables users to configure, deploy, and test EvidenceSeeker instances in a cloud environment. This will provide organisations with immediate access to evaluation capabilities without local setup requirements.\nEvaluation Framework Template: We want to implement a standardised evaluation pipeline framework that facilitates the creation of domain-specific benchmarks and test suites, enabling systematic performance assessment against custom knowledge bases.\nIntegration API and Workflow Compatibility: We like to extend EvidenceSeeker’s interoperability through standardised API interfaces, including Model Context Protocol (MCP) server support and RESTful APIs, to enable seamless integration into existing organisational workflows and third-party applications.",
+    "crumbs": [
+      "Contributing & Roadmap"
+    ]
+  },
+  {
+    "objectID": "roadmap.html#roadmap",
+    "href": "roadmap.html#roadmap",
+    "title": "🤝 Contributing & Roadmap",
+    "section": "",
+    "text": "EvidenceSeeker Boilerplate is a work in progress. We are constantly improving the code and the documentation.\nCurrently, we plan the following improvements:\n\nHosted Service Platform: We plan to develop a web-based portal that enables users to configure, deploy, and test EvidenceSeeker instances in a cloud environment. This will provide organisations with immediate access to evaluation capabilities without local setup requirements.\nEvaluation Framework Template: We want to implement a standardised evaluation pipeline framework that facilitates the creation of domain-specific benchmarks and test suites, enabling systematic performance assessment against custom knowledge bases.\nIntegration API and Workflow Compatibility: We like to extend EvidenceSeeker’s interoperability through standardised API interfaces, including Model Context Protocol (MCP) server support and RESTful APIs, to enable seamless integration into existing organisational workflows and third-party applications.",
+    "crumbs": [
+      "Contributing & Roadmap"
+    ]
+  },
+  {
+    "objectID": "roadmap.html#contributing",
+    "href": "roadmap.html#contributing",
+    "title": "🤝 Contributing & Roadmap",
+    "section": "Contributing",
+    "text": "Contributing\nThere are several ways you can contribute to the project:\n\nWe welcome feedback and suggestions to improve EvidenceSeeker Boilerplate. You can publicly issue suggestions and feedback on our GitHub repo. Simply create a new issue! Alternatively, you can contact the KIdeKu Team via email at kideku@itz.kit.edu.\nPartnership Opportunities: We actively seek strategic partnerships with early adopters to refine and validate our approach across different use cases. If your organisation would benefit from domain-specific fact-checking capabilities, we invite you to reach out to us (via kideku@itz.kit.edu) to discuss potential collaboration opportunities.",
+    "crumbs": [
+      "Contributing & Roadmap"
+    ]
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "🕵️‍♀️ EvidenceSeeker Boilerplate",
+    "section": "",
+    "text": "A code template for building customised fact-checkers\nEvidenceSeeker Boilerplate is a Python code template that can be used to set up LLM-based fact-checking tools—we call them EvidenceSeeker:\n\nAn EvidenceSeeker fact-checks a statement by searching for confirming and debunking information in a given knowledge base.\nEvidenceSeeker Boilerplate is 100%-open source and is distributed under the very permissive MIT licence.\n\n\n\n\nHandling Input Ambiguities\nDeal with semantical ambiguities in the inputs that are fact-checked.\n\nLearn more »\n\n\n\nModel Independence\nEvidenceSeeker do not rely on a specific language model. It is up to you: Use EvidenceSeeker with your privately hosted LLMs or rely on inference service providers; use proprietary or open models.\n\nLearn more »\n\n\n\nExplainability & Transparency\nStay in control of your fact-checking workflow. An EvidenceSeeker is no black box. Its assessments can be explained and traced back to occurrences in your knowledge base.\n\nLearn more »\n\n\n\n🚧 Easy Set-up\nUse the boilerplate to set up your custom-made EvidenceSeeker without technical knowledge.\n\nLearn more »\n\n\n\n🚧 Integration\nIntegrate EvidenceSeeker into your existing workflows and AI apps.\n\nLearn more »\n\n\n\nDomain-specific Fact-Checking\nUse your knowledge base (e.g., a bunch of PDFs) for fact-checking.\n\nLearn more »\n\n\n\n\n\nTry it!",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "docs_configuration/minimal_configuration.html",
+    "href": "docs_configuration/minimal_configuration.html",
+    "title": "⚙️ Minimal Configuration",
+    "section": "",
+    "text": "There are sensible defaults for most of the configuration parameters. However, you have to specify at least:\nThe following sections describe how to configure the EvidenceSeeker pipeline minimally for the preprocessor, confirmation analyser, and retriever components.",
+    "crumbs": [
+      "Configuration",
+      "Minimal Configuration"
+    ]
+  },
+  {
+    "objectID": "docs_configuration/minimal_configuration.html#preprocessor-and-confirmation-analyser",
+    "href": "docs_configuration/minimal_configuration.html#preprocessor-and-confirmation-analyser",
+    "title": "⚙️ Minimal Configuration",
+    "section": "Preprocessor and Confirmation Analyser",
+    "text": "Preprocessor and Confirmation Analyser\nYou can configure the language models and API keys via the configuration files for both the preprocessor and the confirmation-analysis component in the following way: Create two files, preprocessor_config.yaml and/or confirmation_analysis_config.yaml, with the following content:\nused_model_key: &lt;your_model_identifier&gt;\n# optional, if you want to use a file for setting up API keys\nenv_file: &lt;path/to/your/api_keys.txt&gt;\nmodels:\n  &lt;your_model_identifier&gt;:\n    api_key_name: &lt;name_of_your_api_key&gt;\n    backend_type: &lt;backend_type_of_your_model&gt;\n    base_url: &lt;base_url_of_your_language_model&gt;\n    description: &lt;description_of_your_model&gt;\n    max_tokens: 1024\n    model: &lt;model_name_or_identifier&gt;\n    name: &lt;name_of_your_model&gt;\n    temperature: 0.2\n    timeout: 260\nClarifications:\n\nBoth &lt;your_model_identifier&gt; and &lt;name_of_your_model&gt; are arbitrary identifiers that you can choose.\nBoth components expect the API key to be set as an environment variable with the name specified by api_key_name. If you use a file with environment variables via env_file, the file should contain a line like this: &lt;name_of_your_api_key&gt;=&lt;your_api_key&gt;. Alternatively, you can set the environment variable directly in your shell or script before running the EvidenceSeeker pipeline.\n\nIf you do not need an API key (e.g., if you use a local model), you can omit the env_file and api_key_name parameters.\n\nbase_url and model are important since they specify the endpoint and model.\n\nFor instance, if you use HuggingFace as inference provider with Llama-3.3-70B-Instruct you would set:\n\nbase_url to “https://router.huggingface.co/hf-inference/models/meta-llama/Llama-3.3-70B-Instruct/v1” and\nmodel to “meta-llama/Llama-3.3-70B-Instruct”\n\n\nThe backend_type determines which API client to use (e.g., OpenAI, HuggingFace, etc.). For a list of supported backends, see the here.",
+    "crumbs": [
+      "Configuration",
+      "Minimal Configuration"
+    ]
+  },
+  {
+    "objectID": "docs_configuration/minimal_configuration.html#retriever-component",
+    "href": "docs_configuration/minimal_configuration.html#retriever-component",
+    "title": "⚙️ Minimal Configuration",
+    "section": "Retriever Component",
+    "text": "Retriever Component\nThe retriever component uses an embedding model to create and search your indexed knowledge base. It can be minimally configured in a similar way:\nenv_file: &lt;path/to/your/api_keys.txt&gt;\napi_key_name: &lt;api_key_name_for_your_embedding_model&gt;\nembed_backend_type: huggingface_inference_api\nembed_base_url: &lt;base_url_of_your_embedding_model&gt;\nembed_model_name: &lt;model_name_or_identifier_of_your_embedding_model&gt;\n# path to your knowledge base that is used to \n# create the index of your knowledge base\ndocument_input_dir: &lt;path/to/your/knowledge_base&gt;\n# path to the directory where the index is stored\nindex_persist_path: &lt;path/to/your/index&gt;\nClarifications:\nBoth embed_base_url and embed_model_name are important since they specify the endpoint and model. If you use embedding models hosted by HuggingFace and choose, for instance, sentence-transformers/paraphrase-multilingual-mpnet-base-v2 as the model, you would set:\n\nbase_url to “https://router.huggingface.co/hf-inference/models/sentence-transformers/paraphrase-multilingual-mpnet-base-v2” and\nembed_model_name to “sentence-transformers/paraphrase-multilingual-mpnet-base-v2”",
+    "crumbs": [
+      "Configuration",
+      "Minimal Configuration"
+    ]
+  },
+  {
+    "objectID": "docs_configuration/minimal_configuration.html#executing-the-pipeline",
+    "href": "docs_configuration/minimal_configuration.html#executing-the-pipeline",
+    "title": "⚙️ Minimal Configuration",
+    "section": "Executing the Pipeline",
+    "text": "Executing the Pipeline\nUsing these configuration files you can fact-check a statement against your knowledge base in the following way:\nfrom evidence_seeker import EvidenceSeeker\nimport asyncio\n\npipeline = EvidenceSeeker(\n    retrieval_config_file=\"&lt;path/to/retrieval_config.yaml&gt;\",\n    confirmation_analysis_config_file=\"&lt;path/to/confirmation_analysis_config.yaml&gt;\",\n    preprocessing_config_file=\"&lt;path/to/preprocessing_config.yaml&gt;\",\n)\n# run the pipeline\nresults = asyncio.run(pipeline(\"&lt;your statement to fact-check&gt;\"))",
+    "crumbs": [
+      "Configuration",
+      "Minimal Configuration"
+    ]
+  },
+  {
+    "objectID": "docs_configuration/example_hf_inference_provider.html",
+    "href": "docs_configuration/example_hf_inference_provider.html",
+    "title": "Example Configuration: HuggingFace Inference Provider",
+    "section": "",
+    "text": "Through Hugging Face’s Inference Providers you can use a wide range of language models and embedding models for your EvidenceSeeker instance hosted by Hugging Face or other providers. The following example shows how to configure the EvidenceSeeker pipeline with the following models accessed via Hugging Face’s Inference Provider:",
+    "crumbs": [
+      "Configuration",
+      "Example: Hugging Face Inference Provider"
+    ]
+  },
+  {
+    "objectID": "docs_configuration/example_hf_inference_provider.html#retriever-component",
+    "href": "docs_configuration/example_hf_inference_provider.html#retriever-component",
+    "title": "Example Configuration: HuggingFace Inference Provider",
+    "section": "Retriever Component",
+    "text": "Retriever Component\nThe retriever component can be configured with the following YAML configuration file:\nembed_backend_type: huggingface_inference_api\nembed_model_name: sentence-transformers/paraphrase-multilingual-mpnet-base-v2\nembed_base_url: https://router.huggingface.co/hf-inference/models/sentence-transformers/paraphrase-multilingual-mpnet-base-v2\nenv_file: &lt;path/to/your/api_keys.txt&gt;\n# token name for API model access\napi_key_name: &lt;your_api_key_name&gt;\n# bill_to: &lt;your_hugging_face_organisation&gt;\n# Hugging Face Hub Path (optional), from where the index can be loaded. We use\n# EvidenceSeeker's example index hub path: DebateLabKIT/apuz-index-es\n# see: https://huggingface.co/datasets/DebateLabKIT/apuz-index-es\nindex_hub_path: &lt;hugging_face_hub_index_path&gt;\n# token name for accessing index from Hugging Face Hub\nhub_key_name: &lt;your_hub_key_name&gt;\n# Path where the index is stored locally and/or loaded from.\nindex_persist_path: &lt;path/for/storing/the/index&gt;\nClarifications:\n\nembed_backend_type is set to huggingface_inference_api to use Hugging Face’s Inference Provider. For alternatives, see here.\nembed_model_name and embed_base_url are set to the model and endpoint of the embedding model you want to use. If you want to use another model, you can find these settings on the model page of the embedding model on Hugging Face.\n\nImportant!: Both embed_model_name and embed_base_url might change in the future. So, make sure to check the model page for the correct values.\n\napi_key_name is the name of the environment variable that contains your API key for Hugging Face’s Inference Provider. You can set this environment variable in a file (as specified by env_file) or directly in your shell or script.\nSimilarly, hub_key_name is the name of the environment variable that contains your API key for accessing the index from Hugging Face Hub.\nUse bill_to to specify your Hugging Face organisation if you want to bill the usage to your organisation (see https://huggingface.co/docs/inference-providers/pricing#billing-for-team-and-enterprise-organizations).\nHere, were load the APUZ example index from a Hugging Face Hub repository (via index_hub_path) and store it locally as specified by index_persist_path (for alternative configuration see here).\n\nWith the given configuration file, you can create an instance of the retriever component in your EvidenceSeeker pipeline as follows:\nfrom evidence_seeker import DocumentRetriever\n\nconfig_file = \"path/to/your/config_file.yaml\"\n\nretriever = DocumentRetriever.from_config_file(config_file)",
+    "crumbs": [
+      "Configuration",
+      "Example: Hugging Face Inference Provider"
+    ]
+  },
+  {
+    "objectID": "docs_configuration/example_hf_inference_provider.html#preprocessor-and-confirmation-analyser",
+    "href": "docs_configuration/example_hf_inference_provider.html#preprocessor-and-confirmation-analyser",
+    "title": "Example Configuration: HuggingFace Inference Provider",
+    "section": "Preprocessor and Confirmation Analyser",
+    "text": "Preprocessor and Confirmation Analyser\nThe default configuration values will suit most models provided via Hugging Face’s Inference Provider. You only have to ensure that the model can provide JSON as structured output. Additionally, you must specify the model and endpoint in the configuration file. The following example shows how to configure the preprocessor component with the Llama-3.3-70B-Instruct model:\nTODO: Update model\n# timeout for the whole preprocessor pipeline\ntimeout: 1200\nenv_file: &lt;path/to/your/api_keys.txt&gt;\nused_model_key: together.ai\nmodels:\n  together.ai:\n    name: Llama-3.3-70B-Instruct\n    description: Llama-3.3-70B served by Together.ai over HuggingFace\n    base_url: https://router.huggingface.co/v1\n    model: meta-llama/Llama-3.3-70B-Instruct:together\n    api_key_name: hf_debatelab_inference_provider\n    backend_type: openai\n    default_headers: \n      X-HF-Bill-To: &lt;your_hugging_face_organisation&gt;\n    max_tokens: 1024\n    temperature: 0.2\n    # timeout for each request to the model\n    timeout: 260\nClarifications:\n\nWe define a model with the identifier together.ai. The defined model is set as the global model for the preprocessor component via used_model_key. (Alternatively, you can assign models to specific steps in the preprocessor pipeline. See here for details.)\nbackend_type is set to openai since Hugging Face’s Inference Provider uses an OpenAI conform API for the models (for alternatives, see here).\nX-HF-Bill-To (optionally) serves the same purpose as bill_to in the retriever component. It specifies that the Hugging Face organisation should be billed for the usage.\nname and description are arbitrary identifiers you can choose to describe the model.\nThe other fields play the same role as in the retriever component.\n\nWith the given configuration file, you can create an instance of the preprocessor and confirmation analyser component in your EvidenceSeeker pipeline as follows:\nfrom evidence_seeker import ClaimPreprocessor, ConfirmationAnalyzer\n\nconfig_file = \"path/to/your/config_file.yaml\"\n\npreprocessor = ClaimPreprocessor.from_config_file(config_file)\nconfirmation_analyzer = ConfirmationAnalyzer.from_config_file(config_file)\nHere, we use one configuration file for the preprocessor and the confirmation analyser. This is possible since both components use the same model for their processing steps. If you want to configure, for instance, the different steps of each component, you should use separate configuration files. See here for details on how to configure the steps of the preprocessor and confirmation analyser components, and here for a specific example.",
+    "crumbs": [
+      "Configuration",
+      "Example: Hugging Face Inference Provider"
+    ]
+  },
+  {
+    "objectID": "docs_configuration/example_hf_inference_provider.html#executing-the-pipeline",
+    "href": "docs_configuration/example_hf_inference_provider.html#executing-the-pipeline",
+    "title": "Example Configuration: HuggingFace Inference Provider",
+    "section": "Executing the Pipeline",
+    "text": "Executing the Pipeline\nWith the retriever, preprocessor, and confirmation analyser components configured, you can run the EvidenceSeeker pipeline as follows:\nfrom evidence_seeker import EvidenceSeeker\n\ninput = (\n    \"&lt;The claim you want to check&gt;\"\n)\n\npipeline = EvidenceSeeker(\n    retriever=retriever,\n    preprocessor=preprocessor,\n    confirmation_analyzer=confirmation_analyzer\n)\n\nresults = await pipeline(input)",
+    "crumbs": [
+      "Configuration",
+      "Example: Hugging Face Inference Provider"
+    ]
+  },
+  {
+    "objectID": "workflow.html",
+    "href": "workflow.html",
+    "title": "💡 The EvidenceSeeker Pipeline: Basic Ideas & Concepts",
+    "section": "",
+    "text": "EvidenceSeeker Boilerplate is a Python code template that can be used to set up EvidenceSeeker as LLM-based fact-checking tools.\nEach EvidenceSeeker relies on its knowledge base to fact-check input statements. For each input statement, the EvidenceSeeker searches for confirming and debunking information in the knowledge base and aggregates the found evidence. An EvidenceSeeker uses a pipeline with three main components:",
+    "crumbs": [
+      "The Pipeline"
+    ]
+  },
+  {
+    "objectID": "workflow.html#input_ambiguities",
+    "href": "workflow.html#input_ambiguities",
+    "title": "💡 The EvidenceSeeker Pipeline: Basic Ideas & Concepts",
+    "section": "1. Preprocessor",
+    "text": "1. Preprocessor\nStatements are often formulated ambiguously or vaguely. In such cases, the truth of a statement might crucially depend on the chosen interpretation. The EvidenceSeeker is designed to deal with ambiguity in the following way: Instead of fact-checking the input statement as it is, the preprocessor is tasked with identifying different interpretations before searching for relevant information in the knowledge base. In the following pipeline steps, the retriever and confirmation analyser will then analyse each found interpretation separately.\nIn particular, the preprocessor will identify different interpretations and categorise them according to the following three statement types:\n\nDescriptive statements: Statements that contain factual or descriptive content.\nNormative statements: Statements that contain value judgements, recommendations, or evaluations\nAscriptive statements: Statements that ascribe a given statement to a person or organisation by stating, for instance, that someone believes, denies, doubts or utters something.\n\nThese distinctions are crucial for fact-checking: Descriptive statements can typically be checked through factual knowledge provided by science or testimonials. The assessment of normative statements is more difficult. There is even a philosophical debate about whether normative statements can have truth-values. For these complications, the EvidenceSeeker pipeline will refrain from further analysing normative interpretations in its default configuration. Ascriptive statements are specific descriptive statements that warrant special treatment. Consider, for instance, the sentence Trump believes climate change is not human-made. While it might be true that Trump is a climate sceptic, the belief content is certainly false. The ascription might be accurate, while the content of the belief is false.\n\nThe Preprocessor in Detail\nFigure Figure 1 depicts the preprocessor’s internal pipeline. Each process node represents a step, in which the language model is instructed to analyse the input in a specific way: For each statement type, the model is first asked to find interpretations of this type and then to list them in a structured way. Then, the model is prompted to formulate the negation for each found interpretation. The resulting interpretation pairs (each pair consisting of a found interpretation and its negation) represent the preprocessor’s output, which is the input for the retriever component.\n\n\n\n\n\n\n\n\ngraph LR;\n    C[/Input Statement/] --&gt; LSP_D1(Identify&lt;/br&gt;descriptive&lt;/br&gt;interpretations);\n    LSP_D1 --&gt; LSP_D2(List&lt;/br&gt;descriptive&lt;/br&gt;interpretations);\n    LSP_D2 --&gt; LSP_Neg1(Formulate&lt;/br&gt;negations);\n    C --&gt; LSP_A1(Identify&lt;/br&gt;descriptive&lt;/br&gt;interpretations);\n    LSP_A1 --&gt; LSP_A2(List&lt;/br&gt;descriptive&lt;/br&gt;interpretations);\n    LSP_A2 --&gt; LSP_Neg2(Formulate&lt;/br&gt;negations);\n    C --&gt; LSP_N1(Identify&lt;/br&gt;normative&lt;/br&gt;interpretations);\n    LSP_N1 --&gt; LSP_N2(List&lt;/br&gt;normative&lt;/br&gt;interpretations);\n    LSP_N2 --&gt; LSP_Neg3(Formulate&lt;/br&gt;negations);\n    \n    LSP_Neg1 --&gt; CP1[/Interpretation&lt;br/&gt;Pair 1/];\n    LSP_Neg2 --&gt; CP2[/Interpretation&lt;br/&gt;Pair 2/];\n    LSP_Neg3 --&gt; etc[/.../];\n\n\n\n\n\n\n\n\nFigure 1: The internal pipeline of the preprocessor.",
+    "crumbs": [
+      "The Pipeline"
+    ]
+  },
+  {
+    "objectID": "workflow.html#retriever",
+    "href": "workflow.html#retriever",
+    "title": "💡 The EvidenceSeeker Pipeline: Basic Ideas & Concepts",
+    "section": "2. Retriever",
+    "text": "2. Retriever\nFor each found interpretation, the retriever will search for relevant data in the indexed knowledge base and return the k most relevant documents from the knowledge base. If the retriever receives, say, three found interpretations as input, it will retrieve in sum \\(3*k\\) documents (k can be configured via the parameter top_k and is set to \\(8\\) by default; see here for details).\n\n\n\n\n\n\n\n\ngraph LR;\n    KB1[(Knowledge base)]--&gt;R1;\n    CP1[/ i-th interpretation&lt;br/&gt;pair/] --&gt; R1(Retrieve&lt;/br&gt;relevant documents);\n    R1 --&gt; O1[/i-th interpretation pair&lt;br/&gt;+&lt;br/&gt;1st relevant document/];\n    R1 --&gt; O2[/i-th interpretation pair&lt;br/&gt;+&lt;br/&gt;2nd relevant document/];\n    R1 --&gt; O3[/i-th interpretation pair&lt;br/&gt;+&lt;br/&gt;.../];\n    R1 --&gt; O4[/i-th interpretation pair&lt;br/&gt;+&lt;br/&gt;k-th relevant document/];\n\n\n\n\n\n\n\n\nFigure 2: The internal pipeline of the retriever for one interpretation pair.",
+    "crumbs": [
+      "The Pipeline"
+    ]
+  },
+  {
+    "objectID": "workflow.html#confirmation-analyser",
+    "href": "workflow.html#confirmation-analyser",
+    "title": "💡 The EvidenceSeeker Pipeline: Basic Ideas & Concepts",
+    "section": "3. Confirmation Analyser",
+    "text": "3. Confirmation Analyser\nFor each interpretation of the input statement found, the confirmation analyser will analyse the degree of confirmation of each relevant document for the interpretation. This will result in \\(k\\) analyses for each interpretation, which will be aggregated into one overall confirmation assessment for each interpretation. The confirmation analyser will summarise its results for each interpretation I by assigning one out of three levels of confirmatory power:\n\nStrong confirmation: The interpretation I is strongly confirmed by the information found in the knowledge base.\nConfirmation: The interpretation I is confirmed by the information found in the knowledge base.\nWeak confirmation: The interpretation I is weakly confirmed by the information found in the knowledge base.\nInconclusive confirmation: The interpretation I is neither confirmed nor disconfirmed by the information found in the knowledge base.\nWeak disconfirmation: The interpretation I is weakly disconfirmed by the information found in the knowledge base.\nDisconfirmation: The interpretation I is disconfirmed by the information found in the knowledge base.\nStrong disconfirmation: The interpretation I is strongly disconfirmed by the information found in the knowledge base.\n\n\n\n\n\n\n\nNote\n\n\n\nThe EvidenceSeeker pipeline will not aggregate its analyses for each found interpretation into one overall assessment of the input statement. Instead, it will end with an independent assessment for each found interpretation. This is motivated by the view that the fact-checking results depend crucially on the interpretation of the input statement.\n\n\n\nThe Confirmation Analyser in Detail\n\n\n\n\n\n\n\n\ngraph LR;\n    ID1[/i-th interpretation pair&lt;/br&gt;+&lt;/br&gt;1st relevant document D1/];\n    ID1 --&gt; IA11(Confirmatory&lt;/br&gt;analysis of I&lt;/br&gt;w.r.t. D1)\n    ID1 --&gt; IA12(Confirmatory&lt;/br&gt;analysis of non-I&lt;/br&gt;w.r.t. D1)\n    IA11 --&gt; AG1(Degree of &lt;/br&gt;confirmation for the&lt;/br&gt;i-th intepretation&lt;/br&gt;w.r.t. D1)\n    IA12 --&gt; AG1\n\n    ID2[/i-th interpretation pair&lt;/br&gt;+&lt;/br&gt;2nd relevant document D1/];\n    ID2 --&gt; IA21(Confirmatory&lt;/br&gt;analysis of I&lt;/br&gt;w.r.t. D2)\n    ID2 --&gt; IA22(Confirmatory&lt;/br&gt;analysis of non-I&lt;/br&gt;w.r.t. D2)\n    IA21 --&gt; AG2(Degree of &lt;/br&gt;confirmation for the&lt;/br&gt;i-th intepretation&lt;/br&gt;w.r.t. D2)\n    IA22 --&gt; AG2\n\n    ID3[/i-th interpretation pair&lt;br/&gt;+&lt;br/&gt;.../];\n    ID3 --&gt; IA31(...)\n    ID3 --&gt; IA32(...)\n    IA31 --&gt; AG3(...)\n    IA32 --&gt; AG3\n\n    ID4[/i-th interpretation pair&lt;/br&gt;+&lt;/br&gt;k-th relevant document Dk/];\n    ID4 --&gt; IA41(Confirmatory&lt;/br&gt;analysis of I&lt;/br&gt;w.r.t. Dk)\n    ID4 --&gt; IA42(Confirmatory&lt;/br&gt;analysis of non-I&lt;/br&gt;w.r.t. Dk)\n    IA41 --&gt; AG4(Degree of &lt;/br&gt;confirmation for the&lt;/br&gt;i-th intepretation&lt;/br&gt;w.r.t. Dk)\n    IA42 --&gt; AG4\n\n    AG1 --&gt; AG(Confirmation&lt;/br&gt;aggregation)\n    AG2 --&gt; AG\n    AG3 --&gt; AG\n    AG4 --&gt; AG\n    AG --&gt; R[/\"Overall level of &lt;/br&gt;confirmation for the&lt;/br&gt;i-th intepretation\"/]\n\n\n\n\n\n\n\n\n\nFigure 3: The internal pipeline of the confirmation analyser for one arbitrary interpretation of the input statement.\n\n\n\nThe internal pipeline of the confirmation analyser is depicted in Figure 3 and proceeds along the following steps:\n\nConfirmatory analysis w.r.t. each relevant document:\n\nEach interpretation pair comprises two statements: \\(I\\) and \\(\\textit{non-I}\\). The statement \\(I\\) formulates the identified interpretation; \\(\\textit{non-I}\\) formulates its negation.\nFor each found relevant document \\(D\\), the model is separately asked to analyse the confirmatory relation between \\(D\\) and \\(I\\), and between \\(D\\) and \\(\\textit{non-I}\\). More precisely, the model is prompted to decide whether \\(D\\)\n\nprovides sufficient evidence to support the \\(I\\) (\\(\\textit{non-I}\\)),\nprovides evidence that contradicts \\(I\\) (\\(\\textit{non-I}\\)), or whether\nit neither supports nor contradicts \\(I\\) (\\(\\textit{non-I}\\)).\n\nThe EvidenceSeeker will then gauge the degree of confirmation \\(DOC\\) between \\(D\\) and \\(I\\) in the following way: It takes the token probability of the first answer option (\\(A_1\\)) w.r.t. \\(I\\) and subtracts the token probability of \\(A_1\\) w.r.t. \\(\\textit{non-I}\\). The resulting value \\(DOC(D,I):=Prob(A_1;I,D)-Prob(A_1;\\textit{non-I},D)\\) is interpreted as the degree of confirmation of the interpretation \\(I\\) w.r.t. \\(D\\). It can take values between \\(-1\\) and \\(1\\), where \\(-1\\) would mean maximal disconfirmation by \\(D\\), \\(1\\) maximal confirmation and \\(0\\) inconclusive confirmation.\n\nConfirmation aggregation: In a second step, the degrees of confirmation for each document will be aggregated into an overall degree of confirmation for each interpretation by taking the mean over all documents (\\(DOC(I):=1/n \\sum_D DOC(D,I)\\) with \\(n\\) being the number of relevant documents for \\(I\\)). Finally, the numerical value \\(DOC(I)\\) is translated into an overall level of confirmation for interpretation \\(I\\) in the following way:\n\n\\(0.6 &lt; DOC(I) \\leq 1\\): strong confirmation\n\\(0.4 &lt; DOC(I) \\leq 0.6\\): confirmation\n\\(0.2 &lt; DOC(I) \\leq 0.4\\): weak confirmation\n\\(-0.2 \\leq DOC(I) \\leq 0.2\\): inconclusive confirmation\n\\(-0.4 \\leq DOC(I) &lt; -0.2\\): weak disconfirmation\n\\(-0.6 \\leq DOC(I) &lt; -0.4\\): disconfirmation\n\\(-1\\leq DOC(I) &lt; -0.6\\): strong disconfirmation",
+    "crumbs": [
+      "The Pipeline"
+    ]
+  },
+  {
+    "objectID": "workflow.html#explainability",
+    "href": "workflow.html#explainability",
+    "title": "💡 The EvidenceSeeker Pipeline: Basic Ideas & Concepts",
+    "section": "Explainability & Transparency",
+    "text": "Explainability & Transparency\nEvidenceSeeker are designed to be transparent and explainable:\n\nOpen Source: EvidenceSeeker Boilerplate* is an open-source project, which means that the code, the underlying algorithms, and the prompts used are publicly available. This allows others to inspect the code, understand the inner workings of the pipeline, and contribute to its development.\nTraceability: Each component of the EvidenceSeeker Boilerplate pipeline (preprocessor, retriever, confirmation analyser) is designed to be modular and understandable. In particular, users can trace the result of the fact-checking process back to the input-output pairs of each step in the pipeline. These include:\n\nthe different interpretations of the input statement found by the preprocessor,\nthe relevant documents the retriever fetched from the knowledge base as potential evidence for an interpretation, and\nthe degree of confirmation the confirmation analyser outputs for each interpretation based on the retrieved item of potential evidence.\n\nModel openness: The EvidenceSeeker Boilerplate can be used with models of your choosing. In particular, it can be configured to use open-weight LLMs, in which case the models’ internal parameters are publicly available. This means that others can inspect and assess the model’s behaviour and scrutinise its performance with different evaluation metrics.\n\nTo what extent an EvidenceSeeker instance is explainable and transparent depends on whether these features are faithfully conferred to the EvidenceSeeker instance and, in particular, whether EvidenceSeeker Boilerplate is used with open models. We believe that fact-checking is a crucial and sensitive task that requires transparency and explainability since users should be able to understand why certain statements are problematic according to truth standards.",
+    "crumbs": [
+      "The Pipeline"
+    ]
+  }
+]

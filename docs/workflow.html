@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.31">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>💡 The EvidenceSeeker Pipeline: Basic Ideas &amp; Concepts – 🕵️‍♀️ EvSe</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./configuration.html" rel="next">
+<link href="./getting_started.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-e1a5c8363afafaef2c763b6775fbf3ca.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-dfb324f25d9b1687192fa8be62ac8f9c.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">🕵️‍♀️ EvSe</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+    <a href="https://www.linkedin.com/company/kideku/" title="KIdeKu LinkedIn" class="quarto-navigation-tool px-1" aria-label="KIdeKu LinkedIn"><i class="bi bi-linkedin"></i></a>
+    <a href="https://github.com/debatelab/evidence-seeker" title="EvSe GitHub" class="quarto-navigation-tool px-1" aria-label="EvSe GitHub"><i class="bi bi-github"></i></a>
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./workflow.html">The Pipeline</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Home</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./getting_started.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Getting Started</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./workflow.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">The Pipeline</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./configuration.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Configuration</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./docs_configuration/minimal_configuration.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Minimal Configuration</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./docs_configuration/advanced_configuration.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Advanced Configuration</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./docs_configuration/example_hf_inference_provider.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Example: Hugging Face Inference Provider</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./docs_configuration/example_local_models.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Example: Local Models with LM Studio</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./roadmap.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Contributing &amp; Roadmap</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./about.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">About</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#input_ambiguities" id="toc-input_ambiguities" class="nav-link active" data-scroll-target="#input_ambiguities">1. Preprocessor</a>
+  <ul>
+  <li><a href="#the-preprocessor-in-detail" id="toc-the-preprocessor-in-detail" class="nav-link" data-scroll-target="#the-preprocessor-in-detail">The Preprocessor in Detail</a></li>
+  </ul></li>
+  <li><a href="#retriever" id="toc-retriever" class="nav-link" data-scroll-target="#retriever">2. Retriever</a></li>
+  <li><a href="#confirmation-analyser" id="toc-confirmation-analyser" class="nav-link" data-scroll-target="#confirmation-analyser">3. Confirmation Analyser</a>
+  <ul>
+  <li><a href="#the-confirmation-analyser-in-detail" id="toc-the-confirmation-analyser-in-detail" class="nav-link" data-scroll-target="#the-confirmation-analyser-in-detail">The Confirmation Analyser in Detail</a></li>
+  </ul></li>
+  <li><a href="#explainability" id="toc-explainability" class="nav-link" data-scroll-target="#explainability">Explainability &amp; Transparency</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/debatelab/evidence-seeker/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">💡 The <em>EvidenceSeeker</em> Pipeline: Basic Ideas &amp; Concepts</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p><strong><em>EvidenceSeeker Boilerplate</em></strong> is a Python code template that can be used to set up <em>EvidenceSeeker</em> as LLM-based fact-checking tools.</p>
+<p>Each <em>EvidenceSeeker</em> relies on its knowledge base to fact-check input statements. For each input statement, the <em>EvidenceSeeker</em> searches for confirming and debunking information in the knowledge base and aggregates the found evidence. An EvidenceSeeker uses a pipeline with three main components:</p>
+<ol type="1">
+<li><strong><a href="#preprocessor">Preprocessor</a></strong>: The preprocessor disambiguates the input statement by identifying different interpretations.</li>
+<li><strong><a href="#retriever">Retriever</a></strong>: The retriever searches for <em>potential evidence</em> in the knowlege base by identifying relevant data (i.e., semantically similar) to the identified interpretations.</li>
+<li><strong><a href="#confirmation-analyser">Confirmation Analysis</a></strong>: The confirmation analyser decides for each potential piece of evidence the degree to which it confirms or debunks an identified interpretation. Finally, the confirmation analyser aggregates the found evidence for each identified interpretation to an overall degree of confirmation.</li>
+</ol>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Fact-Checking Accuracy
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Whether an <em>EvidenceSeeker</em> can be used to fact-check a statement accurately depends on the accuracy and completeness of the knowledge base. If the <em>EvidenceSeeker</em> cannot find any evidence for or against the input statement, it does not necessarily mean there is no evidence for or against it. There might, for instance, exist evidence for the statement in question, which is, however, not documented in the knowledge base. Similarly, even if an <em>EvidenceSeeker</em> finds confirming (or debunking) evidence for a statement, it does not mean that the statement is true (or false). The evidence might be outdated or erroneous.</p>
+</div>
+</div>
+<section id="input_ambiguities" class="level2">
+<h2 class="anchored" data-anchor-id="input_ambiguities">1. Preprocessor</h2>
+<p>Statements are often formulated ambiguously or vaguely. In such cases, the truth of a statement might crucially depend on the chosen interpretation. The EvidenceSeeker is designed to deal with ambiguity in the following way: Instead of fact-checking the input statement as it is, the preprocessor is tasked with identifying different interpretations before searching for relevant information in the knowledge base. In the following pipeline steps, the retriever and confirmation analyser will then analyse each found interpretation separately.</p>
+<p>In particular, the preprocessor will identify different interpretations and categorise them according to the following three statement types:</p>
+<ol type="1">
+<li><strong>Descriptive statements:</strong> Statements that contain factual or descriptive content.</li>
+<li><strong>Normative statements:</strong> Statements that contain value judgements, recommendations, or evaluations</li>
+<li><strong>Ascriptive statements:</strong> Statements that ascribe a given statement to a person or organisation by stating, for instance, that someone believes, denies, doubts or utters something.</li>
+</ol>
+<p>These distinctions are crucial for fact-checking: Descriptive statements can typically be checked through factual knowledge provided by science or testimonials. The assessment of normative statements is more difficult. There is even a philosophical debate about whether normative statements can have truth-values. For these complications, the <em>EvidenceSeeker</em> pipeline will refrain from further analysing normative interpretations in its default configuration. Ascriptive statements are specific descriptive statements that warrant special treatment. Consider, for instance, the sentence <em>Trump believes climate change is not human-made.</em> While it might be true that Trump is a climate sceptic, the belief content is certainly false. The ascription might be accurate, while the content of the belief is false.</p>
+<section id="the-preprocessor-in-detail" class="level3">
+<h3 class="anchored" data-anchor-id="the-preprocessor-in-detail">The Preprocessor in Detail</h3>
+<p>Figure <a href="#fig-preprocessor" class="quarto-xref">Figure&nbsp;1</a> depicts the preprocessor’s internal pipeline. Each process node represents a step, in which the language model is instructed to analyse the input in a specific way: For each statement type, the model is first asked to find interpretations of this type and then to list them in a structured way. Then, the model is prompted to formulate the negation for each found interpretation. The resulting interpretation pairs (each pair consisting of a found interpretation and its negation) represent the preprocessor’s output, which is the input for the retriever component.</p>
+<div id="fig-preprocessor" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-preprocessor-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">graph LR;
+    C[/Input Statement/] --&gt; LSP_D1(Identify&lt;/br&gt;descriptive&lt;/br&gt;interpretations);
+    LSP_D1 --&gt; LSP_D2(List&lt;/br&gt;descriptive&lt;/br&gt;interpretations);
+    LSP_D2 --&gt; LSP_Neg1(Formulate&lt;/br&gt;negations);
+    C --&gt; LSP_A1(Identify&lt;/br&gt;descriptive&lt;/br&gt;interpretations);
+    LSP_A1 --&gt; LSP_A2(List&lt;/br&gt;descriptive&lt;/br&gt;interpretations);
+    LSP_A2 --&gt; LSP_Neg2(Formulate&lt;/br&gt;negations);
+    C --&gt; LSP_N1(Identify&lt;/br&gt;normative&lt;/br&gt;interpretations);
+    LSP_N1 --&gt; LSP_N2(List&lt;/br&gt;normative&lt;/br&gt;interpretations);
+    LSP_N2 --&gt; LSP_Neg3(Formulate&lt;/br&gt;negations);
+    
+    LSP_Neg1 --&gt; CP1[/Interpretation&lt;br/&gt;Pair 1/];
+    LSP_Neg2 --&gt; CP2[/Interpretation&lt;br/&gt;Pair 2/];
+    LSP_Neg3 --&gt; etc[/.../];
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-preprocessor-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: The internal pipeline of the preprocessor.
+</figcaption>
+</figure>
+</div>
+</section>
+</section>
+<section id="retriever" class="level2">
+<h2 class="anchored" data-anchor-id="retriever">2. Retriever</h2>
+<p>For each found interpretation, the retriever will search for relevant data in the indexed knowledge base and return the <em>k</em> most relevant documents from the knowledge base. If the retriever receives, say, three found interpretations as input, it will retrieve in sum <span class="math inline">\(3*k\)</span> documents (<em>k</em> can be configured via the parameter <em>top_k</em> and is set to <span class="math inline">\(8\)</span> by default; see <a href="./docs_configuration/advanced_configuration.html#embedding-model">here</a> for details).</p>
+<div id="fig-retriever" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-retriever-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">graph LR;
+    KB1[(Knowledge base)]--&gt;R1;
+    CP1[/ i-th interpretation&lt;br/&gt;pair/] --&gt; R1(Retrieve&lt;/br&gt;relevant documents);
+    R1 --&gt; O1[/i-th interpretation pair&lt;br/&gt;+&lt;br/&gt;1st relevant document/];
+    R1 --&gt; O2[/i-th interpretation pair&lt;br/&gt;+&lt;br/&gt;2nd relevant document/];
+    R1 --&gt; O3[/i-th interpretation pair&lt;br/&gt;+&lt;br/&gt;.../];
+    R1 --&gt; O4[/i-th interpretation pair&lt;br/&gt;+&lt;br/&gt;k-th relevant document/];
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-retriever-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: The internal pipeline of the retriever for one interpretation pair.
+</figcaption>
+</figure>
+</div>
+<!-- Alternatives
+
+
+::::::{.cell layout-align="default"}
+
+:::::{.cell-output-display}
+
+::::{}
+`<figure class=''>`{=html}
+
+:::{}
+
+<pre class="mermaid mermaid-js">graph LR;
+ KB1[(Knowledge base)]--&gt;R1;
+ CP1[/ i-th Interpretation&lt;br/&gt;Pair 1/] --&gt; R1(Retriever);
+ R1 --&gt; O1[/Interpretation Pair 1&lt;br/&gt;+&lt;br/&gt;relevant documents/];
+ KB2[(Knowledge base)]--&gt;R2;
+ CP2[/Interpretation&lt;br/&gt;Pair 2/] --&gt; R2(Retriever);
+ R2 --&gt; O2[/Interpretation Pair 2&lt;br/&gt;+&lt;br/&gt;relevant documents/];
+ KB[(Knowledge base)]--&gt;R3;
+ CP3[/.../] --&gt; R3(Retriever);
+ R3 --&gt; O3[/.../];
+</pre>
+:::
+`</figure>`{=html}
+::::
+:::::
+::::::
+
+
+::::::{.cell layout-align="default"}
+
+:::::{.cell-output-display}
+
+::::{}
+`<figure class=''>`{=html}
+
+:::{}
+
+<pre class="mermaid mermaid-js">graph LR;
+ KB1[(Knowledge base)]--&gt;R;
+ CP1[/ i-th Interpretation&lt;br/&gt;Pair 1/] --&gt; R(Retriever);
+ R --&gt; O1[/Interpretation Pair 1&lt;br/&gt;+&lt;br/&gt;relevant documents/];
+
+ CP2[/Interpretation&lt;br/&gt;Pair 2/] --&gt; R(Retriever);
+ R --&gt; O2[/Interpretation Pair 2&lt;br/&gt;+&lt;br/&gt;relevant documents/];
+
+ CP3[/.../] --&gt; R(Retriever);
+ R --&gt; O3[/.../];
+</pre>
+:::
+`</figure>`{=html}
+::::
+:::::
+::::::
+
+-->
+</section>
+<section id="confirmation-analyser" class="level2">
+<h2 class="anchored" data-anchor-id="confirmation-analyser">3. Confirmation Analyser</h2>
+<p>For each interpretation of the input statement found, the confirmation analyser will analyse the degree of confirmation of each relevant document for the interpretation. This will result in <span class="math inline">\(k\)</span> analyses for each interpretation, which will be aggregated into one overall confirmation assessment for each interpretation. The confirmation analyser will summarise its results for each interpretation <strong>I</strong> by assigning one out of three levels of confirmatory power:</p>
+<ul>
+<li><strong>Strong confirmation:</strong> The interpretation <strong>I</strong> is <em>strongly confirmed</em> by the information found in the knowledge base.</li>
+<li><strong>Confirmation:</strong> The interpretation <strong>I</strong> is <em>confirmed</em> by the information found in the knowledge base.</li>
+<li><strong>Weak confirmation:</strong> The interpretation <strong>I</strong> is <em>weakly confirmed</em> by the information found in the knowledge base.</li>
+<li><strong>Inconclusive confirmation:</strong> The interpretation <strong>I</strong> is <em>neither confirmed nor disconfirmed</em> by the information found in the knowledge base.</li>
+<li><strong>Weak disconfirmation:</strong> The interpretation <strong>I</strong> is <em>weakly disconfirmed</em> by the information found in the knowledge base.</li>
+<li><strong>Disconfirmation:</strong> The interpretation <strong>I</strong> is <em>disconfirmed</em> by the information found in the knowledge base.</li>
+<li><strong>Strong disconfirmation:</strong> The interpretation <strong>I</strong> is <em>strongly disconfirmed</em> by the information found in the knowledge base.</li>
+</ul>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The EvidenceSeeker pipeline will not aggregate its analyses for each found interpretation into one overall assessment of the input statement. Instead, it will end with an independent assessment for each found interpretation. This is motivated by the view that the fact-checking results depend crucially on the interpretation of the input statement.</p>
+</div>
+</div>
+<section id="the-confirmation-analyser-in-detail" class="level3">
+<h3 class="anchored" data-anchor-id="the-confirmation-analyser-in-detail">The Confirmation Analyser in Detail</h3>
+<div id="fig-confirmation-analyser" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-confirmation-analyser-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">graph LR;
+    ID1[/i-th interpretation pair&lt;/br&gt;+&lt;/br&gt;1st relevant document D1/];
+    ID1 --&gt; IA11(Confirmatory&lt;/br&gt;analysis of I&lt;/br&gt;w.r.t. D1)
+    ID1 --&gt; IA12(Confirmatory&lt;/br&gt;analysis of non-I&lt;/br&gt;w.r.t. D1)
+    IA11 --&gt; AG1(Degree of &lt;/br&gt;confirmation for the&lt;/br&gt;i-th intepretation&lt;/br&gt;w.r.t. D1)
+    IA12 --&gt; AG1
+
+    ID2[/i-th interpretation pair&lt;/br&gt;+&lt;/br&gt;2nd relevant document D1/];
+    ID2 --&gt; IA21(Confirmatory&lt;/br&gt;analysis of I&lt;/br&gt;w.r.t. D2)
+    ID2 --&gt; IA22(Confirmatory&lt;/br&gt;analysis of non-I&lt;/br&gt;w.r.t. D2)
+    IA21 --&gt; AG2(Degree of &lt;/br&gt;confirmation for the&lt;/br&gt;i-th intepretation&lt;/br&gt;w.r.t. D2)
+    IA22 --&gt; AG2
+
+    ID3[/i-th interpretation pair&lt;br/&gt;+&lt;br/&gt;.../];
+    ID3 --&gt; IA31(...)
+    ID3 --&gt; IA32(...)
+    IA31 --&gt; AG3(...)
+    IA32 --&gt; AG3
+
+    ID4[/i-th interpretation pair&lt;/br&gt;+&lt;/br&gt;k-th relevant document Dk/];
+    ID4 --&gt; IA41(Confirmatory&lt;/br&gt;analysis of I&lt;/br&gt;w.r.t. Dk)
+    ID4 --&gt; IA42(Confirmatory&lt;/br&gt;analysis of non-I&lt;/br&gt;w.r.t. Dk)
+    IA41 --&gt; AG4(Degree of &lt;/br&gt;confirmation for the&lt;/br&gt;i-th intepretation&lt;/br&gt;w.r.t. Dk)
+    IA42 --&gt; AG4
+
+    AG1 --&gt; AG(Confirmation&lt;/br&gt;aggregation)
+    AG2 --&gt; AG
+    AG3 --&gt; AG
+    AG4 --&gt; AG
+    AG --&gt; R[/"Overall level of &lt;/br&gt;confirmation for the&lt;/br&gt;i-th intepretation"/]
+
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-confirmation-analyser-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: The internal pipeline of the confirmation analyser for one arbitrary interpretation of the input statement.
+</figcaption>
+</figure>
+</div>
+<p>The internal pipeline of the confirmation analyser is depicted in <a href="#fig-confirmation-analyser" class="quarto-xref">Figure&nbsp;3</a> and proceeds along the following steps:</p>
+<ol type="1">
+<li><strong>Confirmatory analysis w.r.t. each relevant document:</strong>
+<ul>
+<li>Each interpretation pair comprises two statements: <span class="math inline">\(I\)</span> and <span class="math inline">\(\textit{non-I}\)</span>. The statement <span class="math inline">\(I\)</span> formulates the identified interpretation; <span class="math inline">\(\textit{non-I}\)</span> formulates its negation.</li>
+<li>For each found relevant document <span class="math inline">\(D\)</span>, the model is separately asked to analyse the confirmatory relation between <span class="math inline">\(D\)</span> and <span class="math inline">\(I\)</span>, and between <span class="math inline">\(D\)</span> and <span class="math inline">\(\textit{non-I}\)</span>. More precisely, the model is prompted to decide whether <span class="math inline">\(D\)</span>
+<ol type="1">
+<li>provides sufficient evidence to support the <span class="math inline">\(I\)</span> (<span class="math inline">\(\textit{non-I}\)</span>),</li>
+<li>provides evidence that contradicts <span class="math inline">\(I\)</span> (<span class="math inline">\(\textit{non-I}\)</span>), or whether</li>
+<li>it neither supports nor contradicts <span class="math inline">\(I\)</span> (<span class="math inline">\(\textit{non-I}\)</span>).</li>
+</ol></li>
+<li>The <em>EvidenceSeeker</em> will then gauge the degree of confirmation <span class="math inline">\(DOC\)</span> between <span class="math inline">\(D\)</span> and <span class="math inline">\(I\)</span> in the following way: It takes the token probability of the first answer option (<span class="math inline">\(A_1\)</span>) w.r.t. <span class="math inline">\(I\)</span> and subtracts the token probability of <span class="math inline">\(A_1\)</span> w.r.t. <span class="math inline">\(\textit{non-I}\)</span>. The resulting value <span class="math inline">\(DOC(D,I):=Prob(A_1;I,D)-Prob(A_1;\textit{non-I},D)\)</span> is interpreted as the degree of confirmation of the interpretation <span class="math inline">\(I\)</span> w.r.t. <span class="math inline">\(D\)</span>. It can take values between <span class="math inline">\(-1\)</span> and <span class="math inline">\(1\)</span>, where <span class="math inline">\(-1\)</span> would mean maximal disconfirmation by <span class="math inline">\(D\)</span>, <span class="math inline">\(1\)</span> maximal confirmation and <span class="math inline">\(0\)</span> inconclusive confirmation.</li>
+</ul></li>
+<li><strong>Confirmation aggregation:</strong> In a second step, the degrees of confirmation for each document will be aggregated into an <em>overall degree of confirmation</em> for each interpretation by taking the mean over all documents (<span class="math inline">\(DOC(I):=1/n \sum_D DOC(D,I)\)</span> with <span class="math inline">\(n\)</span> being the number of relevant documents for <span class="math inline">\(I\)</span>). Finally, the numerical value <span class="math inline">\(DOC(I)\)</span> is translated into an <em>overall level of confirmation</em> for interpretation <span class="math inline">\(I\)</span> in the following way:
+<ul>
+<li><span class="math inline">\(0.6 &lt; DOC(I) \leq 1\)</span>: strong confirmation</li>
+<li><span class="math inline">\(0.4 &lt; DOC(I) \leq 0.6\)</span>: confirmation</li>
+<li><span class="math inline">\(0.2 &lt; DOC(I) \leq 0.4\)</span>: weak confirmation</li>
+<li><span class="math inline">\(-0.2 \leq DOC(I) \leq 0.2\)</span>: inconclusive confirmation</li>
+<li><span class="math inline">\(-0.4 \leq DOC(I) &lt; -0.2\)</span>: weak disconfirmation</li>
+<li><span class="math inline">\(-0.6 \leq DOC(I) &lt; -0.4\)</span>: disconfirmation</li>
+<li><span class="math inline">\(-1\leq DOC(I) &lt; -0.6\)</span>: strong disconfirmation</li>
+</ul></li>
+</ol>
+</section>
+</section>
+<section id="explainability" class="level2">
+<h2 class="anchored" data-anchor-id="explainability">Explainability &amp; Transparency</h2>
+<p>EvidenceSeeker are designed to be transparent and explainable:</p>
+<ol type="1">
+<li><strong>Open Source</strong>: EvidenceSeeker Boilerplate* is an open-source project, which means that the code, the underlying algorithms, and the prompts used are publicly available. This allows others to inspect the code, understand the inner workings of the pipeline, and contribute to its development.</li>
+<li><strong>Traceability</strong>: Each component of the <em>EvidenceSeeker Boilerplate</em> pipeline (preprocessor, retriever, confirmation analyser) is designed to be modular and understandable. In particular, users can trace the result of the fact-checking process back to the input-output pairs of each step in the pipeline. These include:
+<ul>
+<li>the <em>different interpretations</em> of the input statement found by the preprocessor,</li>
+<li>the <em>relevant documents</em> the retriever fetched from the knowledge base as potential evidence for an interpretation, and</li>
+<li>the <em>degree of confirmation</em> the confirmation analyser outputs for each interpretation based on the retrieved item of potential evidence.</li>
+</ul></li>
+<li><strong>Model openness</strong>: The <em>EvidenceSeeker Boilerplate</em> can be used with models of your choosing. In particular, it can be configured to use open-weight LLMs, in which case the models’ internal parameters are publicly available. This means that others can inspect and assess the model’s behaviour and scrutinise its performance with different evaluation metrics.</li>
+</ol>
+<p>To what extent an <em>EvidenceSeeker</em> instance is explainable and transparent depends on whether these features are faithfully conferred to the <em>EvidenceSeeker</em> instance and, in particular, whether <em>EvidenceSeeker Boilerplate</em> is used with open models. We believe that fact-checking is a crucial and sensitive task that requires transparency and explainability since users should be able to understand why certain statements are problematic according to truth standards.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./getting_started.html" class="pagination-link" aria-label="Getting Started">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Getting Started</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./configuration.html" class="pagination-link" aria-label="Configuration">
+        <span class="nav-page-text">Configuration</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>Part of <a href="https://compphil2mmae.github.io/research/kideku/"><img src="./img/logoKIdeKu.jpg" class="img-fluid" alt="KIdeKu" width="20"></a></p>
+</div>   
+    <div class="nav-footer-center">
+<p><a href="./about.html" class="text-decoration-none">About</a> | <a href="./imprint.html" class="text-decoration-none">Imprint</a> <br> Copyright © 2024-2025 <a href="https://compphil2mmae.github.io/" class="text-decoration-none">CompPhil²MMAE</a> @ KIT.</p>
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/debatelab/evidence-seeker/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>
