@@ -79,8 +79,11 @@ class AppConfig(pydantic.BaseModel):
                                     🤖 Verwendete Modelle und Wissensbasis:
                                 </h4>
                                 <p style="margin: 0 0 12px 15px; font-size: 14px;">
-                                    In dieser Demo App verwenden wir <a href="#" style="color: #3b82f6; text-decoration: none;">XX</a> als Embedding Modell und 
-                                    <a href="#" style="color: #3b82f6; text-decoration: none;">XX</a> als generatives Sprachmodell. Als Wissensbasis dienen 
+                                    In dieser Demo App verwenden wir 
+                                    <a href="https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2" style="color: #3b82f6; text-decoration: none;" target="_blank">paraphrase-multilingual-mpnet-base-v2</a> 
+                                    als Embedding Modell sowie 
+                                    <a href="https://huggingface.co/moonshotai/Kimi-K2-Instruct" style="color: #3b82f6; text-decoration: none;" target="_blank">Kimi-K2-Instruct</a> und 
+                                    <a href="https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct" style="color: #3b82f6; text-decoration: none;" target="_blank">Llama-3.3-70B-Instruct</a> als generative Sprachmodelle. Als Wissensbasis dienen 
                                     alle Ausgaben von "Aus Politik und Zeitgeschichte" aus dem Jahr 2024 
                                     (<a href="https://www.bpb.de/shop/zeitschriften/apuz/?field_filter_thema=all&field_date_content=2024&d=1" 
                                     style="color: #3b82f6; text-decoration: none;" target="_blank">Link</a>).
