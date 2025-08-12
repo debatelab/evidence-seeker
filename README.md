@@ -1,8 +1,5 @@
 # 🕵️‍♀️ EvidenceSeeker Boilerplate <!-- omit in toc -->
 
-A code template for building AI-based apps that fact-check statements against a given knowledge base. 
-
----
 <div align="center">
   <p align="center">
  📙 <a href="https://debatelab.github.io/evidence-seeker">EvidenseSeeker Docs</a>
@@ -11,6 +8,10 @@ A code template for building AI-based apps that fact-check statements against a 
   </p>
 </div>
 <br/>
+---
+
+A code template for building AI-based apps that fact-check statements against a given knowledge base. 
+
 
 
 ## 🚀 Getting started
