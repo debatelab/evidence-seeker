@@ -74,7 +74,7 @@ Use your knowledge base (e.g., a bunch of PDFs) for fact-checking.
 
 ::: {.content-block .py-1 .grid}
 ::: {.g-start-4 .g-col-6 .g-start-md-5 .g-col-md-3} 
-[Try it!](getting_started.qmd#try_it){.btn-action-primary  .btn-action .btn .btn-lg .bg-primary .text-white .py-1 .px-4 .rounded-pill role="button"}
+[Try it!](getting_started.qmd){.btn-action-primary  .btn-action .btn .btn-lg .bg-primary .text-white .py-1 .px-4 .rounded-pill role="button"}
 
 :::
 :::

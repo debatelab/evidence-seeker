@@ -14,7 +14,7 @@ For subsequent releases, we are working on (hosted) versions of the boilerplate,
 We have set up a small _EvidenceSeeker_ with all [2024 APuZ editions](https://www.bpb.de/shop/zeitschriften/apuz/?field_filter_thema=all&field_date_content=2024&d=1) as knowledge base and provide access to this _EvidenceSeeker_ via a small [Gradio](https://www.gradio.app/) app, which provides a minimal user interface.  Links:
 
 + Our [APuZ-EvidenceSeeker Demoapp](https://huggingface.co/spaces/DebateLabKIT/evidence-seeker-demo): If you are interested in experimenting with this Demapp, contact us for access information!
-+ [EvidenceSeeker Demoapp Logs](XX): This is a collection of fact-checks and their results performed by our Demoapp. You can use this to get an idea of the capabilities of the _EvidenceSeeker_ Demoapp.
++ [EvidenceSeeker Demoapp Results](https://debatelab.github.io/evidence-seeker-results/index.html): This is a collection of fact-checks and their results performed by our Demoapp. Visit this site to get a first impression of the capabilities of the _EvidenceSeeker_ Demoapp.
 
 *Side note:* You can also run the _EvidenceSeeker_ Demoapp locally if you want to experiment with your knowledge base or if you want to use a different language model.
 

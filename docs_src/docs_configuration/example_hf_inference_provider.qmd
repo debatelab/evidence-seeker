@@ -57,15 +57,17 @@ retriever = DocumentRetriever.from_config_file(config_file)
 
 The default configuration values will suit most models provided via Hugging Face’s Inference Provider. You only have to ensure that the model can provide JSON as structured output. Additionally, you must specify the model and endpoint in the configuration file. The following example shows how to configure the preprocessor component with the Llama-3.3-70B-Instruct model:
 
+<!--
 TODO: Update model
+-->
 
 ```yaml
 # timeout for the whole preprocessor pipeline
 timeout: 1200
 env_file: <path/to/your/api_keys.txt>
-used_model_key: together.ai
+used_model_key: Llama-3.3-70B-Instruct
 models:
-  together.ai:
+  Llama-3.3-70B-Instruct:
     name: Llama-3.3-70B-Instruct
     description: Llama-3.3-70B served by Together.ai over HuggingFace
     base_url: https://router.huggingface.co/v1

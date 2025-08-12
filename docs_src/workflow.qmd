@@ -171,7 +171,7 @@ The internal pipeline of the confirmation analyser is depicted in @fig-confirmat
         2. provides evidence that contradicts $I$ ($\textit{non-I}$), or whether
         3. it neither supports nor contradicts $I$ ($\textit{non-I}$).
     + The *EvidenceSeeker* will then gauge the degree of confirmation $DOC$ between $D$ and $I$ in the following way: It takes the token probability of the first answer option ($A_1$) w.r.t. $I$ and subtracts the token probability of $A_1$ w.r.t. $\textit{non-I}$. The resulting value $DOC(D,I):=Prob(A_1;I,D)-Prob(A_1;\textit{non-I},D)$ is interpreted as the degree of confirmation of the interpretation $I$ w.r.t. $D$. It can take values between $-1$ and $1$, where $-1$ would mean maximal disconfirmation by $D$, $1$ maximal confirmation and $0$ inconclusive confirmation.
-2. **Confirmation aggregation:** In a second step, the degrees of confirmation for each document will be aggregated into an *overall degree of confirmation* for each interpretation by taking the mean over all documents ($DOC(I):=1/n \sum_D DOC(D,I)$ with $n$ being the number of relevant documents for $I$). Finally, the numerical value $DOC(I)$ is translated into an *overall level of confirmation* for interpretation $I$ in the following way:
+2. **Confirmation aggregation:** In a second step, the degrees of confirmation for each document will be aggregated into an *overall degree of confirmation* for each interpretation by taking the mean over all documents $D$ for which $|DOC(D,I)|>0.2$ ($DOC(I):=1/n \sum_D DOC(D,I)$ with $n$ being the number of relevant documents for $I$ with $|DOC(D,I)|>0.2$). Finally, the numerical value $DOC(I)$ is translated into an *overall level of confirmation* for interpretation $I$ in the following way:
     + $0.6 < DOC(I) \leq 1$: strong confirmation
     + $0.4 < DOC(I) \leq 0.6$: confirmation
     + $0.2 < DOC(I) \leq 0.4$: weak confirmation
@@ -184,7 +184,7 @@ The internal pipeline of the confirmation analyser is depicted in @fig-confirmat
 
 EvidenceSeeker are designed to be transparent and explainable: 
 
-1. **Open Source**: EvidenceSeeker Boilerplate* is an open-source project, which means that the code, the underlying algorithms, and the prompts used are publicly available. This allows others to inspect the code, understand the inner workings of the pipeline, and contribute to its development.
+1. **Open Source**: *EvidenceSeeker Boilerplate* is an open-source project, which means that the code, the underlying algorithms, and the prompts used are publicly available. This allows others to inspect the code, understand the inner workings of the pipeline, and contribute to its development.
 2. **Traceability**: Each component of the *EvidenceSeeker Boilerplate* pipeline (preprocessor, retriever, confirmation analyser) is designed to be modular and understandable. In particular, users can trace the result of the fact-checking process back to the input-output pairs of each step in the pipeline. These include:
     + the *different interpretations* of the input statement found by the preprocessor,
     + the *relevant documents* the retriever fetched from the knowledge base as potential evidence for an interpretation, and
