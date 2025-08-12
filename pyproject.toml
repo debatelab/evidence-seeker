@@ -43,6 +43,8 @@ dependencies = [
   #"httpx==0.27.2",
   "wrapt",
   "httpx",
+  "jinja2",
+  "pygithub",
 ]
 
 [project.readme]
@@ -70,16 +72,19 @@ requires = [
 path = "src/evidence_seeker/__about__.py"
 
 
-[tool.setuptools.package-data]
-"evidence_seeker.package_data" = ["*.yml", "*.py","*.json", "*.txt", "*.csv", "*.md"]
+# not needed since we use hatch to build the pkg
+# [tool.setuptools.package-data]
+# "evidence_seeker.package_data" = ["*.yml", "*.py","*.json", "*.txt", "*.csv", "*.md"]
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "/src/evidence_seeker/package_data", # Include the entire package_data directory
+    "/src",
+    "/README.md",
+    "/LICENSE*",
 ]
 
 [tool.hatch.build.targets.wheel]
-force-include = { "src/evidence_seeker/package_data" = "evidence_seeker/package_data" }
+packages = ["src/evidence_seeker"]
 
 [tool.hatch.envs.default]
 dependencies = [
