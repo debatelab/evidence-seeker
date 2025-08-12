@@ -173,7 +173,7 @@ def _build_index(base_dir: str = "."):
         )
         sys.exit(1)
 
-    index_builder = IndexBuilder.from_config_file(config_file)
+    index_builder = IndexBuilder.from_config_file(str(config_file))
     index_builder.build_index()
 
 
@@ -222,32 +222,6 @@ def _run_pipeline(
         )
 
 
-# TODO: refactor this function to use a template engine
-def describe_results(claim: str, results: list) -> str:
-    preamble_template = (
-        '## EvidenceSeeker Results\n\n'
-        '### Input\n\n'
-        '**Submitted claim:** {claim}\n\n'
-        '### Results\n\n'
-    )
-    result_template = (
-        '**Clarified claim:** <font color="orange">{text}</font> [_{statement_type}_]\n\n'
-        '**Status**: {verbalized_confirmation}\n\n'
-        '|Metric|Value|\n'
-        '|:---|---:|\n'
-        '|Average confirmation|{average_confirmation:.3f}|\n'
-        '|Evidential divergence|{evidential_uncertainty:.3f}|\n'
-        '|Width of evidential base|{n_evidence}|\n\n'
-    )
-    markdown = []
-    markdown.append(preamble_template.format(claim=claim))
-    for claim_dict in results:
-        rdict = claim_dict.copy()
-        rdict["statement_type"] = rdict["statement_type"].value
-        markdown.append(result_template.format(**claim_dict))
-    return ("\n".join(markdown))
-
-
 def _run_demo_app(base_dir: str = "."):
     """Launch the Gradio demo app"""
     try:
@@ -290,6 +264,7 @@ def _run_demo_app(base_dir: str = "."):
     except Exception as e:
         logger.error(f"Failed to start demo app: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
