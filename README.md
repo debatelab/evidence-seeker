@@ -42,7 +42,7 @@ EvidenceSeeker Boilerplate is a Python package that provides a fact-checking pip
 
 ## 🚀 Quick Start
 
-There are several ways to set up and run an EvidenceSeeker based on our Boilerplate. For details, see the [official documentation](https://debatelab.github.io/evidence-seeker).
+There are several ways to set up and run an EvidenceSeeker based on our Boilerplate. For details, see the [official documentation](https://debatelab.github.io/evidence-seeker/getting_started.html).
 
 ### Installation
 
@@ -50,11 +50,15 @@ There are several ways to set up and run an EvidenceSeeker based on our Boilerpl
 pip install evidence-seeker
 ```
 
-### Initialize a Project
+### Initialize an EvidenceSeeker
 ```bash
-evse init my-fact-checker
+evse init --name my-fact-checker
 cd my-fact-checker
 ```
+
+### Configuration with API keys
+
+See <https://debatelab.github.io/evidence-seeker/configuration.html>.
 
 ### Build Knowledge Base Index
 ```bash
@@ -130,20 +134,9 @@ You can find more information about the pipeline [here](https://debatelab.github
 
 ## 🙏 Acknowledgements
 
-###  🛠️ Used third-party tools
-
- *EvidenceSeeker Boilerplate* would not be possible without the fantastic open source community and relies on the following libraries, amongst others:
-
-- **[LLamaIndex](https://docs.llamaindex.ai/en/stable/)** for the implementation of the workflow.
-- **[Pydantic](https://pydantic.dev/)** for modeling the configs.
-
-All other dependencies are documented in the `pyproject.toml` file in our  [GitHub repo](https://github.com/debatelab/evidence-seeker).
-
-
 ### 🤝 Collaborations
 
 We presented the project at the [Politechathon Workshop](https://www.wahlexe.de/en/) in December 2024 and received constructive feedback.
-
 
 ### 🏛️ Funding 
 
