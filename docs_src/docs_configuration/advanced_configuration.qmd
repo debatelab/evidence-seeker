@@ -15,7 +15,7 @@ For the retriever component, you can configure the used **embedding model** and 
 
 ### Embedding Model
 
-The used **embedding model** via the `embed_backend_type`, `embed_base_url`, and `embed_model_name` parameters.
+The used **embedding model** can be configured via the `embed_backend_type`, `embed_base_url`, and `embed_model_name` parameters.
 
 + As `embed_backend_type`, you can choose between 
     + `tei` ([text embedding inference](https://github.com/huggingface/text-embeddings-inference)): API for serving embedding models, that can be used, for instance, with [dedicated endpoints for embedding models by Hugging Face](https://huggingface.co/learn/cookbook/en/enterprise_dedicated_endpoints).
@@ -54,39 +54,39 @@ In your configuration YAML files, you can define the models in the following way
 ```yaml
 models:
   your_first_model:
-    api_key_name: <your_api_key_name>
-    backend_type: <backend_type_of_your_model>
-    base_url: <your_base_url>
-    description: <description_of_your_model>
-    model: <your_model_identifier>
-    name: <your_model_name>
+    api_key_name: your_api_key_name
+    backend_type: backend_type_of_your_model
+    base_url: your_base_url
+    description: description_of_your_model
+    model: your_model_identifier
+    name: your_model_name
     # some optional parameters
     temperature: 0.2
     timeout: 260
     max_tokens: 1024
   your_second_model:
-    api_key_name: <your_api_key_name>
-    backend_type: <backend_type_of_your_model>
-    base_url: <your_base_url>
-    description: <description_of_your_model>
-    model: <your_model_identifier>
-    name: <your_model_name>
+    api_key_name: your_api_key_name
+    backend_type: backend_type_of_your_model
+    base_url: your_base_url
+    description: description_of_your_model
+    model: your_model_identifier
+    name: your_model_name
     # some optional parameters
     temperature: 0.2
     timeout: 260
     max_tokens: 1024
 ```
 
-`<your_first_model>` and `<your_second_model>` are arbitrary identifiers for the models you use in your config to specify which model to use for which step of the pipeline. You can assign a defined model, say `<your_global_model>`, as "global" model via
+`your_first_model` and `your_second_model` are arbitrary identifiers for the models you use in your config to specify which model to use for which step of the pipeline. You can assign a defined model, say `your_global_model`, as "global" model via
 
 ```yaml
-used_model_key: <your_global_model>
+used_model_key: your_global_model
 ```
 that is used for all pipeline steps that do not have a specific model attached via their step configuration (see below).
 
 **Further clarifications:**
 
-+ **API Keys:** The *EvidenceSeeker* expects API keys to be set as environment variables with the name specified by `api_key_name` for each model. If you use a file with environment variables via `env_file`, the file should contain a line like this: `<name_of_your_api_key>=<your_api_key>`. Alternatively, you can set the environment variable directly in your shell or script before running the EvidenceSeeker pipeline (see [below](#api-keys)).
++ **API Keys:** The *EvidenceSeeker* expects API keys to be set as environment variables with the name specified by `api_key_name` for each model. If you use a file with environment variables via `env_file`, the file should contain a line like this: `name_of_your_api_key=your_api_key`. Alternatively, you can set the environment variable directly in your shell or script before running the EvidenceSeeker pipeline (see [below](#api-keys)).
     + If you do not need an API key (e.g., if you use a local model), you can omit the `env_file` and `api_key_name` parameters.
 + `base_url` and `model` are important since they specify the endpoint and model. 
     + For instance, if you use [HuggingFace as inference provider with Llama-3.3-70B-Instruct](https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct?inference_api=true&language=python&inference_provider=hf-inference), you would set:
@@ -108,30 +108,30 @@ You can also use local models, e.g., with [LMStudio](https://lmstudio.ai/). Mode
 
 The preprocessor and the confirmation analysis components have several steps that can be configured independently. You can specify the model for each step via the `used_model_key` parameter. 
 
-Additionally, most of the step specific configuration parameters can be defined in a model-specific way. In this way, you can easily switch between different models for different steps of the pipeline and optimise the performance of each step for different models. For instance, you can provide different prompt templates for each step, optimised for different models.
+Additionally, most of the step-specific configuration parameters can be defined in a model-specific way. In this way, you can easily switch between different models for different steps of the pipeline and optimise the performance of each step for different models. For instance, you can provide different prompt templates for each step, optimised for different models.
 
 A typical step configuration within your config file would look like this:
 
 ```yaml
-<step_identifier>:
+step_identifier:
   description: Instruct the model to do ...
-  name: <step_name>
+  name: step_name
   # defining the model to use for this step
-  used_model_key: <your_model_identifier>
+  used_model_key: your_model_identifier
   llm_specific_configs:
     # default configuration for the step
     default:
-      prompt_template: <your_default_prompt_template>
-      system_prompt: <your_default_step_system_prompt>
+      prompt_template: your_default_prompt_template
+      system_prompt: your_default_step_system_prompt
       ...
     # configuration for a specific model that 
     # is used for this step, if the model is specified
     # via the `used_model_key` parameter
-    <your_model_identifier>:
-      prompt_template: <your_model_specific_prompt_template>
-      system_prompt: <your_model_specific_step_system_prompt>
+    your_model_identifier:
+      prompt_template: your_model_specific_prompt_template
+      system_prompt: your_model_specific_step_system_prompt
       ...
-    <alternative_model_identifier>:
+    alternative_model_identifier:
       ...
 ```
 
@@ -152,9 +152,9 @@ Currently, the EvidenceSeeker pipeline supports the following `guidance_type` va
   + If you use `prompted` to generate structured outputs, you should provide a `prompt_template` that contains the instructions for the LLM to output a string that matches the expected format.
   + If you use `prompted` to generate structured outputs, you can provide a regular expression via `validation_regex` that will be used to validate the model output. If the model output does not match the regular expression, the EvidenceSeeker pipeline will raise an error.
 
-#### Logprobs
+#### Log Probablities
 
-The confirmation analyser component uses *logprobs* (also known as 'logits') to calculate the degree of confirmation for statements based on found evidence items in the knowledge base (see [here](../workflow.qmd# confirmation-analyser) for details). If the chosen model does not support the retrieval of logprobs, the EvidenceSeeker pipeline can estimate logprobs by repeating inference requests and taking the frequency of answers to estimate the logprobs. 
+Language models use log probabilities (in short: logprobs) to decide which token to generate next. The are calculated by taking the natural logarithm over the probability distribution of next tokens. The confirmation analyser component uses these to calculate the degree of confirmation for statements based on found evidence items in the knowledge base (see [here](../workflow.qmd#confirmation-analyser) for details). If the chosen model does not support the retrieval of logprobs, the EvidenceSeeker pipeline can estimate logprobs by repeating inference requests and taking the frequency of answers to estimate the logprobs. 
 
 This is done by setting the `logprobs_type` parameter in the step configuration to `estimate` and setting the number of repetitions `n_repetitions_mcq` to at least $30$. The default value for `logprobs_type` is `openai_like`, which assumes that logprobs are returned in a [format consistent with the OpenAI API](https://platform.openai.com/docs/api-reference/chat/create). 
 
@@ -171,11 +171,11 @@ There are two ways to set these environment variables:
 1. You set these environment variables directly in your shell or script before running the EvidenceSeeker pipeline. For example, in a Unix-like shell, you can set an environment variable like this:
 
  ```bash
-    export <YOUR_API_KEY_NAME>=<your_api_key_value>
+    export YOUR_API_KEY_NAME=your_api_key_value
  ```
 
 2. You can use a file with environment variables specified in the configuration files via `env_file` (see above). This file should contain lines like this:
 
  ```txt
- <YOUR_API_KEY_NAME>=<your_api_key_value>
+ YOUR_API_KEY_NAME=your_api_key_value
  ```

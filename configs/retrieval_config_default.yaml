@@ -18,7 +18,7 @@ api_key_name: null
 hub_key_name: null
 # Optional: Path to a file containing API keys for the embedding model. 
 # Should have the format:
-# <your_api_key_name>=<your_api_token>
+# your_api_key_name=your_api_token
 env_file: null
 # Used if Huggingface Inference Provider is used and billing should be
 # done via organization on Hugging Face
@@ -28,7 +28,7 @@ bill_to: null
 ignore_statement_types:
 - normative
 # You can provide a string as id for the index
-index_id: <your_id_of_the_index>
+index_id: your_id_of_the_index
 # Path where the index is stored locally and/or loaded from.
 # At least, one of the following two paths must be set.
 # If both are specified, the index will be loaded (once) from the hub path
@@ -46,7 +46,7 @@ meta_data_file: null
 document_input_dir: null
 # Alternatively, you can provide a list of files to be indexed.
 document_input_files: null
-# TODO: Some model parameters
+# Some model parameters
 top_k: 8
 window_size: 3
 embed_batch_size: 32

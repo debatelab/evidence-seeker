@@ -20,15 +20,15 @@ The retriever component can be configured with the following YAML configuration 
 ```yaml
 embed_backend_type: huggingface
 embed_model_name: sentence-transformers/paraphrase-multilingual-mpnet-base-v2
-env_file: <path/to/your/api_keys.txt>
+env_file: path/to/your/api_keys.txt
 # Hugging Face Hub Path (optional), from where the index can be loaded. We use
 # EvidenceSeeker's example index hub path: DebateLabKIT/apuz-index-es
 # see: https://huggingface.co/datasets/DebateLabKIT/apuz-index-es
 index_hub_path: DebateLabKIT/apuz-index-es
 # token name for accessing index from Hugging Face Hub
-hub_key_name: <your_hub_key_name>
+hub_key_name: your_hub_key_name
 # Path where the index is stored locally and/or loaded from.
-index_persist_path: <path/for/storing/the/index>
+index_persist_path: path/for/storing/the/index
 ```
 
 **Clarifications:**

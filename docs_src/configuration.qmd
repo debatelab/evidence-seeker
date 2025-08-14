@@ -18,22 +18,22 @@ from evidence_seeker import EvidenceSeeker
 import asyncio
 
 pipeline = EvidenceSeeker(
-    retrieval_config_file="<path/to/retrieval_config.yaml>",
-    confirmation_analysis_config_file="<path/to/confirmation_analysis_config.yaml>",
-    preprocessing_config_file="<path/to/preprocessing_config.yaml>",
+    retrieval_config_file="path/to/retrieval_config.yaml",
+    confirmation_analysis_config_file="path/to/confirmation_analysis_config.yaml",
+    preprocessing_config_file="path/to/preprocessing_config.yaml",
 )
 # run the pipeline
-results = asyncio.run(pipeline("<your statement to fact-check>"))
+results = asyncio.run(pipeline("your statement to fact-check"))
 ```
 
 or config objects:
 
 ```python
-from evidence_seeker (
- EvidenceSeeker,
- RetrievalConfig,
- ConfirmationAnalysisConfig,
- PreprocessingConfig,
+from evidence_seeker import (
+    EvidenceSeeker,
+    RetrievalConfig,
+    ConfirmationAnalysisConfig,
+    PreprocessingConfig,
 )
 import asyncio
 

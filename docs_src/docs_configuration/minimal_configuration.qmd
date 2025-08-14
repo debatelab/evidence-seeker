@@ -24,26 +24,26 @@ If your LLM (provider) does not support these features, use an alternative confi
 You can configure the language models and API keys via the configuration files for both the preprocessor and the confirmation-analysis component in the following way: Create two files, `preprocessor_config.yaml` and/or `confirmation_analysis_config.yaml`, with the following content:
 
 ```yaml
-used_model_key: <your_model_identifier>
+used_model_key: your_model_identifier
 # optional, if you want to use a file for setting up API keys
-env_file: <path/to/your/api_keys.txt>
+env_file: path/to/your/api_keys.txt
 models:
-  <your_model_identifier>:
-    api_key_name: <name_of_your_api_key>
-    backend_type: <backend_type_of_your_model>
-    base_url: <base_url_of_your_language_model>
-    description: <description_of_your_model>
+  your_model_identifier:
+    api_key_name: name_of_your_api_key
+    backend_type: backend_type_of_your_model
+    base_url: base_url_of_your_language_model
+    description: description_of_your_model
     max_tokens: 1024
-    model: <model_name_or_identifier>
-    name: <name_of_your_model>
+    model: model_name_or_identifier
+    name: name_of_your_model
     temperature: 0.2
     timeout: 260
 ```
 
 **Clarifications:**
 
-+ Both `<your_model_identifier>` and `<name_of_your_model>` are arbitrary identifiers that you can choose.
-+ Both components expect the API key to be set as an environment variable with the name specified by `api_key_name`. If you use a file with environment variables via `env_file`, the file should contain a line like this: `<name_of_your_api_key>=<your_api_key>`. Alternatively, you can set the environment variable directly in your shell or script before running the EvidenceSeeker pipeline.
++ Both `your_model_identifier` and `name_of_your_model` are arbitrary identifiers that you can choose.
++ Both components expect the API key to be set as an environment variable with the name specified by `api_key_name`. If you use a file with environment variables via `env_file`, the file should contain a line like this: `name_of_your_api_key=your_api_key`. Alternatively, you can set the environment variable directly in your shell or script before running the EvidenceSeeker pipeline.
     + If you do not need an API key (e.g., if you use a local model), you can omit the `env_file` and `api_key_name` parameters.
 + `base_url` and `model` are important since they specify the endpoint and model. 
     + For instance, if you use [HuggingFace as inference provider with Llama-3.3-70B-Instruct](https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct?inference_api=true&language=python&inference_provider=hf-inference) you would set:
@@ -56,16 +56,16 @@ models:
 The retriever component uses an embedding model to create and search your indexed knowledge base. It can be minimally configured in a similar way:
 
 ```yaml
-env_file: <path/to/your/api_keys.txt>
-api_key_name: <api_key_name_for_your_embedding_model>
+env_file: path/to/your/api_keys.txt
+api_key_name: api_key_name_for_your_embedding_model
 embed_backend_type: huggingface_inference_api
-embed_base_url: <base_url_of_your_embedding_model>
-embed_model_name: <model_name_or_identifier_of_your_embedding_model>
+embed_base_url: base_url_of_your_embedding_model
+embed_model_name: model_name_or_identifier_of_your_embedding_model
 # path to your knowledge base that is used to 
 # create the index of your knowledge base
-document_input_dir: <path/to/your/knowledge_base>
+document_input_dir: path/to/your/knowledge_base
 # path to the directory where the index is stored
-index_persist_path: <path/to/your/index>
+index_persist_path: path/to/your/index
 ```
 
 **Clarifications:**
@@ -84,11 +84,11 @@ from evidence_seeker import EvidenceSeeker
 import asyncio
 
 pipeline = EvidenceSeeker(
-    retrieval_config_file="<path/to/retrieval_config.yaml>",
-    confirmation_analysis_config_file="<path/to/confirmation_analysis_config.yaml>",
-    preprocessing_config_file="<path/to/preprocessing_config.yaml>",
+    retrieval_config_file="path/to/retrieval_config.yaml",
+    confirmation_analysis_config_file="path/to/confirmation_analysis_config.yaml",
+    preprocessing_config_file="path/to/preprocessing_config.yaml",
 )
 # run the pipeline
-results = asyncio.run(pipeline("<your statement to fact-check>"))
+results = asyncio.run(pipeline("your statement to fact-check"))
 
 ```

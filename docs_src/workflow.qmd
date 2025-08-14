@@ -30,7 +30,7 @@ These distinctions are crucial for fact-checking: Descriptive statements can typ
 
 ### The Preprocessor in Detail
 
-Figure @fig-preprocessor depicts the preprocessor's internal pipeline. Each process node represents a step, in which the language model is instructed to analyse the input in a specific way: For each statement type, the model is first asked to find interpretations of this type and then to list them in a structured way. Then, the model is prompted to formulate the negation for each found interpretation. The resulting interpretation pairs (each pair consisting of a found interpretation and its negation) represent the preprocessor's output, which is the input for the retriever component.
+@fig-preprocessor depicts the preprocessor's internal pipeline. Each process node represents a step, in which the language model is instructed to analyse the input in a specific way: For each statement type, the model is first asked to find interpretations of this type and then to list them in a structured way. Then, the model is prompted to formulate the negation for each found interpretation. The resulting interpretation pairs (each pair consisting of a found interpretation and its negation) represent the preprocessor's output, which is the input for the retriever component.
 
 ::: {#fig-preprocessor}
 

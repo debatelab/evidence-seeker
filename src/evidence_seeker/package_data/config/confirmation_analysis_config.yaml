@@ -5,29 +5,29 @@ description: Configuration of EvidenceSeeker's confirmation analyzer component.
 # "env_file" to load environment 
 # variables for API keys from a file.
 # The file should contain lines of the following format:
-# <YOUR_API_KEY_NAME>=<your_api_key_value>
+# YOUR_API_KEY_NAME=your_api_key_value
 env_file: "./config/api_keys.txt"
 timeout: 900
-used_model_key: <key_model_one>
+used_model_key: key_model_one
 # Configuration of language models for the component (you can configure different models)
 models:
-  <key_model_one>:
+  key_model_one:
     api_key_name: API_TOKEN_LANGUAGE_MODEL
-    backend_type: <backend_type_of_your_model>
-    base_url: <your_base_url>
-    description: <description_of_your_model>
+    backend_type: backend_type_of_your_model
+    base_url: your_base_url
+    description: description_of_your_model
     max_tokens: 1024
-    model: <your_model_identifier>
-    name: <your_model_name>
+    model: your_model_identifier
+    name: your_model_name
     temperature: 0.2
     timeout: 260
-  <key_model_two>:
+  key_model_two:
     api_key_name: API_TOKEN_LANGUAGE_MODEL
-    backend_type: <backend_type_of_your_model>
-    base_url: <your_base_url>
-    description: <description_of_your_model>
+    backend_type: backend_type_of_your_model
+    base_url: your_base_url
+    description: description_of_your_model
     max_tokens: 1024
-    model: <your_model_identifier>
-    name: <your_model_name>
+    model: your_model_identifier
+    name: your_model_name
     temperature: 0.2
     timeout: 260

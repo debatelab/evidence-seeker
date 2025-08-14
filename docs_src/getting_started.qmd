@@ -52,7 +52,8 @@ Generating a directory structure might be helpful before you begin configuring y
 The *EvidenceSeeker* boilerplate comes with a command line interface---the `evse` cli---that can create a directory structure for your *EvidenceSeeker* instance. Calling the `evse` cli with:
 
 ```bash
-evse init --name <name_of_your_evidence_seeker>
+evse init --name name_of_your_evidence_seeker
+cd name_of_your_evidence_seeker
 ```
 will create the following directory structure in the current working directory, and will contain configuration files with default values. 
 

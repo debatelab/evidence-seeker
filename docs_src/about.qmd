@@ -18,14 +18,13 @@ KIdeKu is funded by the *Federal Ministry of Education, Family Affairs, Senior C
 
 ## 🙏 Acknowledgements
 
-###  🛠️ Used third-party tools
+## 🛠️ Powered By
 
- *EvidenceSeeker Boilerplate* would not be possible without the fantastic open source community and relies on the following libraries, amongst others:
-
-- **[LLamaIndex](https://docs.llamaindex.ai/en/stable/)** for the implementation of the workflow.
-- **[Pydantic](https://pydantic.dev/)** for modeling the configs.
-
-All other dependencies are documented in the `pyproject.toml` file in our  [GitHub repo](https://github.com/debatelab/evidence-seeker).
+- **[LlamaIndex](https://docs.llamaindex.ai/)**: Workflow orchestration and document processing
+- **[Gradio](https://gradio.app/)**: Interactive web interface
+- **[Pydantic](https://pydantic.dev/)**: Data validation and configuration management
+- **[Sentence Transformers](https://www.sbert.net/)**: Document embeddings
+- **[Hugging Face](https://huggingface.co/)**: Model hosting and deployment
 
 ### 🤝 Collaborations
 

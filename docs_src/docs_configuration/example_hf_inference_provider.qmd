@@ -19,18 +19,18 @@ The retriever component can be configured with the following YAML configuration 
 embed_backend_type: huggingface_inference_api
 embed_model_name: sentence-transformers/paraphrase-multilingual-mpnet-base-v2
 embed_base_url: https://router.huggingface.co/hf-inference/models/sentence-transformers/paraphrase-multilingual-mpnet-base-v2
-env_file: <path/to/your/api_keys.txt>
+env_file: path/to/your/api_keys.txt
 # token name for API model access
-api_key_name: <your_api_key_name>
-# bill_to: <your_hugging_face_organisation>
+api_key_name: your_api_key_name
+# bill_to: your_hugging_face_organisation
 # Hugging Face Hub Path (optional), from where the index can be loaded. We use
 # EvidenceSeeker's example index hub path: DebateLabKIT/apuz-index-es
 # see: https://huggingface.co/datasets/DebateLabKIT/apuz-index-es
-index_hub_path: <hugging_face_hub_index_path>
+index_hub_path: hugging_face_hub_index_path
 # token name for accessing index from Hugging Face Hub
-hub_key_name: <your_hub_key_name>
+hub_key_name: your_hub_key_name
 # Path where the index is stored locally and/or loaded from.
-index_persist_path: <path/for/storing/the/index>
+index_persist_path: path/for/storing/the/index
 ```
 
 **Clarifications:**
@@ -64,7 +64,7 @@ TODO: Update model
 ```yaml
 # timeout for the whole preprocessor pipeline
 timeout: 1200
-env_file: <path/to/your/api_keys.txt>
+env_file: path/to/your/api_keys.txt
 used_model_key: Llama-3.3-70B-Instruct
 models:
   Llama-3.3-70B-Instruct:
@@ -75,7 +75,7 @@ models:
     api_key_name: hf_debatelab_inference_provider
     backend_type: openai
     default_headers: 
-      X-HF-Bill-To: <your_hugging_face_organisation>
+      X-HF-Bill-To: your_hugging_face_organisation
     max_tokens: 1024
     temperature: 0.2
     # timeout for each request to the model
@@ -111,7 +111,7 @@ With the retriever, preprocessor, and confirmation analyser components configure
 from evidence_seeker import EvidenceSeeker
 
 input = (
-    "<The claim you want to check>"
+    "The claim you want to check"
 )
 
 pipeline = EvidenceSeeker(
