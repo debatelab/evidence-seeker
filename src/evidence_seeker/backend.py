@@ -159,7 +159,7 @@ class OpenAILikeWithGuidance(OpenAILike):
         )
 
 
-# TODO: Move to config classes and use pydantic validators
+# TODO (@Leonie): If possible, move to config classes and use pydantic validators
 def _validate_guidance_params(
             json_schema: str | Dict[str, Any] | None = None,
             output_cls: Type[pydantic.BaseModel] = None,

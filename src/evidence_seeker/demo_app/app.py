@@ -37,7 +37,7 @@ ui = APP_CONFIG.ui_texts[APP_CONFIG.language]
 UI_TEST_MODE = os.getenv("UI_TEST_MODE", False)
 
 # used for UI_TEST_MODE
-# TODO: provide the following dummy instance via util.py:
+# TODO (@Leonie): provide the following dummy instance via util.py:
 # dummy claims, docs and dumy evse result
 _dummy_docs = [
     Document(

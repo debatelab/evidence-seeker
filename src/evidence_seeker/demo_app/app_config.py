@@ -51,6 +51,8 @@ class AppConfig(pydantic.BaseModel):
     }
     # Multi-language UI texts
     ui_texts: dict[str, dict[str, str]] = {
+        # TODO (@Leonie): Better not as dict but "proper" Pydantic Objet. (Idea: We want allow to overwrite
+        # and/or set default values in config files without having to (re)specify all ui-texts)
         "de": {
             "title": "🕵️‍♀️ EvidenceSeeker DemoApp",
             "info": textwrap.dedent("""
@@ -179,7 +181,7 @@ class AppConfig(pydantic.BaseModel):
 
         },
         "en": {
-            # TODO: Check & Revise
+            # TODO (@Leonie): Check & Revise for en lang setting
             "title": "🕵️‍♀️ EvidenceSeeker DemoApp",
             "description": "Enter a statement in the text field and have it checked by EvidenceSeeker:",
             "statement_label": "Statement to check:",

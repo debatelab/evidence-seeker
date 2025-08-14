@@ -14,7 +14,7 @@ from evidence_seeker.retrieval.base import DocumentRetriever
 
 class EvidenceSeeker:
 
-    # TODO: Refactor: Work with explicitly defined arguments
+    # TODO (@Leonie): Refactor: Work with explicitly defined arguments
     def __init__(self, **kwargs):
 
         if "preprocessing_config" in kwargs:
