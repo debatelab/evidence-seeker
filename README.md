@@ -85,7 +85,7 @@ evse demo-app
 - **Documentation**: Comprehensive guides and API documentation
 - **Example Data**: Sample knowledge base and configurations
 
-## 🔬 Powered By
+## 🛠️ Powered By
 
 - **[LlamaIndex](https://docs.llamaindex.ai/)**: Workflow orchestration and document processing
 - **[Gradio](https://gradio.app/)**: Interactive web interface
