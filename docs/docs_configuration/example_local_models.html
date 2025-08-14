@@ -304,15 +304,15 @@ window.Quarto = {
 <p>The retriever component can be configured with the following YAML configuration file:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">embed_backend_type</span><span class="kw">:</span><span class="at"> huggingface</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">embed_model_name</span><span class="kw">:</span><span class="at"> sentence-transformers/paraphrase-multilingual-mpnet-base-v2</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">env_file</span><span class="kw">:</span><span class="at"> &lt;path/to/your/api_keys.txt&gt;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">env_file</span><span class="kw">:</span><span class="at"> path/to/your/api_keys.txt</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Hugging Face Hub Path (optional), from where the index can be loaded. We use</span></span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># EvidenceSeeker's example index hub path: DebateLabKIT/apuz-index-es</span></span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># see: https://huggingface.co/datasets/DebateLabKIT/apuz-index-es</span></span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">index_hub_path</span><span class="kw">:</span><span class="at"> DebateLabKIT/apuz-index-es</span></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># token name for accessing index from Hugging Face Hub</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">hub_key_name</span><span class="kw">:</span><span class="at"> &lt;your_hub_key_name&gt;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">hub_key_name</span><span class="kw">:</span><span class="at"> your_hub_key_name</span></span>
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Path where the index is stored locally and/or loaded from.</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">index_persist_path</span><span class="kw">:</span><span class="at"> &lt;path/for/storing/the/index&gt;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">index_persist_path</span><span class="kw">:</span><span class="at"> path/for/storing/the/index</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p><strong>Clarifications:</strong></p>
 <ul>
 <li>Setting <code>embed_backend_type</code> to <code>huggingface</code> tells the retriever component to use the Hugging Face Transformers library to load the embedding model locally.</li>

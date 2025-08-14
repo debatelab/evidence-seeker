@@ -311,7 +311,8 @@ TODO: Do we actually support the latest Python?
 <h3 class="anchored" data-anchor-id="preparation">3. Preparation</h3>
 <p>Generating a directory structure might be helpful before you begin configuring your <em>EvidenceSeeker</em> instance. There, you can put your configuration files, the knowledge base, the index, and possibly other resources. This is not strictly necessary as long as you specify the different locations in the configuration files.</p>
 <p>The <em>EvidenceSeeker</em> boilerplate comes with a command line interface—the <code>evse</code> cli—that can create a directory structure for your <em>EvidenceSeeker</em> instance. Calling the <code>evse</code> cli with:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">evse</span> init <span class="at">--name</span> <span class="op">&lt;</span>name_of_your_evidence_seeker<span class="op">&gt;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">evse</span> init <span class="at">--name</span> name_of_your_evidence_seeker</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> name_of_your_evidence_seeker</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>will create the following directory structure in the current working directory, and will contain configuration files with default values.</p>
 <pre class="text"><code>name_of_your_evidence_seeker/
 ├── config/ # Directory for configuration files

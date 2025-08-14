@@ -269,18 +269,18 @@ TODO: Currently, the 70B model is not available due to imprecise pricing over to
 <div class="sourceCode" id="cb1"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">embed_backend_type</span><span class="kw">:</span><span class="at"> huggingface_inference_api</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">embed_model_name</span><span class="kw">:</span><span class="at"> sentence-transformers/paraphrase-multilingual-mpnet-base-v2</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">embed_base_url</span><span class="kw">:</span><span class="at"> https://router.huggingface.co/hf-inference/models/sentence-transformers/paraphrase-multilingual-mpnet-base-v2</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">env_file</span><span class="kw">:</span><span class="at"> &lt;path/to/your/api_keys.txt&gt;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">env_file</span><span class="kw">:</span><span class="at"> path/to/your/api_keys.txt</span></span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># token name for API model access</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">api_key_name</span><span class="kw">:</span><span class="at"> &lt;your_api_key_name&gt;</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># bill_to: &lt;your_hugging_face_organisation&gt;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">api_key_name</span><span class="kw">:</span><span class="at"> your_api_key_name</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># bill_to: your_hugging_face_organisation</span></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Hugging Face Hub Path (optional), from where the index can be loaded. We use</span></span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># EvidenceSeeker's example index hub path: DebateLabKIT/apuz-index-es</span></span>
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># see: https://huggingface.co/datasets/DebateLabKIT/apuz-index-es</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">index_hub_path</span><span class="kw">:</span><span class="at"> &lt;hugging_face_hub_index_path&gt;</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">index_hub_path</span><span class="kw">:</span><span class="at"> hugging_face_hub_index_path</span></span>
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co"># token name for accessing index from Hugging Face Hub</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">hub_key_name</span><span class="kw">:</span><span class="at"> &lt;your_hub_key_name&gt;</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">hub_key_name</span><span class="kw">:</span><span class="at"> your_hub_key_name</span></span>
 <span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Path where the index is stored locally and/or loaded from.</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="fu">index_persist_path</span><span class="kw">:</span><span class="at"> &lt;path/for/storing/the/index&gt;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="fu">index_persist_path</span><span class="kw">:</span><span class="at"> path/for/storing/the/index</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p><strong>Clarifications:</strong></p>
 <ul>
 <li><code>embed_backend_type</code> is set to <code>huggingface_inference_api</code> to use Hugging Face’s Inference Provider. For alternatives, see <a href="../docs_configuration/advanced_configuration.html#embedding-model">here</a>.</li>
@@ -308,7 +308,7 @@ TODO: Update model
 -->
 <div class="sourceCode" id="cb3"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># timeout for the whole preprocessor pipeline</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">timeout</span><span class="kw">:</span><span class="at"> </span><span class="dv">1200</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">env_file</span><span class="kw">:</span><span class="at"> &lt;path/to/your/api_keys.txt&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">env_file</span><span class="kw">:</span><span class="at"> path/to/your/api_keys.txt</span></span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">used_model_key</span><span class="kw">:</span><span class="at"> Llama-3.3-70B-Instruct</span></span>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">models</span><span class="kw">:</span></span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">Llama-3.3-70B-Instruct</span><span class="kw">:</span></span>
@@ -319,7 +319,7 @@ TODO: Update model
 <span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">api_key_name</span><span class="kw">:</span><span class="at"> hf_debatelab_inference_provider</span></span>
 <span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">backend_type</span><span class="kw">:</span><span class="at"> openai</span></span>
 <span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">default_headers</span><span class="kw">:</span><span class="at"> </span></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">X-HF-Bill-To</span><span class="kw">:</span><span class="at"> &lt;your_hugging_face_organisation&gt;</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">X-HF-Bill-To</span><span class="kw">:</span><span class="at"> your_hugging_face_organisation</span></span>
 <span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">max_tokens</span><span class="kw">:</span><span class="at"> </span><span class="dv">1024</span></span>
 <span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">temperature</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.2</span></span>
 <span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="co">    # timeout for each request to the model</span></span>
@@ -347,7 +347,7 @@ TODO: Update model
 <div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> evidence_seeker <span class="im">import</span> EvidenceSeeker</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="bu">input</span> <span class="op">=</span> (</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"&lt;The claim you want to check&gt;"</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"The claim you want to check"</span></span>
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>pipeline <span class="op">=</span> EvidenceSeeker(</span>

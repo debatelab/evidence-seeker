@@ -282,24 +282,24 @@ Requirements for Minimal Configuration
 <section id="preprocessor-and-confirmation-analyser" class="level2">
 <h2 class="anchored" data-anchor-id="preprocessor-and-confirmation-analyser">Preprocessor and Confirmation Analyser</h2>
 <p>You can configure the language models and API keys via the configuration files for both the preprocessor and the confirmation-analysis component in the following way: Create two files, <code>preprocessor_config.yaml</code> and/or <code>confirmation_analysis_config.yaml</code>, with the following content:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">used_model_key</span><span class="kw">:</span><span class="at"> &lt;your_model_identifier&gt;</span></span>
+<div class="sourceCode" id="cb1"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">used_model_key</span><span class="kw">:</span><span class="at"> your_model_identifier</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># optional, if you want to use a file for setting up API keys</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">env_file</span><span class="kw">:</span><span class="at"> &lt;path/to/your/api_keys.txt&gt;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">env_file</span><span class="kw">:</span><span class="at"> path/to/your/api_keys.txt</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">models</span><span class="kw">:</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">&lt;your_model_identifier&gt;</span><span class="kw">:</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">api_key_name</span><span class="kw">:</span><span class="at"> &lt;name_of_your_api_key&gt;</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">backend_type</span><span class="kw">:</span><span class="at"> &lt;backend_type_of_your_model&gt;</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">base_url</span><span class="kw">:</span><span class="at"> &lt;base_url_of_your_language_model&gt;</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">description</span><span class="kw">:</span><span class="at"> &lt;description_of_your_model&gt;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">your_model_identifier</span><span class="kw">:</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">api_key_name</span><span class="kw">:</span><span class="at"> name_of_your_api_key</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">backend_type</span><span class="kw">:</span><span class="at"> backend_type_of_your_model</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">base_url</span><span class="kw">:</span><span class="at"> base_url_of_your_language_model</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">description</span><span class="kw">:</span><span class="at"> description_of_your_model</span></span>
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">max_tokens</span><span class="kw">:</span><span class="at"> </span><span class="dv">1024</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">model</span><span class="kw">:</span><span class="at"> &lt;model_name_or_identifier&gt;</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> &lt;name_of_your_model&gt;</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">model</span><span class="kw">:</span><span class="at"> model_name_or_identifier</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> name_of_your_model</span></span>
 <span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">temperature</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.2</span></span>
 <span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">timeout</span><span class="kw">:</span><span class="at"> </span><span class="dv">260</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p><strong>Clarifications:</strong></p>
 <ul>
-<li>Both <code>&lt;your_model_identifier&gt;</code> and <code>&lt;name_of_your_model&gt;</code> are arbitrary identifiers that you can choose.</li>
-<li>Both components expect the API key to be set as an environment variable with the name specified by <code>api_key_name</code>. If you use a file with environment variables via <code>env_file</code>, the file should contain a line like this: <code>&lt;name_of_your_api_key&gt;=&lt;your_api_key&gt;</code>. Alternatively, you can set the environment variable directly in your shell or script before running the EvidenceSeeker pipeline.
+<li>Both <code>your_model_identifier</code> and <code>name_of_your_model</code> are arbitrary identifiers that you can choose.</li>
+<li>Both components expect the API key to be set as an environment variable with the name specified by <code>api_key_name</code>. If you use a file with environment variables via <code>env_file</code>, the file should contain a line like this: <code>name_of_your_api_key=your_api_key</code>. Alternatively, you can set the environment variable directly in your shell or script before running the EvidenceSeeker pipeline.
 <ul>
 <li>If you do not need an API key (e.g., if you use a local model), you can omit the <code>env_file</code> and <code>api_key_name</code> parameters.</li>
 </ul></li>
@@ -317,16 +317,16 @@ Requirements for Minimal Configuration
 <section id="retriever-component" class="level2">
 <h2 class="anchored" data-anchor-id="retriever-component">Retriever Component</h2>
 <p>The retriever component uses an embedding model to create and search your indexed knowledge base. It can be minimally configured in a similar way:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">env_file</span><span class="kw">:</span><span class="at"> &lt;path/to/your/api_keys.txt&gt;</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">api_key_name</span><span class="kw">:</span><span class="at"> &lt;api_key_name_for_your_embedding_model&gt;</span></span>
+<div class="sourceCode" id="cb2"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">env_file</span><span class="kw">:</span><span class="at"> path/to/your/api_keys.txt</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">api_key_name</span><span class="kw">:</span><span class="at"> api_key_name_for_your_embedding_model</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">embed_backend_type</span><span class="kw">:</span><span class="at"> huggingface_inference_api</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">embed_base_url</span><span class="kw">:</span><span class="at"> &lt;base_url_of_your_embedding_model&gt;</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">embed_model_name</span><span class="kw">:</span><span class="at"> &lt;model_name_or_identifier_of_your_embedding_model&gt;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">embed_base_url</span><span class="kw">:</span><span class="at"> base_url_of_your_embedding_model</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">embed_model_name</span><span class="kw">:</span><span class="at"> model_name_or_identifier_of_your_embedding_model</span></span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"># path to your knowledge base that is used to </span></span>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># create the index of your knowledge base</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">document_input_dir</span><span class="kw">:</span><span class="at"> &lt;path/to/your/knowledge_base&gt;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">document_input_dir</span><span class="kw">:</span><span class="at"> path/to/your/knowledge_base</span></span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co"># path to the directory where the index is stored</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu">index_persist_path</span><span class="kw">:</span><span class="at"> &lt;path/to/your/index&gt;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu">index_persist_path</span><span class="kw">:</span><span class="at"> path/to/your/index</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p><strong>Clarifications:</strong></p>
 <p>Both <code>embed_base_url</code> and <code>embed_model_name</code> are important since they specify the endpoint and model. If you use embedding models hosted by HuggingFace and choose, for instance, <a href="https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2">sentence-transformers/paraphrase-multilingual-mpnet-base-v2</a> as the model, you would set:</p>
 <ul>
@@ -341,12 +341,12 @@ Requirements for Minimal Configuration
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> asyncio</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>pipeline <span class="op">=</span> EvidenceSeeker(</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    retrieval_config_file<span class="op">=</span><span class="st">"&lt;path/to/retrieval_config.yaml&gt;"</span>,</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    confirmation_analysis_config_file<span class="op">=</span><span class="st">"&lt;path/to/confirmation_analysis_config.yaml&gt;"</span>,</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    preprocessing_config_file<span class="op">=</span><span class="st">"&lt;path/to/preprocessing_config.yaml&gt;"</span>,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    retrieval_config_file<span class="op">=</span><span class="st">"path/to/retrieval_config.yaml"</span>,</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    confirmation_analysis_config_file<span class="op">=</span><span class="st">"path/to/confirmation_analysis_config.yaml"</span>,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    preprocessing_config_file<span class="op">=</span><span class="st">"path/to/preprocessing_config.yaml"</span>,</span>
 <span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co"># run the pipeline</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> asyncio.run(pipeline(<span class="st">"&lt;your statement to fact-check&gt;"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> asyncio.run(pipeline(<span class="st">"your statement to fact-check"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 
 </section>

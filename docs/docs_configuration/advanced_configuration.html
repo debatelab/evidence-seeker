@@ -271,7 +271,7 @@ window.Quarto = {
   <ul class="collapse">
   <li><a href="#default-step-configuration" id="toc-default-step-configuration" class="nav-link" data-scroll-target="#default-step-configuration">Default Step Configuration</a></li>
   <li><a href="#guidance" id="toc-guidance" class="nav-link" data-scroll-target="#guidance">Guidance</a></li>
-  <li><a href="#logprobs" id="toc-logprobs" class="nav-link" data-scroll-target="#logprobs">Logprobs</a></li>
+  <li><a href="#log-probablities" id="toc-log-probablities" class="nav-link" data-scroll-target="#log-probablities">Log Probablities</a></li>
   </ul></li>
   </ul></li>
   <li><a href="#api-keys" id="toc-api-keys" class="nav-link" data-scroll-target="#api-keys">API Keys</a></li>
@@ -311,7 +311,7 @@ window.Quarto = {
 <p>For the retriever component, you can configure the used <strong>embedding model</strong> and the <strong>knowledge base</strong> used for fact-checking.</p>
 <section id="embedding-model" class="level3">
 <h3 class="anchored" data-anchor-id="embedding-model">Embedding Model</h3>
-<p>The used <strong>embedding model</strong> via the <code>embed_backend_type</code>, <code>embed_base_url</code>, and <code>embed_model_name</code> parameters.</p>
+<p>The used <strong>embedding model</strong> can be configured via the <code>embed_backend_type</code>, <code>embed_base_url</code>, and <code>embed_model_name</code> parameters.</p>
 <ul>
 <li>As <code>embed_backend_type</code>, you can choose between
 <ul>
@@ -356,33 +356,33 @@ window.Quarto = {
 <p>In your configuration YAML files, you can define the models in the following way:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">models</span><span class="kw">:</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">your_first_model</span><span class="kw">:</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">api_key_name</span><span class="kw">:</span><span class="at"> &lt;your_api_key_name&gt;</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">backend_type</span><span class="kw">:</span><span class="at"> &lt;backend_type_of_your_model&gt;</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">base_url</span><span class="kw">:</span><span class="at"> &lt;your_base_url&gt;</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">description</span><span class="kw">:</span><span class="at"> &lt;description_of_your_model&gt;</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">model</span><span class="kw">:</span><span class="at"> &lt;your_model_identifier&gt;</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> &lt;your_model_name&gt;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">api_key_name</span><span class="kw">:</span><span class="at"> your_api_key_name</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">backend_type</span><span class="kw">:</span><span class="at"> backend_type_of_your_model</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">base_url</span><span class="kw">:</span><span class="at"> your_base_url</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">description</span><span class="kw">:</span><span class="at"> description_of_your_model</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">model</span><span class="kw">:</span><span class="at"> your_model_identifier</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> your_model_name</span></span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">    # some optional parameters</span></span>
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">temperature</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.2</span></span>
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">timeout</span><span class="kw">:</span><span class="at"> </span><span class="dv">260</span></span>
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">max_tokens</span><span class="kw">:</span><span class="at"> </span><span class="dv">1024</span></span>
 <span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">your_second_model</span><span class="kw">:</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">api_key_name</span><span class="kw">:</span><span class="at"> &lt;your_api_key_name&gt;</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">backend_type</span><span class="kw">:</span><span class="at"> &lt;backend_type_of_your_model&gt;</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">base_url</span><span class="kw">:</span><span class="at"> &lt;your_base_url&gt;</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">description</span><span class="kw">:</span><span class="at"> &lt;description_of_your_model&gt;</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">model</span><span class="kw">:</span><span class="at"> &lt;your_model_identifier&gt;</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> &lt;your_model_name&gt;</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">api_key_name</span><span class="kw">:</span><span class="at"> your_api_key_name</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">backend_type</span><span class="kw">:</span><span class="at"> backend_type_of_your_model</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">base_url</span><span class="kw">:</span><span class="at"> your_base_url</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">description</span><span class="kw">:</span><span class="at"> description_of_your_model</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">model</span><span class="kw">:</span><span class="at"> your_model_identifier</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> your_model_name</span></span>
 <span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="co">    # some optional parameters</span></span>
 <span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">temperature</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.2</span></span>
 <span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">timeout</span><span class="kw">:</span><span class="at"> </span><span class="dv">260</span></span>
 <span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">max_tokens</span><span class="kw">:</span><span class="at"> </span><span class="dv">1024</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p><code>&lt;your_first_model&gt;</code> and <code>&lt;your_second_model&gt;</code> are arbitrary identifiers for the models you use in your config to specify which model to use for which step of the pipeline. You can assign a defined model, say <code>&lt;your_global_model&gt;</code>, as “global” model via</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">used_model_key</span><span class="kw">:</span><span class="at"> &lt;your_global_model&gt;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p><code>your_first_model</code> and <code>your_second_model</code> are arbitrary identifiers for the models you use in your config to specify which model to use for which step of the pipeline. You can assign a defined model, say <code>your_global_model</code>, as “global” model via</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">used_model_key</span><span class="kw">:</span><span class="at"> your_global_model</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>that is used for all pipeline steps that do not have a specific model attached via their step configuration (see below).</p>
 <p><strong>Further clarifications:</strong></p>
 <ul>
-<li><strong>API Keys:</strong> The <em>EvidenceSeeker</em> expects API keys to be set as environment variables with the name specified by <code>api_key_name</code> for each model. If you use a file with environment variables via <code>env_file</code>, the file should contain a line like this: <code>&lt;name_of_your_api_key&gt;=&lt;your_api_key&gt;</code>. Alternatively, you can set the environment variable directly in your shell or script before running the EvidenceSeeker pipeline (see <a href="#api-keys">below</a>).
+<li><strong>API Keys:</strong> The <em>EvidenceSeeker</em> expects API keys to be set as environment variables with the name specified by <code>api_key_name</code> for each model. If you use a file with environment variables via <code>env_file</code>, the file should contain a line like this: <code>name_of_your_api_key=your_api_key</code>. Alternatively, you can set the environment variable directly in your shell or script before running the EvidenceSeeker pipeline (see <a href="#api-keys">below</a>).
 <ul>
 <li>If you do not need an API key (e.g., if you use a local model), you can omit the <code>env_file</code> and <code>api_key_name</code> parameters.</li>
 </ul></li>
@@ -409,27 +409,27 @@ window.Quarto = {
 <section id="step-configurations" class="level3">
 <h3 class="anchored" data-anchor-id="step-configurations">Step Configurations</h3>
 <p>The preprocessor and the confirmation analysis components have several steps that can be configured independently. You can specify the model for each step via the <code>used_model_key</code> parameter.</p>
-<p>Additionally, most of the step specific configuration parameters can be defined in a model-specific way. In this way, you can easily switch between different models for different steps of the pipeline and optimise the performance of each step for different models. For instance, you can provide different prompt templates for each step, optimised for different models.</p>
+<p>Additionally, most of the step-specific configuration parameters can be defined in a model-specific way. In this way, you can easily switch between different models for different steps of the pipeline and optimise the performance of each step for different models. For instance, you can provide different prompt templates for each step, optimised for different models.</p>
 <p>A typical step configuration within your config file would look like this:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">&lt;step_identifier&gt;</span><span class="kw">:</span></span>
+<div class="sourceCode" id="cb3"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">step_identifier</span><span class="kw">:</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">description</span><span class="kw">:</span><span class="at"> Instruct the model to do ...</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">name</span><span class="kw">:</span><span class="at"> &lt;step_name&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">name</span><span class="kw">:</span><span class="at"> step_name</span></span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">  # defining the model to use for this step</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">used_model_key</span><span class="kw">:</span><span class="at"> &lt;your_model_identifier&gt;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">used_model_key</span><span class="kw">:</span><span class="at"> your_model_identifier</span></span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">llm_specific_configs</span><span class="kw">:</span></span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co">    # default configuration for the step</span></span>
 <span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">default</span><span class="kw">:</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">prompt_template</span><span class="kw">:</span><span class="at"> &lt;your_default_prompt_template&gt;</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">system_prompt</span><span class="kw">:</span><span class="at"> &lt;your_default_step_system_prompt&gt;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">prompt_template</span><span class="kw">:</span><span class="at"> your_default_prompt_template</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">system_prompt</span><span class="kw">:</span><span class="at"> your_default_step_system_prompt</span></span>
 <span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="at">      ...</span></span>
 <span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co">    # configuration for a specific model that </span></span>
 <span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co">    # is used for this step, if the model is specified</span></span>
 <span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="co">    # via the `used_model_key` parameter</span></span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">&lt;your_model_identifier&gt;</span><span class="kw">:</span></span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">prompt_template</span><span class="kw">:</span><span class="at"> &lt;your_model_specific_prompt_template&gt;</span></span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">system_prompt</span><span class="kw">:</span><span class="at"> &lt;your_model_specific_step_system_prompt&gt;</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">your_model_identifier</span><span class="kw">:</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">prompt_template</span><span class="kw">:</span><span class="at"> your_model_specific_prompt_template</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">system_prompt</span><span class="kw">:</span><span class="at"> your_model_specific_step_system_prompt</span></span>
 <span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="at">      ...</span></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">&lt;alternative_model_identifier&gt;</span><span class="kw">:</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">alternative_model_identifier</span><span class="kw">:</span></span>
 <span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="at">      ...</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <section id="default-step-configuration" class="level4">
 <h4 class="anchored" data-anchor-id="default-step-configuration">Default Step Configuration</h4>
@@ -450,9 +450,9 @@ window.Quarto = {
 </ul></li>
 </ul>
 </section>
-<section id="logprobs" class="level4">
-<h4 class="anchored" data-anchor-id="logprobs">Logprobs</h4>
-<p>The confirmation analyser component uses <em>logprobs</em> (also known as ‘logits’) to calculate the degree of confirmation for statements based on found evidence items in the knowledge base (see <a href="../workflow.html# confirmation-analyser">here</a> for details). If the chosen model does not support the retrieval of logprobs, the EvidenceSeeker pipeline can estimate logprobs by repeating inference requests and taking the frequency of answers to estimate the logprobs.</p>
+<section id="log-probablities" class="level4">
+<h4 class="anchored" data-anchor-id="log-probablities">Log Probablities</h4>
+<p>Language models use log probabilities (in short: logprobs) to decide which token to generate next. The are calculated by taking the natural logarithm over the probability distribution of next tokens. The confirmation analyser component uses these to calculate the degree of confirmation for statements based on found evidence items in the knowledge base (see <a href="../workflow.html#confirmation-analyser">here</a> for details). If the chosen model does not support the retrieval of logprobs, the EvidenceSeeker pipeline can estimate logprobs by repeating inference requests and taking the frequency of answers to estimate the logprobs.</p>
 <p>This is done by setting the <code>logprobs_type</code> parameter in the step configuration to <code>estimate</code> and setting the number of repetitions <code>n_repetitions_mcq</code> to at least <span class="math inline">\(30\)</span>. The default value for <code>logprobs_type</code> is <code>openai_like</code>, which assumes that logprobs are returned in a <a href="https://platform.openai.com/docs/api-reference/chat/create">format consistent with the OpenAI API</a>.</p>
 <div class="callout callout-style-default callout-warning callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -477,11 +477,11 @@ Warning
 <ol type="1">
 <li>You set these environment variables directly in your shell or script before running the EvidenceSeeker pipeline. For example, in a Unix-like shell, you can set an environment variable like this:</li>
 </ol>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>   <span class="bu">export</span> <span class="op">&lt;</span>YOUR_API_KEY_NAME<span class="op">&gt;</span>=<span class="op">&lt;</span>your_api_key_value<span class="op">&gt;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>   <span class="bu">export</span> <span class="va">YOUR_API_KEY_NAME</span><span class="op">=</span>your_api_key_value</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <ol start="2" type="1">
 <li>You can use a file with environment variables specified in the configuration files via <code>env_file</code> (see above). This file should contain lines like this:</li>
 </ol>
-<div class="sourceCode" id="cb5"><pre class="sourceCode txt code-with-copy"><code class="sourceCode default"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>&lt;YOUR_API_KEY_NAME&gt;=&lt;your_api_key_value&gt;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode txt code-with-copy"><code class="sourceCode default"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>YOUR_API_KEY_NAME=your_api_key_value</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 
 </section>
