@@ -2,8 +2,8 @@
 import os
 from typing import Type, Optional, Any, Dict
 
-from dotenv import load_dotenv
 import enum
+from llama_index.core.llms import ChatMessage
 from llama_index.llms.openai_like import OpenAILike
 from loguru import logger
 import pydantic
@@ -40,7 +40,7 @@ class OpenAILikeWithGuidance(OpenAILike):
 
     async def achat_with_guidance(
             self,
-            messages: list[str],
+            messages: list[ChatMessage],
             json_schema: str | Dict[str, Any] | None = None,
             output_cls: Type[pydantic.BaseModel] = None,
             regex_str: str | None = None,
@@ -212,11 +212,11 @@ def _validate_guidance_params(
 
 
 def get_openai_llm(
-        api_key: str = None,
-        api_key_name: str = None,
-        model: str = None,
-        base_url: str = None,
-        backend_type: str = None,
+        api_key: str | None = None,
+        api_key_name: str | None = None,
+        model: str | None = None,
+        base_url: str | None = None,
+        backend_type: str | None = None,
         is_chat_model: bool = True,
         is_local: bool = False,
         is_function_calling_model: bool = False,
