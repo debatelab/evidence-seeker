@@ -33,8 +33,8 @@ class ConfirmationAnalyzer:
         }
         return claim
 
-    @staticmethod
-    def from_config_file(config_file: str):
+    @classmethod
+    def from_config_file(cls, config_file: str):
         path = pathlib.Path(config_file)
         config = ConfirmationAnalyzerConfig(**yaml.safe_load(path.read_text()))
-        return ConfirmationAnalyzer(config=config)
+        return cls(config=config)

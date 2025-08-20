@@ -4,6 +4,8 @@ import pydantic
 from pydantic import model_validator
 from loguru import logger
 import enum
+import pathlib
+import yaml
 
 from evidence_seeker.datamodels import StatementType
 
@@ -161,3 +163,8 @@ class RetrievalConfig(pydantic.BaseModel):
             )
 
         return config
+
+    @classmethod
+    def from_config_file(cls, config_file: str):
+        path = pathlib.Path(config_file)
+        return cls(**yaml.safe_load(path.read_text()))

@@ -73,8 +73,8 @@ class ConfirmationAggregator:
 
         return claim
 
-    @staticmethod
-    def from_config_file(config_file: str):
+    @classmethod
+    def from_config_file(cls, config_file: str):
         path = pathlib.Path(config_file)
         config = ConfirmationAggregationConfig(**yaml.safe_load(path.read_text()))
-        return ConfirmationAggregator(config=config)
+        return cls(config=config)

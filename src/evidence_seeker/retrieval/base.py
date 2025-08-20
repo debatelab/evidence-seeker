@@ -291,11 +291,11 @@ class DocumentRetriever:
             claim.documents = await self.retrieve_documents(claim)
         return claim
 
-    @staticmethod
-    def from_config_file(config_file: str, **kwargs):
+    @classmethod
+    def from_config_file(cls, config_file: str, **kwargs):
         path = pathlib.Path(config_file)
         config = RetrievalConfig(**yaml.safe_load(path.read_text()))
-        return DocumentRetriever(config=config, **kwargs)
+        return cls(config=config, **kwargs)
 
 
 def _get_text_embeddings_inference_kwargs(
@@ -409,11 +409,11 @@ class IndexBuilder:
             )
         )
 
-    @staticmethod
-    def from_config_file(config_file: str):
+    @classmethod
+    def from_config_file(cls, config_file: str):
         path = pathlib.Path(config_file)
         config = RetrievalConfig(**yaml.safe_load(path.read_text()))
-        return IndexBuilder(config=config)
+        return cls(config=config)
 
     def build_index(
             self,
