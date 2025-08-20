@@ -13,10 +13,10 @@
 #     SimpleConfirmationAnalysisWorkflow
 # )
 # 
-# from .backend import (
-#     get_openai_llm,
-#     log_msg,
-# )
+from .backend import (
+    get_openai_llm,
+    OpenAILikeWithGuidance
+)
 
 from .retrieval.base import (
     DocumentRetriever,
@@ -83,7 +83,8 @@ __all__ = [
 #    "DictInitializedEvent",
 #    "DictInitializedPromptEvent",
 #    "PreprocessingSeparateListingsWorkflow",
-#    "get_openai_llm",
+    "get_openai_llm",
+    "OpenAILikeWithGuidance",
 #    "log_msg",
 #    "SimplePreprocessingWorkflow",
 #    "ConfirmationAnalyzer",
