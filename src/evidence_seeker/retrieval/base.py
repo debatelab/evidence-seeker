@@ -459,7 +459,7 @@ class IndexBuilder:
                         metadata_dict = json.load(f)
 
                     def metadata_func(file_name: str):
-                        metadata_dict.get(file_name, {})
+                        metadata_dict.get(pathlib.Path(file_name).name, {})
 
         if conf.document_input_dir:
             logger.debug(f"Reading documents from {conf.document_input_dir}")
