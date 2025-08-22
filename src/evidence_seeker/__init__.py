@@ -1,18 +1,4 @@
-# TODO: Refactor this file to only import the public API of the package.
-
-# from .preprocessing import (
-#     ClaimPreprocessor,
-#     DictInitializedEvent,
-#     DictInitializedPromptEvent,
-#     PreprocessingSeparateListingsWorkflow,
-#     SimplePreprocessingWorkflow,
-# )
-# 
-# from .confirmation_analysis import (
-#     ConfirmationAnalyzer,
-#     SimpleConfirmationAnalysisWorkflow
-# )
-# 
+# TODO: Expose additional classes as public
 from .backend import (
     get_openai_llm,
     OpenAILikeWithGuidance
@@ -63,6 +49,12 @@ from .results import (
     EvidenceSeekerResult
 )
 
+from .demo_app.app_config import (
+    UITexts,
+    MultiLanguageUITexts,
+    AppConfig,
+)
+
 # Use __all__ to let type checkers know what is part of the public API.
 __all__ = [
     "EvidenceSeeker",
@@ -79,15 +71,8 @@ __all__ = [
     "ConfirmationAnalyzerStepConfig",
     "MultipleChoiceTaskStepConfig",
     "ConfirmationAggregator",
-#    "ClaimPreprocessor",
-#    "DictInitializedEvent",
-#    "DictInitializedPromptEvent",
-#    "PreprocessingSeparateListingsWorkflow",
     "get_openai_llm",
     "OpenAILikeWithGuidance",
-#    "log_msg",
-#    "SimplePreprocessingWorkflow",
-#    "ConfirmationAnalyzer",
     "CheckedClaim",
     "Document",
     "StatementType",
@@ -95,5 +80,8 @@ __all__ = [
     "EvidenceSeekerResult",
     "result_as_markdown",
     "log_result",
-#    "SimpleConfirmationAnalysisWorkflow"
+    "UITexts",
+    "MultiLanguageUITexts",
+    "AppConfig",
+
 ]
