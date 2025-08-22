@@ -156,7 +156,6 @@ async def check(statement: str, last_result: EvidenceSeekerResult):
         checked_claims = await EVIDENCE_SEEKER(statement)
         last_result.claims = checked_claims
 
-    logger.info(f"Using gropu... {APP_CONFIG.group_docs_by_sources}")
     result = result_as_markdown(
         evse_result=last_result,
         translations=APP_CONFIG.translations[APP_CONFIG.language],
