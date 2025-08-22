@@ -156,6 +156,7 @@ def _current_subdir(subdirectory_construction: str | None) -> str:
     return subdirectory_path
 
 
+# TODO: provision of md template via argument
 def log_result(
     evse_result: EvidenceSeekerResult,
     result_dir: str = "",
