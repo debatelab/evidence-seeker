@@ -45,6 +45,8 @@ dependencies = [
   "httpx",
   "jinja2",
   "pygithub",
+  "gradio",
+  "argon2-cffi",
 ]
 
 [project.readme]
