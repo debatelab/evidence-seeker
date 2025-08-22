@@ -32,7 +32,7 @@ config_file_path = os.getenv("APP_CONFIG_FILE", None)
 if config_file_path is None:
     raise ValueError("Missing configruation file.")
 APP_CONFIG = AppConfig.from_file(config_file_path)
-ui = APP_CONFIG.ui_texts[APP_CONFIG.language]
+ui = APP_CONFIG.ui_texts.get_texts(APP_CONFIG.language)
 
 UI_TEST_MODE = os.getenv("UI_TEST_MODE", False)
 
@@ -99,11 +99,11 @@ def auth(pw: str, password_authenticated: bool):
     output = ""
     b = gr.Textbox(value="")
     if APP_CONFIG.password_env_name not in os.environ:
-        output = ui['server_error']
+        output = ui.server_error
     elif not check_password(pw, os.environ[APP_CONFIG.password_env_name]):
-        output = ui['wrong_password']
+        output = ui.wrong_password
     else:
-        output = ui['continue']
+        output = ui.continue_text
         password_authenticated = True
     return output, password_authenticated, b
 
@@ -137,8 +137,11 @@ def log_feedback(clicked_button, last_result: EvidenceSeekerResult):
 
 
 def draw_example(examples: list[str]) -> str:
-    random.shuffle(examples)
-    return examples[0]
+    if examples:
+        random.shuffle(examples)
+        return examples[0]
+    else:
+        return ""
 
 
 async def check(statement: str, last_result: EvidenceSeekerResult):
@@ -153,11 +156,12 @@ async def check(statement: str, last_result: EvidenceSeekerResult):
         checked_claims = await EVIDENCE_SEEKER(statement)
         last_result.claims = checked_claims
 
+    logger.info(f"Using gropu... {APP_CONFIG.group_docs_by_sources}")
     result = result_as_markdown(
         evse_result=last_result,
         translations=APP_CONFIG.translations[APP_CONFIG.language],
         jinja2_md_template=APP_CONFIG.md_template,
-        group_docs_by_sources=True
+        group_docs_by_sources=APP_CONFIG.group_docs_by_sources
     )
 
     logger.info(
@@ -199,7 +203,7 @@ with gr.Blocks(title="EvidenceSeeker") as evse_demo_app:
     good = gr.Button(value="👍", visible=False, interactive=False, render=False)
     bad = gr.Button(value="👎", visible=False, interactive=False, render=False)
     feedback = gr.Markdown(
-        value=ui['feedback_question'], render=False, visible=False
+        value=ui.feedback_question, render=False, visible=False
     )
 
     @gr.render(inputs=[password_authenticated, read_warning, allow_result_persistance])
@@ -210,24 +214,25 @@ with gr.Blocks(title="EvidenceSeeker") as evse_demo_app:
     ):
         if password_authenticated_val and read_warning_val:
             gr.Markdown(
-                f"# {ui['title']}\n"
+                f"# {ui.title}\n"
                 # f"{ui['info']}\n\n"
                 # f"{ui['description']}"
             )
-            gr.HTML(ui['info'])
-            gr.Markdown(ui['description'])
+            gr.HTML(ui.info)
+            gr.Markdown(ui.description)
             with gr.Row():
                 statement = gr.Textbox(
                     value="",
-                    label=ui['statement_label'],
+                    label=ui.statement_label,
                     interactive=True,
                     scale=10,
                     lines=3,
                 )
                 with gr.Column(scale=1):
-                    example_btn = gr.Button(ui['random_example'])
+
+                    example_btn = gr.Button(ui.random_example)
                     check_btn = gr.Button(
-                        ui['check_statement'],
+                        ui.check_statement,
                         interactive=False,
                     )
             result = gr.Markdown(
@@ -256,7 +261,7 @@ with gr.Blocks(title="EvidenceSeeker") as evse_demo_app:
 
             check_btn.click(deactivate, None, [check_btn, good, bad, feedback]).then(
                 (
-                    lambda: ui['checking_message']
+                    lambda: ui.checking_message
                 ),
                 None,
                 result,
@@ -274,32 +279,32 @@ with gr.Blocks(title="EvidenceSeeker") as evse_demo_app:
             example_btn.click(fn=draw_example, inputs=examples, outputs=statement)
             statement.change(
                 lambda s: (
-                    gr.Button(ui['check_statement'], interactive=False)
+                    gr.Button(ui.check_statement, interactive=False)
                     if s.strip() == ""
-                    else gr.Button(ui['check_statement'], interactive=True)
+                    else gr.Button(ui.check_statement, interactive=True)
                 ),
                 statement,
                 [check_btn],
             )
         elif password_authenticated_val:
-            gr.Markdown(f"# {ui['privacy_title']}")
-            gr.HTML(ui['disclaimer_text'])
-            gr.HTML(ui['data_policy_text'])
+            gr.Markdown(f"# {ui.privacy_title}")
+            gr.HTML(ui.disclaimer_text)
+            gr.HTML(ui.data_policy_text)
             consent_box = gr.Checkbox(
                 False,
-                label=ui['consent_text'],
-                info=ui['consent_info'],
+                label=ui.consent_text,
+                info=ui.consent_info,
             )
-            agree_button = gr.Button(ui['agree_button'])
+            agree_button = gr.Button(ui.agree_button)
             agree_button.click(
                 lambda consent_save_res: (True, consent_save_res),
                 inputs=consent_box,
                 outputs=[read_warning, allow_result_persistance]
             )
         else:
-            gr.Markdown(f"# {ui['title']}")
+            gr.Markdown(f"# {ui.title}")
             box = gr.Textbox(
-                label=ui['password_label'],
+                label=ui.password_label,
                 autofocus=True,
                 type="password",
                 submit_btn=True,

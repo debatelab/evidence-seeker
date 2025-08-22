@@ -1,7 +1,7 @@
-# For a detailed instruction of how to configure the confirmation analyzer, 
+# For a detailed instruction of how to configure the confirmation analyser, 
 # see the documentation https://debatelab.github.io/evidence-seeker.
 config_version: v0.2
-description: Configuration of EvidenceSeeker's confirmation analyzer component.
+description: Configuration of EvidenceSeeker's confirmation analyser component.
 # "env_file" to load environment 
 # variables for API keys from a file.
 # The file should contain lines of the following format:

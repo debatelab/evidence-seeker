@@ -1,60 +1,90 @@
-subdirectory_construction: null
+# configs
 confirmation_analysis_config_file: ./config/confirmation_analysis_config.yaml
 preprocessing_config_file: ./config/preprocessing_config.yaml
 retrieval_config_file: ./config/retrieval_config.yaml
-logging: True
+# display disclaimer and warning texts
+force_agreement: false
+# password protection of the app
+password_protection: false
+# Hashs of the password are expected to be found
+# as env variable
+# password_env_name: EVSE_APP_HASH
+# Logging
 local_base: .
+logging: true
 result_dir: logs
+# saving results logs to github
+write_on_github: false
+# github_token_name: GITHUB_TOKEN
+# repo_name: null
+# save markdown output as well
+save_markdown: true
+# one of 'daily','weakly', 'yearly'
+# subdirectory_construction: null
+# Output & UI
+language: en
 example_inputs:
-  de:
-  - Die Osterweiterung hat die EU-Institutionen nachhaltig geschwächt.
-  - In den knapp 70 Jahren seit ihrer Gründung hat es in der Bundeswehr immer wieder rechtsextremistische Vorfälle gegeben.
-  - In der Bundeswehr gibt es keinen politischen Extremismus.
-  - Die BRICS-Staaten sorgen für eine Veränderung der westlich geprägten Weltordnung.
-  - Die Genfer Konventionen sind oft hinter ihrem Anspruch, die Zivilbevölkerung zu schützen, zurückgeblieben.
-  - Die Anzahl hybrider Kriege hat zugenommen.
-  - Es ist für Deutschland wirtschaftlich ein Nachteil, dass viele Frauen in Teilzeit arbeiten.
-  - Premier Modi hat Putin als seinen Freund bezeichnet.
-  - Eine Minderheit der deutschen Bevölkerung befürwortet einen autoritären deutschen Staat.
+  en: []
+# Template for the results
 markdown_template:
-  de: |
-    ## Deine Eingabe:
+  en: |
+    # EvidenceSeeker Result
 
-    **"{{ statement }}"**
+    **Submitted input:** {{ statement }}
 
-    ## Analyse des EvidenceSeekers:
+    ## EvidenceSeeker Analysis
 
-    Es folgen die von der Pipeline gefundenen Interpretationen der eingegebenen Aussage und deren Bestätigungslevel bezüglich der Wissensbasis.
+    {% for clarified_claim in claims %}
 
-    {% for claim, sources in claims %}
-    ---
+    #### "{{ clarified_claim['text'] }}"
 
-    **Gefundene Interpretation:** _{{ claim.text }}_ <font color="orange">[Aussagentyp: {{ translation[claim.statement_type.value] }}e Aussage]</font>
+    **Found interpretation:** <font color="orange">{{ clarified_claim.text }}</font> [type: {{clarified_claim.statement_type.value}}]
 
-    {% if sources %}
+    **Confirmation level**: {{ clarified_claim.confirmation_level.value }}
 
-    **Bestätigungslevel**: {{ translation[claim.confirmation_level.value] }}
+    |Metric|Value|
+    |:---|---:|
+    |Average confirmation|{{ clarified_claim.average_confirmation | round(2) }}|
+    |Evidential divergence|{{ clarified_claim.evidential_uncertainty | round(2) }}|
+    |Width of evidential base|{{ clarified_claim.n_evidence }}|
 
-    <details>
-    
-    <summary>Einzelanalysen bzgl. relevanter Textstellen</summary>
-    
-    {% for doc_info in sources.values() %}
-    + **Quelle:** {{ doc_info.author }} - *{{ doc_info.title }}* ([Link]({{ doc_info.url }}))
-    {% for text in doc_info.texts %}
-      + *Textstelle:* "{{ text.original_text }}" (**Bestätigungslevel für die Interpretation:** *{{ translation[text.conf_level] }})*
-        <details>
-        <summary>Textstelle mit Textkontext</summary>
 
-        - "{{ text.full_text }}"
+    {% if show_documents %}
+    **Documents:**
+    {% for document in clarified_claim.documents %}
 
-        </details>
+    + {{ document.text }}
+      - **Confirmation**: {{ clarified_claim.confirmation_by_document[document.uid] | round(3) }}
+
     {% endfor %}
-    {% endfor %}
-
-    </details>
-
-    {% else %}
-    Aussagen vom Typ '{{ translation[claim.statement_type.value] }}' wurden vom EvidenceSeeker nicht geprüft.
     {% endif %}
+
     {% endfor %}
+# alternatively, you can specifcy a file with a template to be used
+markdown_template_file: null
+
+# language specific dicts that are passed to the template
+translations:
+  en: {}
+ui_texts:
+  ui_texts_lang_dict:
+    en:
+      agree_button: I have taken note of the information
+      check_statement: Check Statement
+      checking_message: '### Checking statement... This could take a few minutes.'
+      consent_info: '**Consent for data processing (Optional)**'
+      consent_text: null
+      continue_text: Continue...
+      data_policy_text: null
+      description: 'Enter a statement in the text field and have it checked by EvidenceSeeker:'
+      disclaimer_text: null
+      feedback_question: How satisfied are you with the answer?
+      info: null
+      password_label: Please enter password for access
+      privacy_title: Privacy Notice & Disclaimer
+      random_example: Random Example
+      server_error: Something went wrong on our end :-(
+      statement_label: 'Statement to check:'
+      title: "\U0001F575\uFE0F\u200D\u2640\uFE0F EvidenceSeeker DemoApp"
+      warning_label: "\u26A0\uFE0F <b>Warning</b>"
+      wrong_password: Wrong password. Please try again.
