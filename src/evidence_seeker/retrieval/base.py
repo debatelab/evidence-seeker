@@ -129,8 +129,8 @@ class DocumentRetriever:
 
         self.index_id = config.index_id
         self.index_persist_path = config.index_persist_path
-        if self.index_persist_path:
-            os.path.abspath(config.index_persist_path)
+        if self.index_persist_path is not None:
+            self.index_persist_path = os.path.abspath(self.index_persist_path)
         self.index_hub_path = config.index_hub_path
         self.similarity_top_k = config.top_k
         self.ignore_statement_types = config.ignore_statement_types or []
@@ -420,6 +420,14 @@ class IndexBuilder:
             metadata_func: Callable[[str], Dict] | None = None,
     ):
         conf = self.config
+        if not conf.index_persist_path:
+            err_msg = (
+                "Building an index demands the configuration "
+                "of `index_persist_path`."
+            )
+            logger.error(err_msg)
+            raise ValueError(err_msg)
+
         if os.path.exists(conf.index_persist_path):
             logger.warning(
                 f"Index persist path {conf.index_persist_path} "
@@ -458,8 +466,9 @@ class IndexBuilder:
                     with open(conf.meta_data_file, "r") as f:
                         metadata_dict = json.load(f)
 
-                    def metadata_func(file_name: str):
-                        metadata_dict.get(pathlib.Path(file_name).name, {})
+                    def metadata_func_from_file(file_name):
+                        return metadata_dict.get(pathlib.Path(file_name).name, {})
+                    metadata_func = metadata_func_from_file
 
         if conf.document_input_dir:
             logger.debug(f"Reading documents from {conf.document_input_dir}")
