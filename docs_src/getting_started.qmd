@@ -55,7 +55,6 @@ The *EvidenceSeeker* boilerplate comes with a command line interface---the `evse
 
 ```bash
 evse init --name name_of_your_evidence_seeker
-cd name_of_your_evidence_seeker
 ```
 will create the following directory structure in the current working directory, and will contain configuration files with default values. 
 
@@ -75,6 +74,12 @@ name_of_your_evidence_seeker/
 │       └── ...
 ├── logs/ # Directory for logging
 └── embeddings/ # Directory for the index
+```
+
+For the following steps, navigate to the directory of your *EvidenceSeeker* instance: 
+
+```bash
+cd name_of_your_evidence_seeker
 ```
 
 ### 4. Configuration
@@ -107,7 +112,7 @@ If you used `evse init` to create the directory structure, you can use the `evse
  }
 }
 ```
-3. In your terminal, navigate to the directory of your *EvidenceSeeker* instance, e.g., `cd name_of_your_evidence_seeker/`.
+3. If not already done, navigate to the directory of your *EvidenceSeeker* instance, e.g., `cd name_of_your_evidence_seeker/`.
 4. Ensure you have set the environment variables for your API keys in the file `config/api_keys.txt` of your *EvidenceSeeker* instance.
 5. Now you can build the index using `evse build-index`. This will create an index of the PDF files in the `knowledge_base/data_files` directory and store it in the `embeddings/` directory. The index will be created using the embedding model specified in the configuration file.
 
