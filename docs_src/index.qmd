@@ -15,7 +15,7 @@ toc: false
 ::: {.g-col-4}
 ### Handling Input Ambiguities
 
-Deal with semantical ambiguities in the inputs that are fact-checked.
+Deal with ambiguities in the inputs being fact-checked.
 
 ::: {.learn-more}
 [Learn more »](workflow.qmd#input_ambiguities)
@@ -25,7 +25,7 @@ Deal with semantical ambiguities in the inputs that are fact-checked.
 
 ::: {.g-col-4}
 ### Model Independence
-_EvidenceSeeker_ do not rely on a specific language model. It is up to you: Use _EvidenceSeeker_ with your privately hosted LLMs or rely on inference service providers; use proprietary or open models.
+_EvidenceSeeker_ does not rely on a specific language model. It is up to you: Use _EvidenceSeeker_ with your privately hosted LLMs or rely on inference service providers; use proprietary or open models.
 
 ::: {.learn-more}
 [Learn more »](./docs_configuration/advanced_configuration.qmd#models)
@@ -34,7 +34,7 @@ _EvidenceSeeker_ do not rely on a specific language model. It is up to you: Use 
 
 ::: {.g-col-4}
 ### Explainability & Transparency
-Stay in control of your fact-checking workflow. An _EvidenceSeeker_ is no black box. Its assessments can be explained and traced back to occurrences in your knowledge base.
+Stay in control of your fact-checking workflow. An _EvidenceSeeker_ is not a black box. Its assessments can be explained and traced back to occurrences in your knowledge base.
 
 ::: {.learn-more}
 [Learn more »](workflow.qmd#explainability)
@@ -42,8 +42,8 @@ Stay in control of your fact-checking workflow. An _EvidenceSeeker_ is no black 
 :::
 
 ::: {.g-col-4}
-### 🚧 Easy Set-up
-Use the boilerplate to set up your custom-made _EvidenceSeeker_ without technical knowledge.
+### Easy Set-up
+Use the boilerplate to set up your custom-made _EvidenceSeeker_ without caring about technical intricacies.
 
 ::: {.learn-more}
 [Learn more »](getting_started.qmd#set_up)
@@ -51,7 +51,7 @@ Use the boilerplate to set up your custom-made _EvidenceSeeker_ without technica
 :::
 
 ::: {.g-col-4}
-### 🚧 Integration
+### Integration
 Integrate _EvidenceSeeker_ into your existing workflows and AI apps. 
 
 ::: {.learn-more}
@@ -61,7 +61,7 @@ Integrate _EvidenceSeeker_ into your existing workflows and AI apps.
 
 ::: {.g-col-4}
 ### Domain-specific Fact-Checking
-Use your knowledge base (e.g., a bunch of PDFs) for fact-checking.
+Use your knowledge base (e.g., a collection of PDFs) for fact-checking.
 
 ::: {.learn-more}
 [Learn more »](getting_started.qmd#building_index)

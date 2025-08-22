@@ -21,7 +21,7 @@ If your LLM (provider) does not support these features, use an alternative confi
 
 ## Preprocessor and Confirmation Analyser
 
-You can configure the language models and API keys via the configuration files for both the preprocessor and the confirmation-analysis component in the following way: Create two files, `preprocessor_config.yaml` and/or `confirmation_analysis_config.yaml`, with the following content:
+You can configure the language models and their API keys for both the preprocessor and the confirmation analyser via configuration files: Create two YAML files, `preprocessor_config.yaml` and/or `confirmation_analysis_config.yaml`, with the following content:
 
 ```yaml
 used_model_key: your_model_identifier
@@ -53,7 +53,7 @@ models:
 
 ## Retriever Component
 
-The retriever component uses an embedding model to create and search your indexed knowledge base. It can be minimally configured in a similar way:
+The retriever component uses an embedding model to create and search your indexed knowledge base. It can be minimally configured using a YAML configuration file `retrieval_config.yaml` with the following content
 
 ```yaml
 env_file: path/to/your/api_keys.txt
@@ -72,7 +72,7 @@ index_persist_path: path/to/your/index
 
 Both `embed_base_url` and `embed_model_name` are important since they specify the endpoint and model. If you use embedding models hosted by HuggingFace and choose, for instance, [sentence-transformers/paraphrase-multilingual-mpnet-base-v2](https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2) as the model, you would set: 
 
-+ `base_url` to *"https://router.huggingface.co/hf-inference/models/sentence-transformers/paraphrase-multilingual-mpnet-base-v2"* and
++ `embed_base_url` to *"https://router.huggingface.co/hf-inference/models/sentence-transformers/paraphrase-multilingual-mpnet-base-v2"* and
 + `embed_model_name` to *"sentence-transformers/paraphrase-multilingual-mpnet-base-v2"*
 
 ## Executing the Pipeline

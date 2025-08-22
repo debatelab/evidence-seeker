@@ -4,19 +4,21 @@ title: "🚀 Getting Started"
 
 The **_EvidenceSeeker Boilerplate_** is in an early stage of development. Currently, we offer:
 
-1. The **_EvidenceSeeker_ Demoapp:** An *EvidenceSeeker* instance based on all [2024 APuZ editions](https://www.bpb.de/shop/zeitschriften/apuz/?field_filter_thema=all&field_date_content=2024&d=1) as knowledge base with a minimalistic user interface.
+1. The **_EvidenceSeeker_ Demo App:** An *EvidenceSeeker* instance based on all [2024 APuZ editions](https://www.bpb.de/shop/zeitschriften/apuz/?field_filter_thema=all&field_date_content=2024&d=1) as knowledge base with a minimalistic user interface.
 2. The **`evidence-seeker` Python package:** The _EvidenceSeeker Boilerplate_ is a Python package, which can be used to build your own *EvidenceSeeker* instance.
 
 For subsequent releases, we are working on (hosted) versions of the boilerplate, which should make the setup and integration of *EvidenceSeeker* instances even easier.
 
-## _EvidenceSeeker_ Demoapp {#try_it}
+## _EvidenceSeeker_ Demo App {#try_it}
 
-We have set up a small _EvidenceSeeker_ with all [2024 APuZ editions](https://www.bpb.de/shop/zeitschriften/apuz/?field_filter_thema=all&field_date_content=2024&d=1) as knowledge base and provide access to this _EvidenceSeeker_ via a small [Gradio](https://www.gradio.app/) app, which provides a minimal user interface.  Links:
+We have set up a small _EvidenceSeeker_ with all [2024 APuZ editions](https://www.bpb.de/shop/zeitschriften/apuz/?field_filter_thema=all&field_date_content=2024&d=1) as knowledge base and provide access to this _EvidenceSeeker_ via a small Gradio app, which provides a minimal user interface. 
 
-+ Our [APuZ-EvidenceSeeker Demoapp](https://huggingface.co/spaces/DebateLabKIT/evidence-seeker-demo): If you are interested in experimenting with this Demapp, contact us for access information!
-+ [EvidenceSeeker Demoapp Results](https://debatelab.github.io/evidence-seeker-results/index.html): This is a collection of fact-checks and their results performed by our Demoapp. Visit this site to get a first impression of the capabilities of the _EvidenceSeeker_ Demoapp.
+Relevant links:
 
-*Side note:* You can also run the _EvidenceSeeker_ Demoapp locally if you want to experiment with your knowledge base or if you want to use a different language model.
++ Our [APuZ-EvidenceSeeker Demo App](https://huggingface.co/spaces/DebateLabKIT/evidence-seeker-demo) on Hugging Face: If you are interested in experimenting with this demo app, contact us for access information!
++ [EvidenceSeeker Demo App Results](https://debatelab.github.io/evidence-seeker-results/index.html): This is a collection of fact-checks and their results performed by our demo app. Visit this site to get a first impression of the capabilities of the _EvidenceSeeker_ demo app.
+
+*Side note:* The _EvidenceSeeker_ demo app is part of our Python package. You can run the demo app locally if you want to experiment with your knowledge base or if you want to use a different language model.
 
 
 ## The `evidence-seeker` Python package {#set_up}
@@ -25,7 +27,7 @@ The `evidence-seeker` Python package is available on [PyPI](https://pypi.org/pro
 
 ### 1. Prerequisites
 
-You need an installed Python (3.11 or 3.12) and `pip`. 
+You need to have Python (3.11 or 3.12) and `pip` installed. 
 
 1. *Installing Python:* You can choose between different ways to install Python, depending on your operating system. You can find instructions for installing Python, for instance,
     + on the [Python wiki](https://wiki.python.org/moin/BeginnersGuide/Download) or 
@@ -37,7 +39,7 @@ You need an installed Python (3.11 or 3.12) and `pip`.
 TODO: Do we actually support the latest Python?
 -->
 
-### 2. Installation of the `evidence-seeker` package
+### 2. Installing the `evidence-seeker` package
 
 Open a terminal and use `pip` to install the `evidence-seeker` package from PyPI:
 
@@ -83,7 +85,9 @@ For details, see the [Configuration](configuration.qmd) section.
 
 ### 5. Building the index {#building_index}
 
-*EvidenceSeeker* instances fact-check statements relative to a specified knowledge base. The knowledge base can, for instance, comprise a set of PDF files. For an *EvidenceSeeker* instance to work, the knowledge base must be represented by a created index of the knowledge. More technically, an *EvidenceSeeker* works on created embeddings (a vector-based representation) of the knowledge base. Accordingly, you have to create such an index using an embedding model.
+*EvidenceSeeker* instances fact-check statements relative to a specified knowledge base. The knowledge base can, for instance, comprise a set of PDF files. 
+
+For an *EvidenceSeeker* instance to work, you need to create a searchable index from the documents of your knowledge base. This process converts your documents (like PDFs) into vector embeddings---a numerical representation that allows the system to find semantically similar content when fact-checking statements. Think of it like creating a detailed catalog: instead of manually searching through hundreds of documents, the system can quickly identify which parts of your knowledge base are most relevant to any given claim. Accordingly, you have to create such an index using an embedding model.
 
 If you used `evse init` to create the directory structure, you can use the `evse` CLI to create an index in the following way:
 
@@ -103,7 +107,7 @@ If you used `evse init` to create the directory structure, you can use the `evse
  }
 }
 ```
-3. In your terminal, change into the directory of your *EvidenceSeeker* instance, e.g., `cd name_of_your_evidence_seeker/`.
+3. In your terminal, navigate to the directory of your *EvidenceSeeker* instance, e.g., `cd name_of_your_evidence_seeker/`.
 4. Ensure you have set the environment variables for your API keys in the file `config/api_keys.txt` of your *EvidenceSeeker* instance.
 5. Now you can build the index using `evse build-index`. This will create an index of the PDF files in the `knowledge_base/data_files` directory and store it in the `embeddings/` directory. The index will be created using the embedding model specified in the configuration file.
 
@@ -137,22 +141,22 @@ Once you built the index, you can run the *EvidenceSeeker* pipeline to fact-chec
 With the `evse` cli, you can run the pipeline with:
 
 ```bash
-evse run --input "you statement to fact-check" 
+evse run --input "your statement to fact-check" 
 ```
 
-The output will be written as a Markdown file to the `logs/` directory of your *EvidenceSeeker* instance. 
+The output will be written as a Markdown file into the `logs/` directory of your *EvidenceSeeker* instance. 
 
-You can also specify the ouput file with the `--output` option:
+You can also specify the location and name of the output file with the `--output` option:
 
 ```bash
-evse run --input "you statement to fact-check" --output "path/to/output/file.md"
+evse run --input "your statement to fact-check" --output "path/to/output/file.md"
 ``` 
 
-#### Using the EvidenceSeeker Demoapp
+#### Using the EvidenceSeeker Demo App
 
-You can also run the pipeline via the *EvidenceSeeker Demoapp*, a small User Interface based on [Gradio](https://www.gradio.app/), which will be accessible via a web browser. 
+You can also run the pipeline via the *EvidenceSeeker Demo App*, a small User Interface based on [Gradio](https://www.gradio.app/), which will be accessible via a web browser. 
 
-You can run the App locally with:
+You can run the app locally with:
 
 ```bash
 evse demo-app
@@ -182,7 +186,7 @@ results = asyncio.run(pipeline("your statement to fact-check"))
 Currently, there are two ways to integrate *EvidenceSeeker* into your existing workflows:
 
 1. Programmatically integrating your EvidenceSeeker instance by using the `evidence-seeker` package, or 
-2. by exposing the *EvidenceSeeker Demoapp* as an MCP server (for details, see [this HF blog post](https://huggingface.co/blog/gradio-mcp)).
+2. by exposing the *EvidenceSeeker Demo App* as an MCP server (for details, see [this HF blog post](https://huggingface.co/blog/gradio-mcp)).
 
 ## Development Version
 
