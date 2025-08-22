@@ -3,7 +3,7 @@
 <div align="center">
   <p align="center">
  📖 <a href="https://debatelab.github.io/evidence-seeker">Documentation</a>
- 🤗 <a href="https://huggingface.co/spaces/DebateLabKIT/evidence-seeker-demo">Hugging Face Demoapp</a>
+ 🤗 <a href="https://huggingface.co/spaces/DebateLabKIT/evidence-seeker-demo">Hugging Face Demo App</a>
  📊 <a href="https://debatelab.github.io/evidence-seeker-results/">Example Results</a>
     <img src="./docs_src/img/logoKIdeKu.jpg" alt="KIdeKu Logo" width="15" style="vertical-align: middle;"> <a href="https://compphil2mmae.github.io/research/kideku/">KIdeKu Project</a>
   </p>
