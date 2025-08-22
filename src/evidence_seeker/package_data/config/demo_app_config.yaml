@@ -55,6 +55,10 @@ markdown_template:
 
     + {{ document.text }}
       - **Confirmation**: {{ clarified_claim.confirmation_by_document[document.uid] | round(3) }}
+      - *Document meta data:* 
+      {% for key, value in document.metadata.items() %}
+        - {{ key }}:{{ value }}
+      {% endfor %}
 
     {% endfor %}
     {% endif %}
