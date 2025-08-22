@@ -76,7 +76,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-e1a5c8363afafaef2c763b6775fbf3ca.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-dfb324f25d9b1687192fa8be62ac8f9c.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-f698449d828ba46b281046356bba4374.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -281,7 +281,7 @@ Requirements for Minimal Configuration
 </div>
 <section id="preprocessor-and-confirmation-analyser" class="level2">
 <h2 class="anchored" data-anchor-id="preprocessor-and-confirmation-analyser">Preprocessor and Confirmation Analyser</h2>
-<p>You can configure the language models and API keys via the configuration files for both the preprocessor and the confirmation-analysis component in the following way: Create two files, <code>preprocessor_config.yaml</code> and/or <code>confirmation_analysis_config.yaml</code>, with the following content:</p>
+<p>You can configure the language models and their API keys for both the preprocessor and the confirmation analyser via configuration files: Create two YAML files, <code>preprocessor_config.yaml</code> and/or <code>confirmation_analysis_config.yaml</code>, with the following content:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">used_model_key</span><span class="kw">:</span><span class="at"> your_model_identifier</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># optional, if you want to use a file for setting up API keys</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">env_file</span><span class="kw">:</span><span class="at"> path/to/your/api_keys.txt</span></span>
@@ -316,7 +316,7 @@ Requirements for Minimal Configuration
 </section>
 <section id="retriever-component" class="level2">
 <h2 class="anchored" data-anchor-id="retriever-component">Retriever Component</h2>
-<p>The retriever component uses an embedding model to create and search your indexed knowledge base. It can be minimally configured in a similar way:</p>
+<p>The retriever component uses an embedding model to create and search your indexed knowledge base. It can be minimally configured using a YAML configuration file <code>retrieval_config.yaml</code> with the following content</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">env_file</span><span class="kw">:</span><span class="at"> path/to/your/api_keys.txt</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">api_key_name</span><span class="kw">:</span><span class="at"> api_key_name_for_your_embedding_model</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">embed_backend_type</span><span class="kw">:</span><span class="at"> huggingface_inference_api</span></span>
@@ -330,7 +330,7 @@ Requirements for Minimal Configuration
 <p><strong>Clarifications:</strong></p>
 <p>Both <code>embed_base_url</code> and <code>embed_model_name</code> are important since they specify the endpoint and model. If you use embedding models hosted by HuggingFace and choose, for instance, <a href="https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2">sentence-transformers/paraphrase-multilingual-mpnet-base-v2</a> as the model, you would set:</p>
 <ul>
-<li><code>base_url</code> to <em>“https://router.huggingface.co/hf-inference/models/sentence-transformers/paraphrase-multilingual-mpnet-base-v2”</em> and</li>
+<li><code>embed_base_url</code> to <em>“https://router.huggingface.co/hf-inference/models/sentence-transformers/paraphrase-multilingual-mpnet-base-v2”</em> and</li>
 <li><code>embed_model_name</code> to <em>“sentence-transformers/paraphrase-multilingual-mpnet-base-v2”</em></li>
 </ul>
 </section>
