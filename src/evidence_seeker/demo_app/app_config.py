@@ -5,27 +5,33 @@ from pydantic import (
 )
 from typing import Optional
 import yaml
+from loguru import logger
 
 
 class UITexts(BaseModel):
     """UI text configuration for a specific language"""
 
-    title: str
+    title: str = "🕵️‍♀️ EvidenceSeeker DemoApp"
     info: Optional[str] = None
-    description: str
-    statement_label: str
-    random_example: str
-    check_statement: str
-    checking_message: str
-    feedback_question: str
-    privacy_title: str
-    warning_label: str
-    consent_info: str
-    agree_button: str
-    password_label: str
-    wrong_password: str
-    continue_text: str
-    server_error: str
+    description: str = (
+        "Enter a statement in the text field "
+        "and have it checked by EvidenceSeeker:"
+    )
+    statement_label: str = "Statement to check:"
+    random_example: str = "Random Example"
+    check_statement: str = "Check Statement"
+    checking_message: str = (
+        "### Checking statement... This could take a few minutes."
+    )
+    feedback_question: str = "How satisfied are you with the answer?"
+    privacy_title: str = "Privacy Notice & Disclaimer"
+    warning_label: str = "⚠️ <b>Warning</b>"
+    consent_info: str = "**Consent for data processing (Optional)**"
+    agree_button: str = "I have taken note of the information"
+    password_label: str = "Please enter password for access"
+    wrong_password: str = "Wrong password. Please try again."
+    continue_text: str = "Continue..."
+    server_error: str = "Something went wrong on our end :-("
     disclaimer_text: Optional[str] = None
     data_policy_text: Optional[str] = None
     consent_text: Optional[str] = None
@@ -36,28 +42,7 @@ class MultiLanguageUITexts(BaseModel):
 
     ui_texts_lang_dict: dict[str, UITexts] = Field(
         default_factory=lambda: {
-            "en": UITexts(
-                title="🕵️‍♀️ EvidenceSeeker DemoApp",
-                description=(
-                    "Enter a statement in the text field "
-                    "and have it checked by EvidenceSeeker:"
-                ),
-                statement_label="Statement to check:",
-                random_example="Random Example",
-                check_statement="Check Statement",
-                checking_message=(
-                    "### Checking statement... This could take a few minutes."
-                ),
-                feedback_question="How satisfied are you with the answer?",
-                privacy_title="Privacy Notice & Disclaimer",
-                warning_label="⚠️ <b>Warning</b>",
-                consent_info="**Consent for data processing (Optional)**",
-                agree_button="I have taken note of the information",
-                password_label="Please enter password for access",
-                wrong_password="Wrong password. Please try again.",
-                continue_text="Continue...",
-                server_error="Something went wrong on our end :-(",
-            )
+            "en": UITexts()
         },
     )
 
@@ -65,8 +50,7 @@ class MultiLanguageUITexts(BaseModel):
         """Get UI texts for a specific language, fallback to English"""
         return self.ui_texts_lang_dict.get(
             language,
-            # Fallback to English for unsupported languages
-            self.ui_texts_lang_dict["en"]
+            UITexts()
         )
 
 
@@ -107,6 +91,7 @@ class AppConfig(BaseModel):
     # Add a convenience method to get UI texts for current language
     def get_ui_texts(self) -> UITexts:
         """Get UI texts for the current language"""
+        logger.debug(f"Getting ui texts for lang: {self.language}")
         return self.ui_texts.get_texts(self.language)
 
     @computed_field
