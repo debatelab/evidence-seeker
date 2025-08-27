@@ -47,6 +47,8 @@ class RetrievalConfig(pydantic.BaseModel):
     index_hub_path: str | None = None
     top_k: int = 8
     ignore_statement_types: list[str] = [StatementType.NORMATIVE.value]
+    # nessecary for some models (e.g., snowflake-arctic-embed-m-v2.0)
+    trust_remote_code: bool | None = None
 
     @model_validator(mode='after')
     def check_base_url(

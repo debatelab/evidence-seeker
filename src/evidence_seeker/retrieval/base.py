@@ -304,16 +304,21 @@ def _get_text_embeddings_inference_kwargs(
             embed_base_url: str | None = None,
             embed_batch_size: int = 32,
             token: str | None = None,
-            bill_to: str | None = None
+            bill_to: str | None = None,
+            trust_remote_code: bool | None = None,
 ) -> dict:
     if embed_backend_type == EmbedBackendType.HUGGINGFACE:
-        return {
+        kwargs = {
             "model_name": embed_model_name,
             # see https://github.com/UKPLab/sentence-transformers/issues/3212
             "token": token if token else False,
             # ToDo/Check: How to add additional arguments?
             "embed_batch_size": embed_batch_size,
         }
+        if trust_remote_code is not None:
+            kwargs["trust_remote_code"] = trust_remote_code
+        return kwargs
+
     elif embed_backend_type == EmbedBackendType.TEI:
         return {
             "model_name": embed_model_name,
@@ -331,13 +336,17 @@ def _get_text_embeddings_inference_kwargs(
             }
         }
     elif embed_backend_type == EmbedBackendType.HUGGINGFACE_INFERENCE_API:
-        return {
+        kwargs = {
             "model_name": embed_model_name,
             "base_url": embed_base_url,
             "embed_batch_size": embed_batch_size,
             "auth_token": token,
             "bill_to": bill_to,
         }
+        if trust_remote_code is not None:
+            kwargs["trust_remote_code"] = trust_remote_code
+        return kwargs
+
     else:
         raise ValueError(
             f"Unsupported backend type for embedding: {embed_backend_type}. "
@@ -349,6 +358,9 @@ def _get_embed_model(
         embed_backend_type: EmbedBackendType,
         **text_embeddings_inference_kwargs
 ) -> BaseEmbedding:
+    logger.debug(
+            f"Init embed model with: {text_embeddings_inference_kwargs}"
+        )
     if embed_backend_type == EmbedBackendType.OLLAMA:
         return OllamaEmbedding(
             **text_embeddings_inference_kwargs
@@ -406,6 +418,7 @@ class IndexBuilder:
                 embed_batch_size=self.config.embed_batch_size,
                 token=api_token,
                 bill_to=self.config.bill_to,
+                trust_remote_code=self.config.trust_remote_code,
             )
         )
 
