@@ -18,6 +18,8 @@ class EmbedBackendType(enum.Enum):
     OLLAMA = "ollama"
     # Local embedding via huggingface
     HUGGINGFACE = "huggingface"
+    # Local embedding via huggingface with instructin prefix
+    HUGGINGFACE_INSTRUCT_PREFIX = "huggingface_instruct_prefix"
     # HF Inference API
     HUGGINGFACE_INFERENCE_API = "huggingface_inference_api"
 

@@ -53,6 +53,15 @@ class PatientTextEmbeddingsInference(TextEmbeddingsInference):
         return result
 
 
+class PrefixedHuggingFaceEmbedding(HuggingFaceEmbedding):
+    # TODO: Make prefixes configurable
+    def _get_query_embedding(self, query: str):
+        return super()._get_query_embedding("query: " + query)
+
+    def _get_text_embedding(self, text: str):
+        return super()._get_text_embedding("passage: " + text)
+
+
 class HFTextEmbeddingsInference(TextEmbeddingsInference):
 
     bill_to: Optional[str] = Field(
@@ -307,7 +316,10 @@ def _get_text_embeddings_inference_kwargs(
             bill_to: str | None = None,
             trust_remote_code: bool | None = None,
 ) -> dict:
-    if embed_backend_type == EmbedBackendType.HUGGINGFACE:
+    if (
+        embed_backend_type == EmbedBackendType.HUGGINGFACE
+        or embed_backend_type == EmbedBackendType.HUGGINGFACE_INSTRUCT_PREFIX
+    ):
         kwargs = {
             "model_name": embed_model_name,
             # see https://github.com/UKPLab/sentence-transformers/issues/3212
@@ -381,6 +393,10 @@ def _get_embed_model(
         )
         embed_model.bill_to = bill_to
         return embed_model
+    elif embed_backend_type == EmbedBackendType.HUGGINGFACE_INSTRUCT_PREFIX:
+        return PrefixedHuggingFaceEmbedding(
+            **text_embeddings_inference_kwargs
+        )
     else:
         raise ValueError(
             f"Unsupported backend type for embedding: {embed_backend_type}. "
