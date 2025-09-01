@@ -255,7 +255,11 @@ class DocumentRetriever:
             data = match.node.metadata.copy()
             window = data.pop("window")
             documents.append(
-                Document(text=window, uid=str(uuid.uuid4()), metadata=data)
+                Document(
+                    text=window,
+                    uid=str(uuid.uuid4()),
+                    metadata={**data, "relevance_score": match.score}
+                )
             )
 
         return documents
@@ -371,7 +375,7 @@ def _get_embed_model(
         **text_embeddings_inference_kwargs
 ) -> BaseEmbedding:
     logger.debug(
-            f"Init embed model with: {text_embeddings_inference_kwargs}"
+            f"Inititializing embed model: {text_embeddings_inference_kwargs.get('model_name')} "
         )
     if embed_backend_type == EmbedBackendType.OLLAMA:
         return OllamaEmbedding(
