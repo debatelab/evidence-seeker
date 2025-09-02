@@ -478,7 +478,7 @@ class IndexBuilder:
             conf.document_input_dir = None
         # handle document file metadata
         if conf.meta_data_file:
-            logger.info(
+            logger.debug(
                 f"Using metadata file {conf.meta_data_file} for documents."
             )
             if metadata_func is not None:
@@ -500,8 +500,25 @@ class IndexBuilder:
                         metadata_dict = json.load(f)
 
                     def metadata_func_from_file(file_name):
-                        return metadata_dict.get(pathlib.Path(file_name).name, {})
+                        return metadata_dict.get(pathlib.Path(file_name).name, None)
                     metadata_func = metadata_func_from_file
+
+        # we guerantee that at least file_name is part of the metadata
+        def metadata_func_with_filename(file_name) -> dict:
+            if metadata_func is None:
+                return {"file_name": pathlib.Path(file_name).name}
+            else:
+                meta = metadata_func(file_name)
+                if meta is None:
+                    logger.warning(
+                        f"No metadata found for file {file_name} "
+                        "using only file name as metadata."
+                    )
+                    meta = {}
+
+                if "file_name" not in meta:
+                    meta["file_name"] = pathlib.Path(file_name).name
+                return meta
 
         if conf.document_input_dir:
             logger.debug(f"Reading documents from {conf.document_input_dir}")
@@ -511,13 +528,20 @@ class IndexBuilder:
         from llama_index.core import SimpleDirectoryReader
         from llama_index.core.node_parser import SentenceWindowNodeParser
 
-        logger.info("Building document index...")
+        logger.debug("Building document index...")
         documents = SimpleDirectoryReader(
             input_dir=conf.document_input_dir,
             input_files=conf.document_input_files,
             filename_as_id=True,
-            file_metadata=metadata_func,
+            file_metadata=metadata_func_with_filename,
         ).load_data()
+
+        docs = documents
+        logger.debug(f"Loaded {len(docs)} documents.")
+        mean_size = sum(len(doc.text) for doc in docs) / len(docs) if docs else 0
+        logger.debug(f"Mean document size (in characters): {mean_size:.2f}")
+        input_file_names = set([doc.metadata.get("file_name") for doc in docs])
+        logger.debug(f"Number of files in the knowledge base: {len(input_file_names)}")
 
         logger.debug("Parsing nodes...")
         nodes = SentenceWindowNodeParser.from_defaults(
@@ -525,6 +549,8 @@ class IndexBuilder:
             window_metadata_key="window",
             original_text_metadata_key="original_text",
         ).get_nodes_from_documents(documents)
+
+        logger.debug(f"Number of parsed nodes: {len(nodes)}")
 
         logger.debug("Creating VectorStoreIndex with embeddings...")
         index = VectorStoreIndex(
@@ -534,6 +560,20 @@ class IndexBuilder:
             show_progress=True
         )
         index.set_index_id(conf.index_id)
+
+        num_documents = len(index.docstore.docs)
+        logger.debug(f"Number of parsed documents in the index: {num_documents}")
+
+        file_names_index = set([
+            doc.metadata.get("file_name") for doc in index.docstore.docs.values()
+        ])
+
+        diff = input_file_names - file_names_index
+        if len(diff) > 0:
+            logger.warning(
+                f"Some files were not indexed: {diff}. "
+                "There might be an issue with the corresponding files."
+            )
 
         if conf.index_persist_path:
             logger.debug(f"Persisting index to {conf.index_persist_path}")
