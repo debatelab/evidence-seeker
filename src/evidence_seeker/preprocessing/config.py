@@ -123,6 +123,7 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
                         "Your task is to list all factual or descriptive {language} statements identified "
                         "in the previous analysis. Only include clear cases, i.e. statements that are unambiguously "
                         "factual or descriptive.\n"
+                        "If you did not identify any descriptive statements, make sure to return an empty list containing no strings, not even empty ones.\n"
                         "Format your (possibly empty) list of statements as a JSON object.\n"
                         "Do not include any other text than the JSON object."
                     ),
@@ -174,7 +175,8 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
                         "Clearly state each ascription as a concise {language} "
                         "statement, such that it is transparent to whom it is attributed. Only include "
                         "ascriptions that are explicitly attributed to a specific person or organisation.\n"
-                        "Format your (possibly empty) list of statements as a JSON object.\n"
+                        "If you did not identify any ascriptions, make sure to return an empty list containing no strings, not even empty ones..\n"
+                        "Format your (possibly empty) list of ascriptions as a JSON object.\n"
                         "Do not include any other text than the JSON object."
                     ),
                     guidance_type=GuidanceType.JSON.value
@@ -222,6 +224,7 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
                         "</results>\n\n"
                         "Your task is to list all normative statements identified in this analysis "
                         "(e.g., value judgements, recommendations, or evaluations) in {language}.\n"
+                        "If you did not identify any normative statements, make sure to return an empty list containing no strings, not even empty ones.\n"
                         "Format your (possibly empty) list of statements as a JSON object.\n"
                         "Do not include any other text than the JSON object."
                     ),
