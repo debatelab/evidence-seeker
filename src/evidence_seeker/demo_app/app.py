@@ -7,6 +7,7 @@ from loguru import logger
 from datetime import datetime, timezone
 from argon2 import PasswordHasher
 from argon2.exceptions import VerificationError
+import uuid
 
 from evidence_seeker.demo_app.app_config import AppConfig
 
@@ -145,10 +146,13 @@ def draw_example(examples: list[str]) -> str:
 
 
 async def check(statement: str, last_result: EvidenceSeekerResult):
+    global EVIDENCE_SEEKER
     request_time = datetime.now(timezone.utc)
-    last_result.time = request_time.strftime("%Y-%m-%d %H:%M:%S UTC")
-    last_result.request = statement
-
+    last_result = EvidenceSeekerResult(request = statement,
+                                       time=request_time.strftime("%Y-%m-%d %H:%M:%S UTC"),
+                                       preprocessing_config=EVIDENCE_SEEKER.preprocessor.config,
+                                       retrieval_config=EVIDENCE_SEEKER.retriever.config,
+                                       confirmation_config=EVIDENCE_SEEKER.analyzer.config)
     if UI_TEST_MODE:
         last_result.claims = _dummy_claims
     else:
