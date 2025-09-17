@@ -144,7 +144,6 @@ def draw_example(examples: list[str]) -> str:
     else:
         return ""
 
-
 async def check(statement: str, last_result: EvidenceSeekerResult):
     global EVIDENCE_SEEKER
     request_time = datetime.now(timezone.utc)
