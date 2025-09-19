@@ -110,8 +110,7 @@ class OpenAILikeWithGuidance(OpenAILike):
         # For NIM, we use the `extra_body`
         # https://docs.nvidia.com/nim/large-language-models/latest/structured-generation.html
         if self.backend_type == BackendType.NIM.value:
-            if guidance_type == (
-                GuidanceType.JSON or guidance_type == GuidanceType.PYDANTIC
+            if (guidance_type == GuidanceType.JSON or guidance_type == GuidanceType.PYDANTIC
             ):
                 return {"extra_body": {"nvext": {"guided_json": json_schema}}}
 
@@ -119,8 +118,7 @@ class OpenAILikeWithGuidance(OpenAILike):
         # for constrained decoding
         # https://github.com/huggingface/text-generation-inference/pull/2046
         elif self.backend_type == BackendType.TGI.value:
-            if guidance_type == (
-                GuidanceType.JSON or guidance_type == GuidanceType.PYDANTIC
+            if (guidance_type == GuidanceType.JSON or guidance_type == GuidanceType.PYDANTIC
             ):
                 return {
                     "response_format": {
@@ -136,8 +134,7 @@ class OpenAILikeWithGuidance(OpenAILike):
                     }
                 }
         elif self.backend_type == BackendType.OPENAI.value:
-            if guidance_type == (
-                GuidanceType.JSON or guidance_type == GuidanceType.PYDANTIC
+            if (guidance_type == GuidanceType.JSON or guidance_type == GuidanceType.PYDANTIC
             ):
                 return {
                     "response_format": {
