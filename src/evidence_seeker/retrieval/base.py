@@ -22,6 +22,11 @@ from llama_index.core import (
     StorageContext,
     VectorStoreIndex,
 )
+from llama_index.core.vector_stores import (
+    MetadataFilters,
+    MetadataFilter,
+    FilterOperator
+)
 from loguru import logger
 import tenacity
 
@@ -235,14 +240,115 @@ class DocumentRetriever:
         )
         return persist_dir
 
-    async def retrieve_documents(self, claim: CheckedClaim) -> list[Document]:
+    def create_metadata_filters(self, filters_dict: Dict) -> MetadataFilters:
+        """
+        Create MetadataFilters from a dictionary of filter conditions.
+        
+        Args:
+            filters_dict: Dictionary with metadata field names as keys and
+                         filter conditions as values. Can specify:
+                         - Simple equality: {"author": "Smith"}
+                         - With operator: {"year": {"operator": ">=", "value": 2020}}
+                         
+        Returns:
+            MetadataFilters object for use with retriever
+            
+        Example:
+            filters = retriever.create_metadata_filters({
+                "author": "Smith",
+                "year": {"operator": ">=", "value": 2020},
+                "journal": "Nature"
+            })
+        """
+        filter_list = []
+        
+        for key, condition in filters_dict.items():
+            if isinstance(condition, dict):
+                # Complex filter with operator
+                operator_str = condition.get("operator", "==")
+                value = condition["value"]
+                
+                # Map string operators to FilterOperator enum
+                operator_mapping = {
+                    "==": FilterOperator.EQ,
+                    "!=": FilterOperator.NE,
+                    ">": FilterOperator.GT,
+                    ">=": FilterOperator.GTE,
+                    "<": FilterOperator.LT,
+                    "<=": FilterOperator.LTE,
+                    "in": FilterOperator.IN,
+                    "not_in": FilterOperator.NIN,
+                }
+                
+                operator = operator_mapping.get(operator_str, FilterOperator.EQ)
+                filter_list.append(MetadataFilter(
+                    key=key,
+                    value=value,
+                    operator=operator
+                ))
+            else:
+                # Simple equality filter
+                filter_list.append(MetadataFilter(
+                    key=key,
+                    value=condition,
+                    operator=FilterOperator.EQ
+                ))
+        
+        return MetadataFilters(filters=filter_list)
+
+    def create_postgres_vector_store(self):
+        """
+        Create a PostgreSQL vector store with pgvector extension.
+        
+        Returns:
+            PGVectorStore instance configured from RetrievalConfig
+        """
+        try:
+            from llama_index.vector_stores.postgres import PGVectorStore
+        except ImportError:
+            raise ImportError(
+                "PostgreSQL vector store not available. "
+                "Install with: pip install llama-index-vector-stores-postgres"
+            )
+        
+        # Build connection string
+        if self.config.postgres_user and self.config.postgres_password:
+            connection_string = (
+                f"postgresql://{self.config.postgres_user}:"
+                f"{self.config.postgres_password}@"
+                f"{self.config.postgres_host}:{self.config.postgres_port}/"
+                f"{self.config.postgres_database}"
+            )
+        else:
+            # Use environment variables or peer authentication
+            connection_string = (
+                f"postgresql://{self.config.postgres_host}:"
+                f"{self.config.postgres_port}/{self.config.postgres_database}"
+            )
+        
+        vector_store = PGVectorStore.from_params(
+            database=self.config.postgres_database,
+            host=self.config.postgres_host,
+            password=self.config.postgres_password,
+            port=self.config.postgres_port,
+            user=self.config.postgres_user,
+            table_name=self.config.postgres_table_name,
+            embed_dim=None,  # Will be inferred from embedding model
+        )
+        
+        return vector_store
+
+    async def retrieve_documents(
+            self, claim: CheckedClaim, metadata_filters=None
+    ) -> list[Document]:
         """
         retrieve top_k documents that are relevant for the claim
         and/or its negation
         """
 
         retriever = self.index.as_retriever(
-            similarity_top_k=self.similarity_top_k
+            similarity_top_k=self.similarity_top_k,
+            filters=metadata_filters
         )
         matches = await retriever.aretrieve(claim.text)
         # NOTE: We're just using the claim text for now,
@@ -265,7 +371,7 @@ class DocumentRetriever:
         return documents
 
     async def retrieve_pair_documents(
-            self, claim: CheckedClaim
+            self, claim: CheckedClaim, metadata_filters=None
     ) -> list[Document]:
         """
         retrieve top_k documents that are relevant for the claim
@@ -273,7 +379,8 @@ class DocumentRetriever:
         """
 
         retriever = self.index.as_retriever(
-            similarity_top_k=self.similarity_top_k / 2
+            similarity_top_k=self.similarity_top_k / 2,
+            filters=metadata_filters
         )
         matches: list = await retriever.aretrieve(claim.text)
         matches_neg = await retriever.aretrieve(claim.negation)
