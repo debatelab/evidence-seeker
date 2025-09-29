@@ -27,6 +27,7 @@ from .confirmation_analysis.config import (
     MultipleChoiceTaskStepConfig,
 )
 from .confirmation_aggregation.base import ConfirmationAggregator
+from .confirmation_aggregation.config import ConfirmationAggregationConfig
 
 from .utils import (
     result_as_markdown,
@@ -71,6 +72,7 @@ __all__ = [
     "ConfirmationAnalyzerStepConfig",
     "MultipleChoiceTaskStepConfig",
     "ConfirmationAggregator",
+    "ConfirmationAggregationConfig",
     "get_openai_llm",
     "OpenAILikeWithGuidance",
     "CheckedClaim",
@@ -83,5 +85,5 @@ __all__ = [
     "UITexts",
     "MultiLanguageUITexts",
     "AppConfig",
-
+    "_DUMMY_CLAIMS"
 ]

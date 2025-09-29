@@ -7,6 +7,7 @@ import yaml
 
 from evidence_seeker.datamodels import CheckedClaim
 from evidence_seeker.datamodels import ConfirmationLevel
+from evidence_seeker.confirmation_aggregation.config import ConfirmationAggregationConfig
 
 
 def confirmation_level(degree_of_confirmation: float) -> ConfirmationLevel:
@@ -23,10 +24,6 @@ def confirmation_level(degree_of_confirmation: float) -> ConfirmationLevel:
     if degree_of_confirmation < -0.2:
         return ConfirmationLevel.WEAKLY_DISCONFIRMED
     return ConfirmationLevel.INCONCLUSIVE_CONFIRMATION
-
-
-class ConfirmationAggregationConfig(pydantic.BaseModel):
-    confirmation_threshold: float = 0.2
 
 
 class ConfirmationAggregator:
