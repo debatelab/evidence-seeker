@@ -296,47 +296,47 @@ class DocumentRetriever:
         
         return MetadataFilters(filters=filter_list)
 
-    def create_postgres_vector_store(self):
-        """
-        Create a PostgreSQL vector store with pgvector extension.
+    # def create_postgres_vector_store(self):
+    #     """
+    #     Create a PostgreSQL vector store with pgvector extension.
         
-        Returns:
-            PGVectorStore instance configured from RetrievalConfig
-        """
-        try:
-            from llama_index.vector_stores.postgres import PGVectorStore
-        except ImportError:
-            raise ImportError(
-                "PostgreSQL vector store not available. "
-                "Install with: pip install llama-index-vector-stores-postgres"
-            )
+    #     Returns:
+    #         PGVectorStore instance configured from RetrievalConfig
+    #     """
+    #     try:
+    #         from llama_index.vector_stores.postgres import PGVectorStore
+    #     except ImportError:
+    #         raise ImportError(
+    #             "PostgreSQL vector store not available. "
+    #             "Install with: pip install llama-index-vector-stores-postgres"
+    #         )
         
-        # Build connection string
-        if self.config.postgres_user and self.config.postgres_password:
-            connection_string = (
-                f"postgresql://{self.config.postgres_user}:"
-                f"{self.config.postgres_password}@"
-                f"{self.config.postgres_host}:{self.config.postgres_port}/"
-                f"{self.config.postgres_database}"
-            )
-        else:
-            # Use environment variables or peer authentication
-            connection_string = (
-                f"postgresql://{self.config.postgres_host}:"
-                f"{self.config.postgres_port}/{self.config.postgres_database}"
-            )
+    #     # Build connection string
+    #     if self.config.postgres_user and self.config.postgres_password:
+    #         connection_string = (
+    #             f"postgresql://{self.config.postgres_user}:"
+    #             f"{self.config.postgres_password}@"
+    #             f"{self.config.postgres_host}:{self.config.postgres_port}/"
+    #             f"{self.config.postgres_database}"
+    #         )
+    #     else:
+    #         # Use environment variables or peer authentication
+    #         connection_string = (
+    #             f"postgresql://{self.config.postgres_host}:"
+    #             f"{self.config.postgres_port}/{self.config.postgres_database}"
+    #         )
         
-        vector_store = PGVectorStore.from_params(
-            database=self.config.postgres_database,
-            host=self.config.postgres_host,
-            password=self.config.postgres_password,
-            port=self.config.postgres_port,
-            user=self.config.postgres_user,
-            table_name=self.config.postgres_table_name,
-            embed_dim=None,  # Will be inferred from embedding model
-        )
+    #     vector_store = PGVectorStore.from_params(
+    #         database=self.config.postgres_database,
+    #         host=self.config.postgres_host,
+    #         password=self.config.postgres_password,
+    #         port=self.config.postgres_port,
+    #         user=self.config.postgres_user,
+    #         table_name=self.config.postgres_table_name,
+    #         embed_dim=None,  # Will be inferred from embedding model
+    #     )
         
-        return vector_store
+    #     return vector_store
 
     async def retrieve_documents(
             self, claim: CheckedClaim, metadata_filters=None
