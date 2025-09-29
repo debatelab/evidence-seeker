@@ -95,7 +95,6 @@ def check_password(input_password: str, hash: str) -> bool:
     except VerificationError:
         return False
 
-
 def auth(pw: str, password_authenticated: bool):
     output = ""
     b = gr.Textbox(value="")
@@ -109,12 +108,12 @@ def auth(pw: str, password_authenticated: bool):
     return output, password_authenticated, b
 
 
-def reactivate(check_btn, statement):
+def reactivate(check_btn, statement, checked):
     if statement.strip() != "":
         check_btn = gr.Button(visible=True, interactive=True)
-    good = gr.Button(visible=True, interactive=True)
-    bad = gr.Button(visible=True, interactive=True)
-    feedback = gr.Markdown(visible=True)
+    good = gr.Button(visible=checked, interactive=checked)
+    bad = gr.Button(visible=checked, interactive=checked)
+    feedback = gr.Markdown(visible=checked)
     return feedback, check_btn, good, bad
 
 
@@ -147,6 +146,7 @@ def draw_example(examples: list[str]) -> str:
 async def check(statement: str, last_result: EvidenceSeekerResult):
     global EVIDENCE_SEEKER
     request_time = datetime.now(timezone.utc)
+    checked = False
     last_result = EvidenceSeekerResult(request = statement,
                                        time=request_time.strftime("%Y-%m-%d %H:%M:%S UTC"),
                                        preprocessing_config=EVIDENCE_SEEKER.preprocessor.config,
@@ -154,22 +154,35 @@ async def check(statement: str, last_result: EvidenceSeekerResult):
                                        confirmation_config=EVIDENCE_SEEKER.analyzer.config)
     if UI_TEST_MODE:
         last_result.claims = _dummy_claims
+        result = result_as_markdown(
+                evse_result=last_result,
+                translations=APP_CONFIG.translations[APP_CONFIG.language],
+                jinja2_md_template=APP_CONFIG.md_template,
+                group_docs_by_sources=APP_CONFIG.group_docs_by_sources
+            )
+        checked = True
     else:
         logger.log("INFO", f"Checking '{statement}'... This could take a while.")
-        checked_claims = await EVIDENCE_SEEKER(statement)
-        last_result.claims = checked_claims
+        try:
+            checked_claims = await EVIDENCE_SEEKER(statement)
+            last_result.claims = checked_claims
+            result = result_as_markdown(
+                evse_result=last_result,
+                translations=APP_CONFIG.translations[APP_CONFIG.language],
+                jinja2_md_template=APP_CONFIG.md_template,
+                group_docs_by_sources=APP_CONFIG.group_docs_by_sources
+            )
 
-    result = result_as_markdown(
-        evse_result=last_result,
-        translations=APP_CONFIG.translations[APP_CONFIG.language],
-        jinja2_md_template=APP_CONFIG.md_template,
-        group_docs_by_sources=APP_CONFIG.group_docs_by_sources
-    )
-
-    logger.info(
-        f"Result of statement '{statement}' checked (uid: {last_result.uid})",
-    )
-    return result, last_result
+            logger.info(
+                f"Result of statement '{statement}' checked (uid: {last_result.uid})",
+            )
+            checked = True
+        except Exception as e:
+            result = APP_CONFIG.get_ui_texts().server_error
+            logger.error(
+                f"Exception occured while checking '{statement}' ({e})",
+            )
+    return result, last_result, checked
 
 logger.info(
     "Using the following config files to initiate pipeline:"
@@ -195,6 +208,7 @@ with gr.Blocks(title="EvidenceSeeker") as evse_demo_app:
     password_authenticated = gr.State(
         value=False if APP_CONFIG.password_protection else True
     )
+    checked = gr.State(value=False)
     if APP_CONFIG.force_agreement:
         allow_result_persistance = gr.State(value=False)
         read_warning = gr.State(value=False)
@@ -248,8 +262,8 @@ with gr.Blocks(title="EvidenceSeeker") as evse_demo_app:
                     good.render()
                     bad.render()
 
-            def logging(evse_result):
-                if allow_result_persistance_val:
+            def logging(evse_result, checked):
+                if allow_result_persistance_val and checked:
                     log_result(
                         evse_result=evse_result,
                         result_dir=APP_CONFIG.result_dir,
@@ -267,10 +281,10 @@ with gr.Blocks(title="EvidenceSeeker") as evse_demo_app:
                 ),
                 None,
                 result,
-            ).then(check, [statement, last_result], [result, last_result]).then(
-                logging, last_result, None
+            ).then(check, [statement, last_result], [result, last_result, checked]).then(
+                logging, [last_result, checked], None
             ).then(
-                reactivate, [check_btn, statement], [feedback, check_btn, good, bad]
+                reactivate, [check_btn, statement, checked], [feedback, check_btn, good, bad]
             )
             good.click(log_feedback, [good, last_result], [good, bad]).then(
                 logging, [last_result], None
