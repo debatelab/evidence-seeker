@@ -16,7 +16,8 @@ from evidence_seeker import (
     EvidenceSeekerResult,
     result_as_markdown,
     log_result,
-    ConfirmationLevel
+    ConfirmationLevel,
+    _DUMMY_CLAIMS
 )
 
 from evidence_seeker import (
@@ -36,56 +37,6 @@ APP_CONFIG = AppConfig.from_file(config_file_path)
 ui = APP_CONFIG.ui_texts.get_texts(APP_CONFIG.language)
 
 UI_TEST_MODE = os.getenv("UI_TEST_MODE", False)
-
-# used for UI_TEST_MODE
-# TODO (@Leonie): provide the following dummy instance via util.py:
-# dummy claims, docs and dumy evse result
-_dummy_docs = [
-    Document(
-        text='While there is high confidence that oxygen levels have ...',
-        uid='1f47ce98-4105-4ddc-98a9-c4956dab2000',
-        metadata={
-            'page_label': '74',
-            'file_name': 'IPCC_AR6_WGI_TS.pdf',
-            'author': 'IPCC Working Group I',
-            'original_text': 'While there is low confidence in 20th century ...',
-            'url': 'www.dummy_url.com',
-            'title': 'Dummy Title'
-        }
-    ),
-    Document(
-        text='Based on recent refined \nanalyses of the ... ',
-        uid='6fcd6c0f-99a1-48e7-881f-f79758c54769',
-        metadata={
-            'page_label': '74',
-            'file_name': 'IPCC_AR6_WGI_TS.pdf',
-            'author': 'IPCC Working Group I',
-            'original_text': 'The AMOC was relatively stable during the past ...',
-            'url': 'www.dummy_url.com',
-            'title': 'Dummy Title'
-        }
-    ),
-]
-
-_dummy_claims = [
-    CheckedClaim(
-        text="The AMOC is slowing down",
-        negation="The AMOC is not changing",
-        uid="123",
-        documents=_dummy_docs,
-        n_evidence=2,
-        statement_type=StatementType.DESCRIPTIVE,
-        average_confirmation=0.2,
-        confirmation_level=ConfirmationLevel.WEAKLY_CONFIRMED,
-        evidential_uncertainty=0.1,
-        verbalized_confirmation="The claim is weakly confirmed.",
-        confirmation_by_document={
-            "1f47ce98-4105-4ddc-98a9-c4956dab2000": 0.1,
-            "6fcd6c0f-99a1-48e7-881f-f79758c54769": 0.3,
-        },
-    ),
-]
-
 
 def check_password(input_password: str, hash: str) -> bool:
     ph = PasswordHasher()
@@ -153,7 +104,7 @@ async def check(statement: str, last_result: EvidenceSeekerResult):
                                        retrieval_config=EVIDENCE_SEEKER.retriever.config,
                                        confirmation_config=EVIDENCE_SEEKER.analyzer.config)
     if UI_TEST_MODE:
-        last_result.claims = _dummy_claims
+        last_result.claims = _DUMMY_CLAIMS
         result = result_as_markdown(
                 evse_result=last_result,
                 translations=APP_CONFIG.translations[APP_CONFIG.language],

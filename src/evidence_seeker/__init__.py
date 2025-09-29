@@ -32,6 +32,7 @@ from .confirmation_aggregation.config import ConfirmationAggregationConfig
 from .utils import (
     result_as_markdown,
     log_result,
+    _DUMMY_CLAIMS
 )
 
 

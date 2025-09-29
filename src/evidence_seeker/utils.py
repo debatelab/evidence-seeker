@@ -14,7 +14,7 @@ from .results import EvidenceSeekerResult
 from .confirmation_aggregation.base import (
     confirmation_level
 )
-from .datamodels import Document
+from .datamodels import Document, StatementType, CheckedClaim, ConfirmationLevel
 
 _PACKAGE_DATA_MODULE = "evidence_seeker.package_data"
 _DEFAULT_MD_TEMPLATE = "templates/default_markdown.tmpl"
@@ -168,12 +168,6 @@ def log_result(
     additional_markdown_log: bool = False,
     filename_without_suffix: Callable[[EvidenceSeekerResult], str] | str | None = None,
 ):
-    # Do not log results if pipeline failed somehow
-    # TODO: Better to use state field (in 'EvSeResult') by catching
-    # errors and/or accessing the error codes from request
-    # (refactor workflows or pipeline for this)
-    if len(evse_result.claims) == 0:
-        return
     if evse_result.time is None:
         raise ValueError("Request time not set in result.")
     # constructing file name
@@ -267,3 +261,48 @@ def log_result(
         else:
             raise Exception("The uid of the result is not unique.")
 
+_DUMMY_DOCS = [
+    Document(
+        text='While there is high confidence that oxygen levels have ...',
+        uid='1f47ce98-4105-4ddc-98a9-c4956dab2000',
+        metadata={
+            'page_label': '74',
+            'file_name': 'IPCC_AR6_WGI_TS.pdf',
+            'author': 'IPCC Working Group I',
+            'original_text': 'While there is low confidence in 20th century ...',
+            'url': 'www.dummy_url.com',
+            'title': 'Dummy Title'
+        }
+    ),
+    Document(
+        text='Based on recent refined \nanalyses of the ... ',
+        uid='6fcd6c0f-99a1-48e7-881f-f79758c54769',
+        metadata={
+            'page_label': '74',
+            'file_name': 'IPCC_AR6_WGI_TS.pdf',
+            'author': 'IPCC Working Group I',
+            'original_text': 'The AMOC was relatively stable during the past ...',
+            'url': 'www.dummy_url.com',
+            'title': 'Dummy Title'
+        }
+    ),
+]
+
+_DUMMY_CLAIMS = [
+    CheckedClaim(
+        text="The AMOC is slowing down",
+        negation="The AMOC is not changing",
+        uid="123",
+        documents=_DUMMY_DOCS,
+        n_evidence=2,
+        statement_type=StatementType.DESCRIPTIVE,
+        average_confirmation=0.2,
+        confirmation_level=ConfirmationLevel.WEAKLY_CONFIRMED,
+        evidential_uncertainty=0.1,
+        verbalized_confirmation="The claim is weakly confirmed.",
+        confirmation_by_document={
+            "1f47ce98-4105-4ddc-98a9-c4956dab2000": 0.1,
+            "6fcd6c0f-99a1-48e7-881f-f79758c54769": 0.3,
+        },
+    ),
+]
