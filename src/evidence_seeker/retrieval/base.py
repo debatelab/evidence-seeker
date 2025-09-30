@@ -231,6 +231,10 @@ class DocumentRetriever:
         HfApi = huggingface_hub.HfApi(token=self.hub_token)
         if persist_dir is None:
             persist_dir = tempfile.mkdtemp()
+        if not self.index_hub_path:
+            raise ValueError(
+                "index_hub_path must be provided to download index from hub."
+            )
 
         HfApi.snapshot_download(
             repo_id=self.index_hub_path,
@@ -403,7 +407,10 @@ class DocumentRetriever:
         return documents
 
     async def __call__(self, claim: CheckedClaim) -> CheckedClaim:
-        if claim.statement_type.value in self.ignore_statement_types:
+        if (
+            claim.statement_type is not None
+            and claim.statement_type.value in self.ignore_statement_types
+        ):
             claim.documents = []
         else:
             claim.documents = await self.retrieve_documents(claim)
@@ -480,7 +487,8 @@ def _get_embed_model(
         **text_embeddings_inference_kwargs
 ) -> BaseEmbedding:
     logger.debug(
-            f"Inititializing embed model: {text_embeddings_inference_kwargs.get('model_name')} "
+            "Inititializing embed model: "
+            f"{text_embeddings_inference_kwargs.get('model_name')} "
         )
     if embed_backend_type == EmbedBackendType.OLLAMA:
         return OllamaEmbedding(
@@ -570,7 +578,7 @@ class IndexBuilder:
                 )
                 return
 
-            docs = self._load_documents()
+            docs = self._load_documents(metadata_func)
             nodes = self._nodes_from_documents(docs)
 
             logger.debug("Creating VectorStoreIndex with embeddings...")
@@ -689,16 +697,17 @@ class IndexBuilder:
         metadata_func: Callable[[str], Dict] | None = None,
     ) -> list[LlamaIndexDocument]:
         conf = self.config
+        document_input_dir = conf.document_input_dir
 
-        if conf.document_input_dir and conf.document_input_files:
+        if document_input_dir and conf.document_input_files:
             logger.warning(
                 "Both 'document_input_dir' and 'document_input_files' "
                 " provided'. Using 'document_input_files'."
             )
-            conf.document_input_dir = None
+            document_input_dir = None
 
-        if conf.document_input_dir:
-            logger.debug(f"Reading documents from {conf.document_input_dir}")
+        if document_input_dir:
+            logger.debug(f"Reading documents from {document_input_dir}")
         if conf.document_input_files:
             logger.debug(f"Reading documents from {conf.document_input_files}")
 
@@ -706,7 +715,7 @@ class IndexBuilder:
 
         logger.debug("Building document index...")
         documents = SimpleDirectoryReader(
-            input_dir=conf.document_input_dir,
+            input_dir=document_input_dir,
             input_files=conf.document_input_files,
             filename_as_id=True,
             file_metadata=self._get_metadata_func_with_filename(metadata_func),
