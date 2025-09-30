@@ -176,7 +176,7 @@ class DocumentRetriever:
             vector_store = PGVectorStore.from_params(
                 database=self.config.postgres_database,
                 host=self.config.postgres_host,
-                password=self.config.postgres_password,
+                password=_get_postgres_password(self.config),
                 port=self.config.postgres_port,
                 user=self.config.postgres_user,
                 table_name=self.config.postgres_table_name,
@@ -495,6 +495,14 @@ def _get_embed_model(
         )
 
 
+def _get_postgres_password(config: RetrievalConfig) -> str:
+    if config.postgres_password is None:
+        import os
+        return os.getenv(config.postgres_password_env_var)  # type: ignore
+    else:
+        return config.postgres_password
+
+
 def _get_embedding_dimension(embed_model: BaseEmbedding) -> int:
     """
     Programmatically determine the embedding dimension of the configured model
@@ -598,7 +606,7 @@ class IndexBuilder:
                 vector_store = PGVectorStore.from_params(
                     database=self.config.postgres_database,
                     host=self.config.postgres_host,
-                    password=self.config.postgres_password,
+                    password=_get_postgres_password(self.config),
                     port=self.config.postgres_port,
                     user=self.config.postgres_user,
                     table_name=self.config.postgres_table_name,
@@ -665,7 +673,7 @@ class IndexBuilder:
 
             connection_string = (
                 f"postgresql://{self.config.postgres_user}:"
-                f"{self.config.postgres_password}@"
+                f"{_get_postgres_password(self.config)}@"
                 f"{self.config.postgres_host}:{self.config.postgres_port}/"
                 f"{self.config.postgres_database}"
             )

@@ -59,6 +59,7 @@ class RetrievalConfig(pydantic.BaseModel):
     postgres_database: str = "evidence_seeker"
     postgres_user: str | None = None
     postgres_password: str | None = None
+    postgres_password_env_var: str | None = "postgres_password"
     postgres_table_name: str = "evse_embeddings"
     postgres_llamaindex_table_name_prefix: str | None = pydantic.Field(
         default="data_",
@@ -141,14 +142,24 @@ class RetrievalConfig(pydantic.BaseModel):
             missing_params = []
             if not self.postgres_user:
                 missing_params.append('postgres_user')
-            if not self.postgres_password:
-                missing_params.append('postgres_password')
 
             if missing_params:
                 err_msg = (
                     f"PostgreSQL configuration is incomplete. "
                     f"Missing parameters: {', '.join(missing_params)}. "
                     "Please provide them in the config."
+                )
+                logger.error(err_msg)
+                raise ValueError(err_msg)
+            if (
+                self.postgres_password is None
+                and self.postgres_password_env_var is None
+            ):
+                err_msg = (
+                    "PostgreSQL password is not set. "
+                    "Please provide it either directly via 'postgres_password' "
+                    "or set 'postgres_password_env_var' to the name of an "
+                    "environment variable containing the password."
                 )
                 logger.error(err_msg)
                 raise ValueError(err_msg)
@@ -174,7 +185,7 @@ class RetrievalConfig(pydantic.BaseModel):
     def load_env_file(self) -> 'RetrievalConfig':
         if self.env_file is None:
             logger.warning(
-                "No environment file with API keys specified for retriever. "
+                "No environment file with API keys/passwords specified for retriever. "
                 "Please set 'env_file' to a valid path if you want "
                 "to load environment variables from a file."
             )
