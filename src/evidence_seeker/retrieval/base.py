@@ -15,7 +15,7 @@ from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.core.bridge.pydantic import Field
-
+from llama_index.core import Document as LlamaIndexDocument
 
 from llama_index.core import (
     load_index_from_storage,
@@ -243,16 +243,16 @@ class DocumentRetriever:
     def create_metadata_filters(self, filters_dict: Dict) -> MetadataFilters:
         """
         Create MetadataFilters from a dictionary of filter conditions.
-        
+
         Args:
             filters_dict: Dictionary with metadata field names as keys and
                          filter conditions as values. Can specify:
                          - Simple equality: {"author": "Smith"}
                          - With operator: {"year": {"operator": ">=", "value": 2020}}
-                         
+
         Returns:
             MetadataFilters object for use with retriever
-            
+
         Example:
             filters = retriever.create_metadata_filters({
                 "author": "Smith",
@@ -261,13 +261,12 @@ class DocumentRetriever:
             })
         """
         filter_list = []
-        
         for key, condition in filters_dict.items():
             if isinstance(condition, dict):
                 # Complex filter with operator
                 operator_str = condition.get("operator", "==")
                 value = condition["value"]
-                
+
                 # Map string operators to FilterOperator enum
                 operator_mapping = {
                     "==": FilterOperator.EQ,
@@ -279,7 +278,7 @@ class DocumentRetriever:
                     "in": FilterOperator.IN,
                     "not_in": FilterOperator.NIN,
                 }
-                
+
                 operator = operator_mapping.get(operator_str, FilterOperator.EQ)
                 filter_list.append(MetadataFilter(
                     key=key,
@@ -293,7 +292,6 @@ class DocumentRetriever:
                     value=condition,
                     operator=FilterOperator.EQ
                 ))
-        
         return MetadataFilters(filters=filter_list)
 
     # def create_postgres_vector_store(self):
@@ -560,30 +558,42 @@ class IndexBuilder:
             metadata_func: Callable[[str], Dict] | None = None,
     ):
         conf = self.config
-        if not conf.index_persist_path:
-            err_msg = (
-                "Building an index demands the configuration "
-                "of `index_persist_path`."
+
+        if self._validate_build_configuration():
+            if conf.index_persist_path and os.path.exists(conf.index_persist_path):
+                logger.warning(
+                    f"Index persist path {conf.index_persist_path} "
+                    "already exists. Exiting without building index. "
+                    "If you want to rebuild the index, "
+                    "please remove the existing sub directory 'index'"
+                    f" in {conf.index_persist_path}."
+                )
+                return
+
+            docs = self._load_documents()
+            nodes = self._nodes_from_documents(docs)
+
+            logger.debug("Creating VectorStoreIndex with embeddings...")
+            index = VectorStoreIndex(
+                nodes,
+                use_async=False,
+                embed_model=self.embed_model,
+                show_progress=True
             )
+            index.set_index_id(conf.index_id)
+
+            self._post_parsing_consistency_checks(index, docs)
+            self._persist_index(index)
+        else:
+            err_msg = "Index build configuration is not valid. Exiting."
             logger.error(err_msg)
             raise ValueError(err_msg)
 
-        if os.path.exists(conf.index_persist_path):
-            logger.warning(
-                f"Index persist path {conf.index_persist_path} "
-                "already exists. Exiting without building index. "
-                "If you want to rebuild the index, "
-                "please remove the existing sub directory 'index'"
-                f" in {conf.index_persist_path}."
-            )
-            return
-        if conf.document_input_dir and conf.document_input_files:
-            logger.warning(
-                "Both 'document_input_dir' and 'document_input_files' "
-                " provided'. Using 'document_input_files'."
-            )
-            conf.document_input_dir = None
-        # handle document file metadata
+    def _get_metadata_func_with_filename(
+            self, metadata_func: Callable[[str], Dict] | None = None
+    ) -> Callable:
+        conf = self.config
+
         if conf.meta_data_file:
             logger.debug(
                 f"Using metadata file {conf.meta_data_file} for documents."
@@ -627,53 +637,119 @@ class IndexBuilder:
                     meta["file_name"] = pathlib.Path(file_name).name
                 return meta
 
+        return metadata_func_with_filename
+
+    def _validate_build_configuration(self) -> bool:
+        conf = self.config
+        # if not conf.index_persist_path:
+        #     err_msg = (
+        #         "Building an index demands the configuration "
+        #         "of `index_persist_path`."
+        #     )
+        #     logger.error(err_msg)
+        #     raise ValueError(err_msg)
+
+        if not conf.document_input_dir and not conf.document_input_files:
+            logger.error(
+                "At least, either 'document_input_dir' or "
+                "'document_input_files' must be provided."
+            )
+            return False
+
+        if conf.document_input_dir and not os.path.exists(
+            conf.document_input_dir
+        ):
+            logger.error(
+                f"Document input directory {conf.document_input_dir} "
+                "does not exist."
+            )
+            return False
+
+        if conf.document_input_files:
+            for file in conf.document_input_files:
+                if not os.path.exists(file):
+                    logger.error(f"Document input file {file} does not exist.")
+                    return False
+
+        if conf.meta_data_file and not os.path.exists(conf.meta_data_file):
+            logger.error(f"Metadata file {conf.meta_data_file} does not exist.")
+            return False
+
+        if not conf.index_persist_path and not conf.index_hub_path:
+            logger.error(
+                "At least, either 'index_persist_path' or 'index_hub_path' "
+                "must be provided."
+            )
+            return False
+
+        return True
+
+    def _load_documents(
+        self,
+        metadata_func: Callable[[str], Dict] | None = None,
+    ) -> list[LlamaIndexDocument]:
+        conf = self.config
+
+        if conf.document_input_dir and conf.document_input_files:
+            logger.warning(
+                "Both 'document_input_dir' and 'document_input_files' "
+                " provided'. Using 'document_input_files'."
+            )
+            conf.document_input_dir = None
+
         if conf.document_input_dir:
             logger.debug(f"Reading documents from {conf.document_input_dir}")
         if conf.document_input_files:
             logger.debug(f"Reading documents from {conf.document_input_files}")
 
         from llama_index.core import SimpleDirectoryReader
-        from llama_index.core.node_parser import SentenceWindowNodeParser
 
         logger.debug("Building document index...")
         documents = SimpleDirectoryReader(
             input_dir=conf.document_input_dir,
             input_files=conf.document_input_files,
             filename_as_id=True,
-            file_metadata=metadata_func_with_filename,
+            file_metadata=self._get_metadata_func_with_filename(metadata_func),
         ).load_data()
 
-        docs = documents
-        logger.debug(f"Loaded {len(docs)} documents.")
-        mean_size = sum(len(doc.text) for doc in docs) / len(docs) if docs else 0
+        logger.debug(f"Loaded {len(documents)} documents.")
+        mean_size = (
+            sum([len(doc.text) for doc in documents]) / len(documents)
+            if documents else 0
+        )
         logger.debug(f"Mean document size (in characters): {mean_size:.2f}")
-        input_file_names = set([doc.metadata.get("file_name") for doc in docs])
+        input_file_names = set([doc.metadata.get("file_name") for doc in documents])
         logger.debug(f"Number of files in the knowledge base: {len(input_file_names)}")
 
+        return documents
+
+    def _nodes_from_documents(self, documents: List[LlamaIndexDocument]):
+
         logger.debug("Parsing nodes...")
+        from llama_index.core.node_parser import SentenceWindowNodeParser
         nodes = SentenceWindowNodeParser.from_defaults(
-            window_size=conf.window_size,
+            window_size=self.config.window_size,
             window_metadata_key="window",
             original_text_metadata_key="original_text",
         ).get_nodes_from_documents(documents)
 
         logger.debug(f"Number of parsed nodes: {len(nodes)}")
+        return nodes
 
-        logger.debug("Creating VectorStoreIndex with embeddings...")
-        index = VectorStoreIndex(
-            nodes,
-            use_async=False,
-            embed_model=self.embed_model,
-            show_progress=True
-        )
-        index.set_index_id(conf.index_id)
-
+    def _post_parsing_consistency_checks(
+            self,
+            index: VectorStoreIndex,
+            input_documents: List[LlamaIndexDocument]
+    ):
         num_documents = len(index.docstore.docs)
         logger.debug(f"Number of parsed documents in the index: {num_documents}")
 
         file_names_index = set([
             doc.metadata.get("file_name") for doc in index.docstore.docs.values()
         ])
+        input_file_names = set(
+            [doc.metadata.get("file_name") for doc in input_documents]
+        )
 
         diff = input_file_names - file_names_index
         if len(diff) > 0:
@@ -682,6 +758,8 @@ class IndexBuilder:
                 "There might be an issue with the corresponding files."
             )
 
+    def _persist_index(self, index: VectorStoreIndex):
+        conf = self.config
         if conf.index_persist_path:
             logger.debug(f"Persisting index to {conf.index_persist_path}")
             index.storage_context.persist(conf.index_persist_path)
@@ -694,7 +772,7 @@ class IndexBuilder:
                 folder_path = tempfile.mkdtemp()
                 index.storage_context.persist(folder_path)
 
-            logger.debug(f"Uploading index to hub at {conf.upload_hub_path}")
+            logger.debug(f"Uploading index to hub at {conf.index_hub_path}")
 
             import huggingface_hub
 
