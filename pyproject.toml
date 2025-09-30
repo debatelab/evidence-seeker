@@ -47,6 +47,7 @@ dependencies = [
   "pygithub",
   "gradio",
   "argon2-cffi",
+  "llama-index-vector-stores-postgres",
 ]
 
 [project.readme]
@@ -117,6 +118,9 @@ dependencies = [
   "pygithub",
   "python-dotenv",
   "jinja2",
+  # used by the snowflake-arctic-embed-m-v2.0 embed model
+  "xformers",
+  "llama-index-vector-stores-postgres",
 ]
 
 [[tool.hatch.envs.evse-dev_env.matrix]]

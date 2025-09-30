@@ -52,17 +52,39 @@ class RetrievalConfig(pydantic.BaseModel):
     # nessecary for some models (e.g., snowflake-arctic-embed-m-v2.0)
     trust_remote_code: bool | None = None
 
+    # PostgreSQL Vector Store Configuration
+    use_postgres: bool = False
+    postgres_host: str = "localhost"
+    postgres_port: str = "5432"
+    postgres_database: str = "evidence_seeker"
+    postgres_user: str | None = None
+    postgres_password: str | None = None
+    postgres_table_name: str = "evse_embeddings"
+    postgres_llamaindex_table_name_prefix: str | None = pydantic.Field(
+        default="data_",
+        description=(
+            "Prefix for LlamaIndex tables in Postgres. "
+            "Currently, only used when deleting files from the postgres DB."
+            "If None, we search for tables similar to `postgres_table_name`"
+            "See: https://github.com/run-llama/llama_index/discussions/14766"
+        )
+    )
+    postgres_schema_name: str = "public"
+    postgres_embed_dim: int | None = pydantic.Field(
+        default=None,
+        description=(
+            "Dimension of the embeddings used. If None, we try to infer it "
+            "by creating a sample embedding."
+        )
+    )
     @model_validator(mode='after')
-    def check_base_url(
-        cls,
-        config: 'RetrievalConfig'
-    ) -> 'RetrievalConfig':
+    def check_base_url(self) -> 'RetrievalConfig':
         if (
-            not config.embed_base_url
+            not self.embed_base_url
             and (
-                config.embed_backend_type == EmbedBackendType.TEI.value
+                self.embed_backend_type == EmbedBackendType.TEI.value
                 or (
-                    config.embed_backend_type
+                    self.embed_backend_type
                     == EmbedBackendType.HUGGINGFACE_INFERENCE_API.value
                 )
             )
@@ -74,40 +96,34 @@ class RetrievalConfig(pydantic.BaseModel):
             logger.error(msg)
             raise ValueError(msg)
 
-        return config
+        return self
 
     @model_validator(mode='after')
-    def check_api_token_name(
-        cls,
-        config: 'RetrievalConfig'
-    ) -> 'RetrievalConfig':
+    def check_api_token_name(self) -> 'RetrievalConfig':
         if (
-            not config.api_key_name
+            not self.api_key_name
             and (
-                config.embed_backend_type == EmbedBackendType.TEI.value
+                self.embed_backend_type == EmbedBackendType.TEI.value
                 or (
-                    config.embed_backend_type
+                    self.embed_backend_type
                     == EmbedBackendType.HUGGINGFACE_INFERENCE_API.value
                 )
             )
         ):
             msg = (
                 f"Check whether you need an API token for your backend "
-                f"('{config.embed_backend_type}'). If you need one, set an "
+                f"('{self.embed_backend_type}'). If you need one, set an "
                 "`api_key_name` in the retriever config and provide the "
                 "api token as an environment variable with that name."
             )
             logger.warning(msg)
-        return config
+        return self
 
     @model_validator(mode='after')
-    def check_hub_token_name(
-        cls,
-        config: 'RetrievalConfig'
-    ) -> 'RetrievalConfig':
+    def check_hub_token_name(self) -> 'RetrievalConfig':
         if (
-            not config.hub_key_name
-            and not config.index_hub_path
+            not self.hub_key_name
+            and not self.index_hub_path
         ):
             msg = (
                 "Check whether you need a HF hub token for saving/loading "
@@ -117,31 +133,46 @@ class RetrievalConfig(pydantic.BaseModel):
                 "token as an environment variable with that name."
             )
             logger.warning(msg)
-        return config
+        return self
 
     @model_validator(mode='after')
-    def check_index_path(
-        cls,
-        config: 'RetrievalConfig'
-    ) -> 'RetrievalConfig':
+    def check_postgres_config(self) -> 'RetrievalConfig':
+        if self.use_postgres:
+            missing_params = []
+            if not self.postgres_user:
+                missing_params.append('postgres_user')
+            if not self.postgres_password:
+                missing_params.append('postgres_password')
+
+            if missing_params:
+                err_msg = (
+                    f"PostgreSQL configuration is incomplete. "
+                    f"Missing parameters: {', '.join(missing_params)}. "
+                    "Please provide them in the config."
+                )
+                logger.error(err_msg)
+                raise ValueError(err_msg)
+        return self
+
+    @model_validator(mode='after')
+    def check_index_path(self) -> 'RetrievalConfig':
         if (
-            not config.index_persist_path
-            and not config.index_hub_path
+            not self.index_persist_path
+            and not self.index_hub_path
+            and not self.use_postgres
         ):
             err_msg = (
-                "Either 'index_persist_path' or 'index_hub_path' must "
-                "be provided to store/load the index."
+                "Either 'index_persist_path' or 'index_hub_path' "
+                "must be provided to store/load the index "
+                "if you don't use a PostGres DB."
             )
             logger.error(err_msg)
             raise ValueError(err_msg)
-        return config
+        return self
 
     @model_validator(mode='after')
-    def load_env_file(
-        cls,
-        config: 'RetrievalConfig'
-    ) -> 'RetrievalConfig':
-        if config.env_file is None:
+    def load_env_file(self) -> 'RetrievalConfig':
+        if self.env_file is None:
             logger.warning(
                 "No environment file with API keys specified for retriever. "
                 "Please set 'env_file' to a valid path if you want "
@@ -150,9 +181,9 @@ class RetrievalConfig(pydantic.BaseModel):
         else:
             # check if the env file exists
             from os import path
-            if not path.exists(config.env_file):
+            if not path.exists(self.env_file):
                 err_msg = (
-                    f"Environment file '{config.env_file}' does not exist. "
+                    f"Environment file '{self.env_file}' does not exist. "
                     "Please provide a valid path to the environment file. "
                     "Or set it to None if you don't need it and set the "
                     "API keys in other ways as environment variables."
@@ -161,12 +192,12 @@ class RetrievalConfig(pydantic.BaseModel):
             else:
                 # load the env file
                 from dotenv import load_dotenv
-                load_dotenv(config.env_file)
+                load_dotenv(self.env_file)
             logger.info(
-                f"Loaded environment variables from '{config.env_file}'"
+                f"Loaded environment variables from '{self.env_file}'"
             )
 
-        return config
+        return self
 
     @classmethod
     def from_config_file(cls, config_file: str):

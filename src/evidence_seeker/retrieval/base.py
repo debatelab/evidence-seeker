@@ -16,6 +16,8 @@ from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.core.bridge.pydantic import Field
 from llama_index.core import Document as LlamaIndexDocument
+from llama_index.vector_stores.postgres import PGVectorStore
+
 
 from llama_index.core import (
     load_index_from_storage,
@@ -165,62 +167,76 @@ class DocumentRetriever:
         self.index = self.load_index()
 
     def load_index(self) -> VectorStoreIndex:
-        if not self.index_persist_path and not self.index_hub_path:
-            msg = (
-                "At least, either index_persist_path or index_hub_path "
-                "must be provided."
-            )
-            logger.error(msg)
-            raise ValueError(msg)
-
-        if self.index_persist_path:
-            persist_dir = self.index_persist_path
-            logger.info(
-                "Using index persist path: "
-                f"{os.path.abspath(persist_dir)}"
-            )
-            if (
-                not os.path.exists(self.index_persist_path)
-                # empty directory check
-                or not os.listdir(self.index_persist_path)
-            ):
-                if not self.index_hub_path:
-                    raise FileNotFoundError((
-                        f"Index not found at {self.index_persist_path}."
-                        "Please provide a valid path and/or set "
-                        "`index_hub_path`."
-                    ))
-                else:
-                    logger.info((
-                        f"Downloading index from hub at {self.index_hub_path}"
-                        f"and saving to {self.index_persist_path}"
-                    ))
-                    self.download_index_from_hub(persist_dir)
-
-        if not self.index_persist_path:
-            logger.info(
-                f"Downloading index from hub at {self.index_hub_path}..."
-            )
-            # storing index in temp dir
-            persist_dir = self.download_index_from_hub()
-            logger.info(f"Index downloaded to temp dir: {persist_dir}")
-
-        persist_dir = os.path.join(persist_dir, INDEX_PATH_IN_REPO)
-        logger.info(f"Loading index from disk at {persist_dir}")
-        # rebuild storage context
-        storage_context = StorageContext.from_defaults(persist_dir=persist_dir)
-        # load index
-        index = load_index_from_storage(
-            storage_context,
-            index_id=self.index_id,
-            embed_model=self.embed_model
+        embed_dim = (
+            self.config.postgres_embed_dim 
+            if self.config.postgres_embed_dim is not None 
+            else _get_embedding_dimension(self.embed_model)
         )
+        if self.config.use_postgres:
+            vector_store = PGVectorStore.from_params(
+                database=self.config.postgres_database,
+                host=self.config.postgres_host,
+                password=self.config.postgres_password,
+                port=self.config.postgres_port,
+                user=self.config.postgres_user,
+                table_name=self.config.postgres_table_name,
+                schema_name=self.config.postgres_schema_name,
+                embed_dim=embed_dim,
+            )
+            index = VectorStoreIndex.from_vector_store(
+                vector_store=vector_store,
+                embed_model=self.embed_model
+            )
 
-        # cleanup temp dir
-        if not self.index_persist_path:
-            import shutil
+        else:
+            if self.index_persist_path:
+                persist_dir = self.index_persist_path
+                logger.info(
+                    "Using index persist path: "
+                    f"{os.path.abspath(persist_dir)}"
+                )
+                if (
+                    not os.path.exists(self.index_persist_path)
+                    # empty directory check
+                    or not os.listdir(self.index_persist_path)
+                ):
+                    if not self.index_hub_path:
+                        raise FileNotFoundError((
+                            f"Index not found at {self.index_persist_path}."
+                            "Please provide a valid path and/or set "
+                            "`index_hub_path`."
+                        ))
+                    else:
+                        logger.info((
+                            f"Downloading index from hub at {self.index_hub_path}"
+                            f"and saving to {self.index_persist_path}"
+                        ))
+                        self.download_index_from_hub(persist_dir)
 
-            shutil.rmtree(persist_dir)
+            if not self.index_persist_path:
+                logger.info(
+                    f"Downloading index from hub at {self.index_hub_path}..."
+                )
+                # storing index in temp dir
+                persist_dir = self.download_index_from_hub()
+                logger.info(f"Index downloaded to temp dir: {persist_dir}")
+
+            persist_dir = os.path.join(persist_dir, INDEX_PATH_IN_REPO)
+            logger.info(f"Loading index from disk at {persist_dir}")
+            # rebuild storage context
+            storage_context = StorageContext.from_defaults(persist_dir=persist_dir)
+            # load index
+            index = load_index_from_storage(
+                storage_context,
+                index_id=self.index_id,
+                embed_model=self.embed_model
+            )
+
+            # cleanup temp dir
+            if not self.index_persist_path:
+                import shutil
+
+                shutil.rmtree(persist_dir)
 
         return index  # type: ignore
 
@@ -297,48 +313,6 @@ class DocumentRetriever:
                     operator=FilterOperator.EQ
                 ))
         return MetadataFilters(filters=filter_list)
-
-    # def create_postgres_vector_store(self):
-    #     """
-    #     Create a PostgreSQL vector store with pgvector extension.
-        
-    #     Returns:
-    #         PGVectorStore instance configured from RetrievalConfig
-    #     """
-    #     try:
-    #         from llama_index.vector_stores.postgres import PGVectorStore
-    #     except ImportError:
-    #         raise ImportError(
-    #             "PostgreSQL vector store not available. "
-    #             "Install with: pip install llama-index-vector-stores-postgres"
-    #         )
-        
-    #     # Build connection string
-    #     if self.config.postgres_user and self.config.postgres_password:
-    #         connection_string = (
-    #             f"postgresql://{self.config.postgres_user}:"
-    #             f"{self.config.postgres_password}@"
-    #             f"{self.config.postgres_host}:{self.config.postgres_port}/"
-    #             f"{self.config.postgres_database}"
-    #         )
-    #     else:
-    #         # Use environment variables or peer authentication
-    #         connection_string = (
-    #             f"postgresql://{self.config.postgres_host}:"
-    #             f"{self.config.postgres_port}/{self.config.postgres_database}"
-    #         )
-        
-    #     vector_store = PGVectorStore.from_params(
-    #         database=self.config.postgres_database,
-    #         host=self.config.postgres_host,
-    #         password=self.config.postgres_password,
-    #         port=self.config.postgres_port,
-    #         user=self.config.postgres_user,
-    #         table_name=self.config.postgres_table_name,
-    #         embed_dim=None,  # Will be inferred from embedding model
-    #     )
-        
-    #     return vector_store
 
     async def retrieve_documents(
             self, claim: CheckedClaim, metadata_filters=None
@@ -521,6 +495,28 @@ def _get_embed_model(
         )
 
 
+def _get_embedding_dimension(embed_model: BaseEmbedding) -> int:
+    """
+    Programmatically determine the embedding dimension of the configured model
+    """
+
+    # Method 1: Try to get dimension from model attribute (if available)
+    if hasattr(embed_model, 'embed_dim'):
+        embed_dim = embed_model.embed_dim  # type: ignore
+        logger.debug(f"Found embed_dim attribute: {embed_dim}")
+        return embed_dim
+
+    # Method 2: Get actual embedding and measure its length
+    try:
+        sample_embedding = embed_model.get_text_embedding("sample text")
+        embed_dim = len(sample_embedding)
+        logger.debug(f"Determined embed_dim by sampling: {embed_dim}")
+        return embed_dim
+    except Exception as e:
+        logger.error(f"Failed to determine embedding dimension: {e}")
+        raise ValueError(f"Could not determine embedding dimension: {e}")
+
+
 class IndexBuilder:
 
     def __init__(self, config: RetrievalConfig | None = None):
@@ -591,12 +587,37 @@ class IndexBuilder:
             nodes = self._nodes_from_documents(docs)
 
             logger.debug("Creating VectorStoreIndex with embeddings...")
+            storage_context = None
+            if self.config.use_postgres:
+                embed_dim = (
+                    self.config.postgres_embed_dim 
+                    if self.config.postgres_embed_dim is not None 
+                    else _get_embedding_dimension(self.embed_model)
+                )
+
+                vector_store = PGVectorStore.from_params(
+                    database=self.config.postgres_database,
+                    host=self.config.postgres_host,
+                    password=self.config.postgres_password,
+                    port=self.config.postgres_port,
+                    user=self.config.postgres_user,
+                    table_name=self.config.postgres_table_name,
+                    schema_name=self.config.postgres_schema_name,
+                    embed_dim=embed_dim,
+                )
+
+                storage_context = StorageContext.from_defaults(
+                    vector_store=vector_store
+                )
+
             index = VectorStoreIndex(
                 nodes,
                 use_async=False,
                 embed_model=self.embed_model,
+                storage_context=storage_context,
                 show_progress=True
             )
+
             index.set_index_id(conf.index_id)
 
             self._post_parsing_consistency_checks(index, docs)
@@ -618,18 +639,125 @@ class IndexBuilder:
 
     def _delete_files_in_index(self, index: VectorStoreIndex, file_names: List[str]):
         logger.debug(f"Deleting files {file_names} from index...")
-        to_delete_doc_ids = set([
-            doc.ref_doc_id for doc in index.docstore.docs.values()
-            if doc.metadata.get("file_name") in file_names
-        ])
-        logger.debug(f"Found {len(to_delete_doc_ids)} documents to delete.")
-        if to_delete_doc_ids:
-            for doc_id in to_delete_doc_ids:
-                if doc_id:
-                    index.delete_ref_doc(doc_id, delete_from_docstore=True)
-            logger.debug(f"Deleted {len(to_delete_doc_ids)} documents from index.")
+
+        if self.config.use_postgres:
+            self._delete_files_in_postgres(index, file_names)
         else:
-            logger.debug("No documents found to delete.")
+            to_delete_doc_ids = set([
+                doc.ref_doc_id for doc in index.docstore.docs.values()
+                if doc.metadata.get("file_name") in file_names
+            ])
+            logger.debug(f"Found {len(to_delete_doc_ids)} documents to delete.")
+            if to_delete_doc_ids:
+                for doc_id in to_delete_doc_ids:
+                    if doc_id:
+                        index.delete_ref_doc(doc_id, delete_from_docstore=True)
+                logger.debug(f"Deleted {len(to_delete_doc_ids)} documents from index.")
+            else:
+                logger.debug("No documents found to delete.")
+
+    def _delete_files_in_postgres(self, index: VectorStoreIndex, file_names: List[str]):
+        """Delete files from PostgreSQL vector store using direct metadata filtering"""
+        logger.debug(f"Deleting files from PostgreSQL: {file_names}")
+
+        try:
+            import psycopg2
+
+            connection_string = (
+                f"postgresql://{self.config.postgres_user}:"
+                f"{self.config.postgres_password}@"
+                f"{self.config.postgres_host}:{self.config.postgres_port}/"
+                f"{self.config.postgres_database}"
+            )
+
+            with psycopg2.connect(connection_string) as conn:
+                with conn.cursor() as cur:
+                    # handling LlamaIndex table name prefixes
+                    # see: https://github.com/run-llama/llama_index/discussions/14766
+                    if self.config.postgres_llamaindex_table_name_prefix is not None:
+                        actual_table_name = (
+                            f"{self.config.postgres_llamaindex_table_name_prefix}"
+                            f"{self.config.postgres_table_name}"
+                        )
+                    else:
+                        # Find the actual table name
+                        cur.execute("""
+                            SELECT tablename FROM pg_tables
+                            WHERE schemaname = %s
+                            AND tablename LIKE %s
+                            ORDER BY tablename DESC
+                            LIMIT 1;
+                        """, (
+                            self.config.postgres_schema_name,
+                            f"%{self.config.postgres_table_name}%"
+                        ))
+
+                        result = cur.fetchone()
+                        if not result:
+                            logger.error(
+                                f"No table found matching "
+                                f"{self.config.postgres_table_name}"
+                            )
+                            return
+
+                        actual_table_name = result[0]
+                    
+                    full_table_name = (
+                        f"{self.config.postgres_schema_name}.{actual_table_name}"
+                    )
+
+                    logger.debug(f"Using PostgreSQL table: {full_table_name}")
+
+                    # Count how many nodes will be deleted (for logging)
+                    cur.execute(f"""
+                        SELECT COUNT(*)
+                        FROM {full_table_name}
+                        WHERE metadata_->>'file_name' = ANY(%s)
+                    """, (file_names,))
+
+                    count_result = cur.fetchone()
+                    nodes_to_delete = count_result[0] if count_result else 0
+                    logger.debug(f"Found {nodes_to_delete} nodes to delete")
+
+                    if nodes_to_delete > 0:
+                        # Delete nodes directly using metadata filtering
+                        cur.execute(f"""
+                            DELETE FROM {full_table_name}
+                            WHERE metadata_->>'file_name' = ANY(%s)
+                        """, (file_names,))
+
+                        deleted_count = cur.rowcount
+                        conn.commit()
+
+                        logger.debug(
+                            f"Successfully deleted {deleted_count} nodes "
+                            f"from PostgreSQL"
+                        )
+
+                        # Verify deletion worked
+                        cur.execute(f"""
+                            SELECT COUNT(*)
+                            FROM {full_table_name}
+                            WHERE metadata_->>'file_name' = ANY(%s)
+                        """, (file_names,))
+
+                        verify_result = cur.fetchone()
+                        remaining_count = verify_result[0] if verify_result else 0
+                        if remaining_count == 0:
+                            logger.debug(
+                                "Deletion verification: No remaining nodes found"
+                            )
+                        else:
+                            logger.warning(
+                                f"Deletion verification: {remaining_count} "
+                                f"nodes still remain"
+                            )
+                    else:
+                        logger.debug("No nodes found to delete in PostgreSQL")
+
+        except Exception as e:
+            logger.error(f"Error deleting files from PostgreSQL: {e}")
+            raise
 
     def update_files(
             self,
@@ -776,13 +904,6 @@ class IndexBuilder:
             logger.error(f"Metadata file {conf.meta_data_file} does not exist.")
             return False
 
-        if not conf.index_persist_path and not conf.index_hub_path:
-            logger.error(
-                "At least, either 'index_persist_path' or 'index_hub_path' "
-                "must be provided."
-            )
-            return False
-
         return True
 
     def _load_documents(
@@ -843,25 +964,66 @@ class IndexBuilder:
             index: VectorStoreIndex,
             input_documents: List[LlamaIndexDocument]
     ):
-        num_nodes = len(index.docstore.docs)
-        logger.debug(f"Number of parsed nodes the index: {num_nodes}")
+        if self.config.use_postgres:
+            # For PostgreSQL, check the vector store directly
+            logger.debug("Checking PostgreSQL vector store consistency...")
 
-        file_names_index = set([
-            doc.metadata.get("file_name") for doc in index.docstore.docs.values()
-        ])
-        input_file_names = set(
-            [doc.metadata.get("file_name") for doc in input_documents]
-        )
+            # Try to get some nodes from the vector store to verify data was inserted
+            try:
+                # Get a small sample to verify insertion
+                sample_retriever = index.as_retriever(similarity_top_k=1)
+                # Use a simple query to check if anything was indexed
+                test_results = sample_retriever.retrieve("test query")  # Sync version
 
-        diff = input_file_names - file_names_index
-        if len(diff) > 0:
-            logger.warning(
-                f"Some files were not indexed: {diff}. "
-                "There might be an issue with the corresponding files."
+                if test_results:
+                    logger.debug(
+                        "PostgreSQL vector store contains data - "
+                        f"found {len(test_results)} sample results")
+
+                    # Check file names in the retrieved sample
+                    sample_file_names = set([
+                        node.metadata.get("file_name") for node in test_results
+                        if hasattr(node, 'metadata') and node.metadata
+                    ])
+                    logger.debug(
+                        f"Sample file names in PostgreSQL: {sample_file_names}"
+                    )
+                else:
+                    logger.warning("PostgreSQL vector store appears to be empty!")
+
+            except Exception as e:
+                logger.error(f"Error checking PostgreSQL vector store: {e}")
+
+            # Also check input file names for comparison
+            input_file_names = set(
+                [doc.metadata.get("file_name") for doc in input_documents]
             )
+            logger.debug(f"Input file names: {input_file_names}")
+
+        else:
+
+            num_nodes = len(index.docstore.docs)
+            logger.debug(f"Number of parsed nodes the index: {num_nodes}")
+
+            file_names_index = set([
+                doc.metadata.get("file_name") for doc in index.docstore.docs.values()
+            ])
+            input_file_names = set(
+                [doc.metadata.get("file_name") for doc in input_documents]
+            )
+
+            diff = input_file_names - file_names_index
+            if len(diff) > 0:
+                logger.warning(
+                    f"Some files were not indexed: {diff}. "
+                    "There might be an issue with the corresponding files."
+                )
 
     def _persist_index(self, index: VectorStoreIndex):
         conf = self.config
+        if conf.use_postgres:
+            logger.debug("Using PostgreSQL vector store - no file-based persistence.")
+            return
         if conf.index_persist_path:
             persist_dir = os.path.join(
                 os.path.abspath(conf.index_persist_path),
