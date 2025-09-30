@@ -164,7 +164,7 @@ class DocumentRetriever:
         )
         self.index = self.load_index()
 
-    def load_index(self):
+    def load_index(self) -> VectorStoreIndex:
         if not self.index_persist_path and not self.index_hub_path:
             msg = (
                 "At least, either index_persist_path or index_hub_path "
@@ -222,7 +222,7 @@ class DocumentRetriever:
 
             shutil.rmtree(persist_dir)
 
-        return index
+        return index  # type: ignore
 
     def download_index_from_hub(self, persist_dir: str | None = None) -> str:
 
@@ -530,11 +530,11 @@ class IndexBuilder:
             self.config = RetrievalConfig()
 
         # For building the index, we add `INDEX_PATH_IN_REPO` as subdirectory.
-        if self.config.index_persist_path:
-            self.config.index_persist_path = os.path.join(
-                os.path.abspath(self.config.index_persist_path),
-                INDEX_PATH_IN_REPO
-            )
+        # if self.config.index_persist_path:
+        #     self.config.index_persist_path = os.path.join(
+        #         os.path.abspath(self.config.index_persist_path),
+        #         INDEX_PATH_IN_REPO
+        #     )
 
         api_token = os.getenv(self.config.api_key_name or "No API_KEY_NAME_")
         if not api_token:
@@ -568,7 +568,12 @@ class IndexBuilder:
         conf = self.config
 
         if self._validate_build_configuration():
-            if conf.index_persist_path and os.path.exists(conf.index_persist_path):
+            if conf.index_persist_path and os.path.exists(
+                os.path.join(
+                    os.path.abspath(conf.index_persist_path),
+                    INDEX_PATH_IN_REPO
+                )
+            ):
                 logger.warning(
                     f"Index persist path {conf.index_persist_path} "
                     "already exists. Exiting without building index. "
@@ -578,7 +583,11 @@ class IndexBuilder:
                 )
                 return
 
-            docs = self._load_documents(metadata_func)
+            docs = self._load_documents(
+                conf.document_input_dir,
+                conf.document_input_files,
+                metadata_func
+            )
             nodes = self._nodes_from_documents(docs)
 
             logger.debug("Creating VectorStoreIndex with embeddings...")
@@ -596,6 +605,90 @@ class IndexBuilder:
             err_msg = "Index build configuration is not valid. Exiting."
             logger.error(err_msg)
             raise ValueError(err_msg)
+
+    def delete_files(self, file_names: List[str]):
+
+        # load the index
+        # TODO: make index loading accesible via private pkg functions
+        retriever = DocumentRetriever(config=self.config)
+        index = retriever.index
+        self._delete_files_in_index(index, file_names)
+        # persist the index
+        self._persist_index(index)
+
+    def _delete_files_in_index(self, index: VectorStoreIndex, file_names: List[str]):
+        logger.debug(f"Deleting files {file_names} from index...")
+        to_delete_doc_ids = set([
+            doc.ref_doc_id for doc in index.docstore.docs.values()
+            if doc.metadata.get("file_name") in file_names
+        ])
+        logger.debug(f"Found {len(to_delete_doc_ids)} documents to delete.")
+        if to_delete_doc_ids:
+            for doc_id in to_delete_doc_ids:
+                if doc_id:
+                    index.delete_ref_doc(doc_id, delete_from_docstore=True)
+            logger.debug(f"Deleted {len(to_delete_doc_ids)} documents from index.")
+        else:
+            logger.debug("No documents found to delete.")
+
+    def update_files(
+            self,
+            document_input_dir: str | None = None,
+            document_input_files: List[str] | None = None,
+            metadata_func: Callable[[str], Dict] | None = None,
+    ):
+        # load the index
+        # TODO: make index loading accesible via private pkg functions
+        retriever = DocumentRetriever(config=self.config)
+        index = retriever.index
+        updated = self._update_files_in_index(
+            index,
+            document_input_dir,
+            document_input_files,
+            metadata_func
+        )
+        if updated:
+            self._persist_index(index)
+
+    def _update_files_in_index(
+            self,
+            index: VectorStoreIndex,
+            document_input_dir: str | None = None,
+            document_input_files: List[str] | None = None,
+            metadata_func: Callable[[str], Dict] | None = None,
+    ) -> bool:
+        if document_input_dir and document_input_files:
+            logger.warning(
+                "Both 'document_input_dir' and 'document_input_files' "
+                " provided'. Using 'document_input_files'."
+            )
+            document_input_dir = None
+        # TODO: Test this case
+        if document_input_dir is not None:
+            document_input_files = [
+                str(p) for p in pathlib.Path(document_input_dir).glob("*")
+                if p.is_file()
+            ]
+
+        if document_input_files is not None:
+            file_names = [pathlib.Path(f).name for f in document_input_files]
+            # delete files from index first
+            self._delete_files_in_index(index, file_names)
+
+            docs = self._load_documents(
+                document_input_files=document_input_files,
+                metadata_func=metadata_func,
+            )
+            nodes = self._nodes_from_documents(docs)
+            logger.debug(f"Adding {len(nodes)} nodes to index...")
+            index.insert_nodes(nodes, use_async=False, show_progress=True)
+            return True
+        else:
+            logger.warning(
+                "Neither 'document_input_dir' nor 'document_input_files' "
+                " provided'. No files to update."
+            )
+            return False
 
     def _get_metadata_func_with_filename(
             self, metadata_func: Callable[[str], Dict] | None = None
@@ -694,12 +787,12 @@ class IndexBuilder:
 
     def _load_documents(
         self,
+        document_input_dir: str | None = None,
+        document_input_files: List[str] | None = None,
         metadata_func: Callable[[str], Dict] | None = None,
     ) -> list[LlamaIndexDocument]:
-        conf = self.config
-        document_input_dir = conf.document_input_dir
 
-        if document_input_dir and conf.document_input_files:
+        if document_input_dir and document_input_files:
             logger.warning(
                 "Both 'document_input_dir' and 'document_input_files' "
                 " provided'. Using 'document_input_files'."
@@ -708,15 +801,15 @@ class IndexBuilder:
 
         if document_input_dir:
             logger.debug(f"Reading documents from {document_input_dir}")
-        if conf.document_input_files:
-            logger.debug(f"Reading documents from {conf.document_input_files}")
+        if document_input_files:
+            logger.debug(f"Reading documents from {document_input_files}")
 
         from llama_index.core import SimpleDirectoryReader
 
-        logger.debug("Building document index...")
+        logger.debug("Parsing documents...")
         documents = SimpleDirectoryReader(
             input_dir=document_input_dir,
-            input_files=conf.document_input_files,
+            input_files=document_input_files,
             filename_as_id=True,
             file_metadata=self._get_metadata_func_with_filename(metadata_func),
         ).load_data()
@@ -750,8 +843,8 @@ class IndexBuilder:
             index: VectorStoreIndex,
             input_documents: List[LlamaIndexDocument]
     ):
-        num_documents = len(index.docstore.docs)
-        logger.debug(f"Number of parsed documents in the index: {num_documents}")
+        num_nodes = len(index.docstore.docs)
+        logger.debug(f"Number of parsed nodes the index: {num_nodes}")
 
         file_names_index = set([
             doc.metadata.get("file_name") for doc in index.docstore.docs.values()
@@ -770,11 +863,23 @@ class IndexBuilder:
     def _persist_index(self, index: VectorStoreIndex):
         conf = self.config
         if conf.index_persist_path:
-            logger.debug(f"Persisting index to {conf.index_persist_path}")
-            index.storage_context.persist(conf.index_persist_path)
+            persist_dir = os.path.join(
+                os.path.abspath(conf.index_persist_path),
+                INDEX_PATH_IN_REPO
+            )
+            logger.debug(f"Persisting index to {persist_dir}")
+            index.storage_context.persist(persist_dir)
 
+        # TODO: Check new handling of path issue
+        # 1. Upload to hub with set persist path and unset persist path
+        # 2. Uplaod via upload method
         if conf.index_hub_path:
             folder_path = conf.index_persist_path
+            if folder_path:
+                folder_path = os.path.join(
+                    os.path.abspath(folder_path),
+                    INDEX_PATH_IN_REPO
+                )
 
             if not folder_path:
                 # Save index in tmp dict
