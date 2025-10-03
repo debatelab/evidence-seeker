@@ -240,6 +240,81 @@ class DocumentRetriever:
 
         return index  # type: ignore
 
+    async def aload_index(self) -> VectorStoreIndex:
+        embed_dim = (
+            self.config.postgres_embed_dim 
+            if self.config.postgres_embed_dim is not None 
+            else await _aget_embedding_dimension(self.embed_model)
+        )
+        if self.config.use_postgres:
+            vector_store = PGVectorStore.from_params(
+                database=self.config.postgres_database,
+                host=self.config.postgres_host,
+                password=_get_postgres_password(self.config),
+                port=self.config.postgres_port,
+                user=self.config.postgres_user,
+                table_name=self.config.postgres_table_name,
+                schema_name=self.config.postgres_schema_name,
+                embed_dim=embed_dim,
+            )
+            index = VectorStoreIndex.from_vector_store(
+                vector_store=vector_store,
+                async_mode=True,
+                embed_model=self.embed_model
+            )
+
+        else:
+            if self.index_persist_path:
+                persist_dir = self.index_persist_path
+                logger.info(
+                    "Using index persist path: "
+                    f"{os.path.abspath(persist_dir)}"
+                )
+                if (
+                    not os.path.exists(self.index_persist_path)
+                    # empty directory check
+                    or not os.listdir(self.index_persist_path)
+                ):
+                    if not self.index_hub_path:
+                        raise FileNotFoundError((
+                            f"Index not found at {self.index_persist_path}."
+                            "Please provide a valid path and/or set "
+                            "`index_hub_path`."
+                        ))
+                    else:
+                        logger.info((
+                            f"Downloading index from hub at {self.index_hub_path}"
+                            f"and saving to {self.index_persist_path}"
+                        ))
+                        self.download_index_from_hub(persist_dir)
+
+            if not self.index_persist_path:
+                logger.info(
+                    f"Downloading index from hub at {self.index_hub_path}..."
+                )
+                # storing index in temp dir
+                persist_dir = self.download_index_from_hub()
+                logger.info(f"Index downloaded to temp dir: {persist_dir}")
+
+            persist_dir = os.path.join(persist_dir, INDEX_PATH_IN_REPO)
+            logger.info(f"Loading index from disk at {persist_dir}")
+            # rebuild storage context
+            storage_context = StorageContext.from_defaults(persist_dir=persist_dir)
+            # load index
+            index = load_index_from_storage(
+                storage_context,
+                index_id=self.index_id,
+                embed_model=self.embed_model
+            )
+
+            # cleanup temp dir
+            if not self.index_persist_path:
+                import shutil
+
+                shutil.rmtree(persist_dir)
+
+        return index  # type: ignore
+
     def download_index_from_hub(self, persist_dir: str | None = None) -> str:
 
         import huggingface_hub
@@ -525,6 +600,28 @@ def _get_embedding_dimension(embed_model: BaseEmbedding) -> int:
         raise ValueError(f"Could not determine embedding dimension: {e}")
 
 
+async def _aget_embedding_dimension(embed_model: BaseEmbedding) -> int:
+    """
+    Programmatically determine the embedding dimension of the configured model
+    """
+
+    # Method 1: Try to get dimension from model attribute (if available)
+    if hasattr(embed_model, 'embed_dim'):
+        embed_dim = embed_model.embed_dim  # type: ignore
+        logger.debug(f"Found embed_dim attribute: {embed_dim}")
+        return embed_dim
+
+    # Method 2: Get actual embedding and measure its length
+    try:
+        sample_embedding = await embed_model.aget_text_embedding("sample text")
+        embed_dim = len(sample_embedding)
+        logger.debug(f"Determined embed_dim by sampling: {embed_dim}")
+        return embed_dim
+    except Exception as e:
+        logger.error(f"Failed to determine embedding dimension: {e}")
+        raise ValueError(f"Could not determine embedding dimension: {e}")
+
+
 class IndexBuilder:
 
     def __init__(self, config: RetrievalConfig | None = None):
@@ -635,6 +732,75 @@ class IndexBuilder:
             logger.error(err_msg)
             raise ValueError(err_msg)
 
+    async def abuild_index(
+            self,
+            metadata_func: Callable[[str], Dict] | None = None,
+    ):
+        conf = self.config
+
+        if self._validate_build_configuration():
+            if conf.index_persist_path and os.path.exists(
+                os.path.join(
+                    os.path.abspath(conf.index_persist_path),
+                    INDEX_PATH_IN_REPO
+                )
+            ):
+                logger.warning(
+                    f"Index persist path {conf.index_persist_path} "
+                    "already exists. Exiting without building index. "
+                    "If you want to rebuild the index, "
+                    "please remove the existing sub directory 'index'"
+                    f" in {conf.index_persist_path}."
+                )
+                return
+
+            docs = self._load_documents(
+                conf.document_input_dir,
+                conf.document_input_files,
+                metadata_func
+            )
+            nodes = self._nodes_from_documents(docs)
+
+            logger.debug("Creating VectorStoreIndex with embeddings...")
+            storage_context = None
+            if self.config.use_postgres:
+                embed_dim = (
+                    self.config.postgres_embed_dim 
+                    if self.config.postgres_embed_dim is not None 
+                    else await _aget_embedding_dimension(self.embed_model)
+                )
+
+                vector_store = PGVectorStore.from_params(
+                    database=self.config.postgres_database,
+                    host=self.config.postgres_host,
+                    password=_get_postgres_password(self.config),
+                    port=self.config.postgres_port,
+                    user=self.config.postgres_user,
+                    table_name=self.config.postgres_table_name,
+                    schema_name=self.config.postgres_schema_name,
+                    embed_dim=embed_dim,
+                )
+
+                storage_context = StorageContext.from_defaults(
+                    vector_store=vector_store
+                )
+
+            index = VectorStoreIndex(
+                nodes,
+                embed_model=self.embed_model,
+                storage_context=storage_context,
+                show_progress=True
+            )
+
+            index.set_index_id(conf.index_id)
+
+            self._post_parsing_consistency_checks(index, docs)
+            self._persist_index(index)
+        else:
+            err_msg = "Index build configuration is not valid. Exiting."
+            logger.error(err_msg)
+            raise ValueError(err_msg)
+
     def delete_files(self, file_names: List[str]):
 
         # load the index
@@ -642,6 +808,17 @@ class IndexBuilder:
         retriever = DocumentRetriever(config=self.config)
         index = retriever.index
         self._delete_files_in_index(index, file_names)
+        # persist the index
+        self._persist_index(index)
+
+    async def adelete_files(self, file_names: List[str]):
+
+        # load the index
+        # TODO: make index loading accesible via private pkg functions
+        # TODO: implement async loading (?)
+        retriever = DocumentRetriever(config=self.config)
+        index = retriever.index
+        await self._adelete_files_in_index(index, file_names)
         # persist the index
         self._persist_index(index)
 
@@ -660,6 +837,29 @@ class IndexBuilder:
                 for doc_id in to_delete_doc_ids:
                     if doc_id:
                         index.delete_ref_doc(doc_id, delete_from_docstore=True)
+                logger.debug(f"Deleted {len(to_delete_doc_ids)} documents from index.")
+            else:
+                logger.debug("No documents found to delete.")
+
+    async def _adelete_files_in_index(
+            self,
+            index: VectorStoreIndex,
+            file_names: List[str]
+    ):
+        logger.debug(f"Deleting files {file_names} from index...")
+
+        if self.config.use_postgres:
+            await self._adelete_files_in_postgres(index, file_names)
+        else:
+            to_delete_doc_ids = set([
+                doc.ref_doc_id for doc in index.docstore.docs.values()
+                if doc.metadata.get("file_name") in file_names
+            ])
+            logger.debug(f"Found {len(to_delete_doc_ids)} documents to delete.")
+            if to_delete_doc_ids:
+                for doc_id in to_delete_doc_ids:
+                    if doc_id:
+                        await index.adelete_ref_doc(doc_id, delete_from_docstore=True)
                 logger.debug(f"Deleted {len(to_delete_doc_ids)} documents from index.")
             else:
                 logger.debug("No documents found to delete.")
@@ -709,7 +909,7 @@ class IndexBuilder:
                             return
 
                         actual_table_name = result[0]
-                    
+
                     full_table_name = (
                         f"{self.config.postgres_schema_name}.{actual_table_name}"
                     )
@@ -767,6 +967,103 @@ class IndexBuilder:
             logger.error(f"Error deleting files from PostgreSQL: {e}")
             raise
 
+    async def _adelete_files_in_postgres(
+        self,
+        index: VectorStoreIndex,
+        file_names: List[str]
+    ):
+        """Delete files from PostgreSQL vector store using direct metadata filtering"""
+        logger.debug(f"Deleting files from PostgreSQL: {file_names}")
+
+        try:
+            import asyncpg
+
+            connection_string = (
+                f"postgresql://{self.config.postgres_user}:"
+                f"{_get_postgres_password(self.config)}@"
+                f"{self.config.postgres_host}:{self.config.postgres_port}/"
+                f"{self.config.postgres_database}"
+            )
+
+            conn = await asyncpg.connect(connection_string)
+            async with conn.transaction():
+                # handling LlamaIndex table name prefixes
+                # see: https://github.com/run-llama/llama_index/discussions/14766
+                if self.config.postgres_llamaindex_table_name_prefix is not None:
+                    actual_table_name = (
+                        f"{self.config.postgres_llamaindex_table_name_prefix}"
+                        f"{self.config.postgres_table_name}"
+                    )
+                else:
+                    # Find the actual table name
+                    result = await conn.fetchrow("""
+                        SELECT tablename FROM pg_tables
+                        WHERE schemaname = %s
+                        AND tablename LIKE %s
+                        ORDER BY tablename DESC
+                        LIMIT 1;
+                    """, (
+                        self.config.postgres_schema_name,
+                        f"%{self.config.postgres_table_name}%"
+                    ))
+
+                    if not result:
+                        logger.error(
+                            f"No table found matching "
+                            f"{self.config.postgres_table_name}"
+                        )
+                        return
+
+                    actual_table_name = result["tablename"]
+
+                full_table_name = (
+                    f"{self.config.postgres_schema_name}.{actual_table_name}"
+                )
+                logger.debug(f"Using PostgreSQL table: {full_table_name}")
+
+                # Count how many nodes will be deleted (for logging)
+                count_result = await conn.fetchval(f"""
+                    SELECT COUNT(*)
+                    FROM {full_table_name}
+                    WHERE metadata_->>'file_name' = ANY($1)
+                """, file_names)
+
+                logger.debug(f"Found {count_result} nodes to delete")
+
+                if count_result > 0:
+                    # Delete nodes directly using metadata filtering
+                    deleted_count = await conn.execute(f"""
+                        DELETE FROM {full_table_name}
+                        WHERE metadata_->>'file_name' = ANY($1)
+                    """, file_names)
+
+                    logger.debug(
+                        f"Successfully deleted {deleted_count} nodes "
+                        f"from PostgreSQL"
+                    )
+
+                    # Verify deletion worked
+                    remaining_count = await conn.fetchval(f"""
+                        SELECT COUNT(*)
+                        FROM {full_table_name}
+                        WHERE metadata_->>'file_name' = ANY($1)
+                    """, file_names)
+
+                    if remaining_count == 0:
+                        logger.debug("Deletion verification: No remaining nodes found")
+                    else:
+                        logger.warning(
+                            "Deletion verification: "
+                            f"{remaining_count} nodes still remain"
+                        )
+                else:
+                    logger.debug("No nodes found to delete in PostgreSQL")
+            await conn.close()
+
+        except Exception as e:
+            logger.error(f"Error deleting files from PostgreSQL: {e}")
+            raise
+
     def update_files(
             self,
             document_input_dir: str | None = None,
@@ -778,6 +1075,25 @@ class IndexBuilder:
         retriever = DocumentRetriever(config=self.config)
         index = retriever.index
         updated = self._update_files_in_index(
+            index,
+            document_input_dir,
+            document_input_files,
+            metadata_func
+        )
+        if updated:
+            self._persist_index(index)
+
+    async def aupdate_files(
+            self,
+            document_input_dir: str | None = None,
+            document_input_files: List[str] | None = None,
+            metadata_func: Callable[[str], Dict] | None = None,
+    ):
+        # load the index
+        # TODO: make index loading accesible via private pkg functions
+        retriever = DocumentRetriever(config=self.config)
+        index = retriever.index
+        updated = await self._aupdate_files_in_index(
             index,
             document_input_dir,
             document_input_files,
@@ -818,6 +1134,46 @@ class IndexBuilder:
             nodes = self._nodes_from_documents(docs)
             logger.debug(f"Adding {len(nodes)} nodes to index...")
             index.insert_nodes(nodes, use_async=False, show_progress=True)
+            return True
+        else:
+            logger.warning(
+                "Neither 'document_input_dir' nor 'document_input_files' "
+                " provided'. No files to update."
+            )
+            return False
+
+    async def _aupdate_files_in_index(
+            self,
+            index: VectorStoreIndex,
+            document_input_dir: str | None = None,
+            document_input_files: List[str] | None = None,
+            metadata_func: Callable[[str], Dict] | None = None,
+    ) -> bool:
+        if document_input_dir and document_input_files:
+            logger.warning(
+                "Both 'document_input_dir' and 'document_input_files' "
+                " provided'. Using 'document_input_files'."
+            )
+            document_input_dir = None
+        # TODO: Test this case
+        if document_input_dir is not None:
+            document_input_files = [
+                str(p) for p in pathlib.Path(document_input_dir).glob("*")
+                if p.is_file()
+            ]
+
+        if document_input_files is not None:
+            file_names = [pathlib.Path(f).name for f in document_input_files]
+            # delete files from index first
+            await self._adelete_files_in_index(index, file_names)
+
+            docs = self._load_documents(
+                document_input_files=document_input_files,
+                metadata_func=metadata_func,
+            )
+            nodes = self._nodes_from_documents(docs)
+            logger.debug(f"Adding {len(nodes)} nodes to index...")
+            await index.ainsert_nodes(nodes, use_async=True, show_progress=True)
             return True
         else:
             logger.warning(
