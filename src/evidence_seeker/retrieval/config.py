@@ -78,6 +78,7 @@ class RetrievalConfig(pydantic.BaseModel):
             "by creating a sample embedding."
         )
     )
+
     @model_validator(mode='after')
     def check_base_url(self) -> 'RetrievalConfig':
         if (

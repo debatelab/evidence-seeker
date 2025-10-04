@@ -1,11 +1,11 @@
 # TODO: Expose additional classes as public
+from .retrieval.document_retriever import DocumentRetriever
 from .backend import (
     get_openai_llm,
     OpenAILikeWithGuidance
 )
 
-from .retrieval.base import (
-    DocumentRetriever,
+from .retrieval.index_builder import (
     IndexBuilder,
 )
 

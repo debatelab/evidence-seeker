@@ -10,11 +10,11 @@ from pathlib import Path
 import asyncio
 
 from evidence_seeker import (
-    IndexBuilder,
     EvidenceSeekerResult,
     log_result
 )
 from evidence_seeker import EvidenceSeeker
+from evidence_seeker.retrieval.index_builder import IndexBuilder
 
 
 _PACKAGE_DATA_MODULE = "evidence_seeker.package_data"

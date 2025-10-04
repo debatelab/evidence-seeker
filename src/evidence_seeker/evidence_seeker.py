@@ -12,7 +12,7 @@ from evidence_seeker.confirmation_analysis.config import ConfirmationAnalyzerCon
 from evidence_seeker.datamodels import CheckedClaim
 from evidence_seeker.preprocessing.base import ClaimPreprocessor
 from evidence_seeker.preprocessing.config import ClaimPreprocessingConfig
-from evidence_seeker.retrieval.base import DocumentRetriever
+from evidence_seeker.retrieval.document_retriever import DocumentRetriever
 from evidence_seeker.retrieval.config import RetrievalConfig
 
 class EvidenceSeeker:
