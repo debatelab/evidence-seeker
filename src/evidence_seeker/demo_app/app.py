@@ -109,7 +109,6 @@ async def check(statement: str, last_result: EvidenceSeekerResult):
                 evse_result=last_result,
                 translations=APP_CONFIG.translations[APP_CONFIG.language],
                 jinja2_md_template=APP_CONFIG.md_template,
-                group_docs_by_sources=APP_CONFIG.group_docs_by_sources
             )
         checked = True
     else:
@@ -121,7 +120,6 @@ async def check(statement: str, last_result: EvidenceSeekerResult):
                 evse_result=last_result,
                 translations=APP_CONFIG.translations[APP_CONFIG.language],
                 jinja2_md_template=APP_CONFIG.md_template,
-                group_docs_by_sources=APP_CONFIG.group_docs_by_sources
             )
 
             logger.info(

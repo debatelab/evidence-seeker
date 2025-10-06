@@ -20,88 +20,13 @@ from .datamodels import Document, StatementType, CheckedClaim, ConfirmationLevel
 _PACKAGE_DATA_MODULE = "evidence_seeker.package_data"
 _DEFAULT_MD_TEMPLATE = "templates/default_markdown.tmpl"
 
-# TODO (refactor!): Using this function is very ideosynctratic
-# since it hinges on specfici meta-data (which is
-# specific to the EvSe Demo Dataset).
-
-
-def get_grouped_sources(
-        documents: list[Document] | None,
-        confirmation_by_document: Mapping[str, float] | None
-) -> dict[str, dict[str, Any]]:
-    if documents is None or confirmation_by_document is None:
-        return dict()
-    docs_grouped_by_src_file = {}
-    # Group documents by filenname
-    for doc in documents:
-        file_name = doc.metadata.get("file_name", None)
-        if file_name is None:
-            raise ValueError("No filename found in metadata")
-        else:
-            if file_name not in docs_grouped_by_src_file:
-                docs_grouped_by_src_file[file_name] = {
-                    "author": doc.metadata["author"],
-                    "url": doc.metadata["url"],
-                    "title": (
-                        doc.metadata["title"]
-                        .replace("{", "")
-                        .replace("}", "")
-                    ),
-                    "texts": [],
-                }
-            docs_grouped_by_src_file[file_name]["texts"].append({
-                "original_text": (
-                    doc.metadata["original_text"]
-                    .strip()
-                    .replace("\n", " ")
-                    .replace('"', "'")
-                ),
-                "conf": confirmation_by_document[doc.uid],
-                "conf_level":
-                    confirmation_level(
-                        confirmation_by_document[doc.uid]
-                    ).value,
-                "full_text": (
-                    doc.text
-                    .strip()
-                    .replace("\n", "  ")
-                    .replace('"', "'")
-                ),
-            })
-    # Sort texts by confidence score (highest first)
-    for file_name in docs_grouped_by_src_file:
-        docs_grouped_by_src_file[file_name]["texts"] = sorted(
-            docs_grouped_by_src_file[file_name]["texts"],
-            key=lambda item: item["conf"],
-            reverse=True
-        )
-    return docs_grouped_by_src_file
-
-
 def result_as_markdown(
     evse_result: EvidenceSeekerResult,
     translations: dict[str, str] = dict(),
     jinja2_md_template: str | Template | None = None,
-    group_docs_by_sources: bool = False,
     show_documents: bool = True,
     **kwargs,
 ) -> str:
-    # TODO: see task from `get_grouped_sources`
-    # also: `claims` is, depending from `group_docs_by_sources`
-    # differently structured! (refactor)
-    if group_docs_by_sources:
-        claims = [
-            (
-                claim,
-                get_grouped_sources(
-                    claim.documents,
-                    claim.confirmation_by_document
-                )
-            )
-            for claim in evse_result.claims
-        ]
-    else:
-        claims = evse_result.claims
     # use simple template from package if
     # none is given
     if jinja2_md_template is None:
@@ -130,9 +55,10 @@ def result_as_markdown(
         feedback=evse_result.feedback["binary"],
         statement=evse_result.request,
         time=evse_result.time,
-        claims=claims,
+        claims=evse_result.claims,
         translation=translations,
         show_documents=show_documents,
+        confirmation_level=confirmation_level,
         **kwargs,
     )
     return md

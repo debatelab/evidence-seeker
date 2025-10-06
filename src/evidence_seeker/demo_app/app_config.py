@@ -79,8 +79,6 @@ class AppConfig(BaseModel):
     }
     markdown_template_file: str | None = None
     markdown_template: dict[str, str] | None = None
-    # TODO: refactor when we have a better solution in util.results_as_markdown
-    group_docs_by_sources: bool = False
     save_markdown: bool = True
 
     translations: dict[str, dict[str, str]] = {
