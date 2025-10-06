@@ -185,10 +185,9 @@ class SimpleConfirmationAnalysisWorkflow(Workflow):
             )
         )
 
-        regex_str = _guidance_regex(model_specific_conf)
         response = await llm.achat_with_guidance(
             messages=messages,
-            regex_str=regex_str,
+            regex_str=model_specific_conf.constrained_decoding_regex,
             grammar_str=model_specific_conf.constrained_decoding_grammar,
             json_schema=model_specific_conf.json_schema,
             # output_cls= ...
@@ -522,12 +521,3 @@ def _extract_logprobs(
             " is not implemented yet."
         )
 
-
-def _guidance_regex(
-        model_specific_conf: ConfirmationAnalyzerModelStepConfig
-) -> str:
-    # Construct the regex programmatically, if not given in config
-    if model_specific_conf.constrained_decoding_regex:
-        return model_specific_conf.constrained_decoding_regex
-    else:
-        return rf"^({'|'.join(model_specific_conf.answer_labels)})$"

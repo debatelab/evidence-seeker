@@ -168,6 +168,7 @@ def _validate_guidance_params(
     Validate the parameters for the guidance type.
     """
     error_msg = None
+    # json_schema != None asserted by pydantic validator in class MultipleChoiceTaskStepConfig
     if guidance_type == GuidanceType.JSON:
         if json_schema is None and output_cls is None:
             error_msg = (
@@ -180,12 +181,14 @@ def _validate_guidance_params(
                 "You should provide a Pydantic output class for "
                 "structured output."
             )
+    # Checked by pydantic validator in class MultipleChoiceTaskStepConfig
     elif guidance_type == GuidanceType.REGEX:
         if regex_str is None:
             error_msg = (
                 "You should provide a regex expression for "
                 "constrained decoding."
             )
+    # Checked by pydantic validator in class MultipleChoiceTaskStepConfig
     elif guidance_type == GuidanceType.GRAMMAR:
         if grammar_str is None:
             error_msg = (
@@ -198,6 +201,7 @@ def _validate_guidance_params(
                 "You should provide a Pydantic output class "
                 "for structured output."
             )
+    # Checked by pydantic validator in class MultipleChoiceTaskStepConfig
     elif guidance_type == GuidanceType.PROMPTED:
         error_msg = None
     else:

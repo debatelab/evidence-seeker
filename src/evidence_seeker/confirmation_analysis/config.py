@@ -72,13 +72,6 @@ class MultipleChoiceTaskStepConfig(ConfirmationAnalyzerModelStepConfig):
     delim_str: Optional[str] = ""
     # Fields used for constrained decoding
     guidance_type: Optional[str] = GuidanceType.JSON.value
-    # TODO: refactor as computed field based on answer labels
-    constrained_decoding_regex: Optional[str] = None
-    # TODO: refactor as computed field based on answer labels
-    constrained_decoding_grammar: Optional[str] = None
-    # used for regex-based validation of the output for `GuidanceType.PROMPTED`
-    # TODO: refactor as computed field based on answer labels
-    validation_regex: Optional[str] = None
     # log probs
     logprobs_type: Optional[str] = LogProbsType.OPENAI_LIKE.value
 
@@ -93,17 +86,54 @@ class MultipleChoiceTaskStepConfig(ConfirmationAnalyzerModelStepConfig):
         ):
             return json_schema(pattern=rf"^({'|'.join(self.answer_labels)})$")
         return None
+    
+    # Regex for Regex Guidance
+    @pydantic.computed_field
+    @property
+    def constrained_decoding_regex(self) -> Optional[str]:
+        if (
+            self.guidance_type == GuidanceType.REGEX.value
+            and (self.answer_labels is not None)
+            and len(self.answer_labels) != 0
+        ):
+            return rf"^({'|'.join(self.answer_labels)})$"
+        return None
+    
+    # Context-free grammar for Grammar Guidance
+    @pydantic.computed_field
+    @property
+    def constrained_decoding_grammar(self) -> Optional[str]:
+        if (
+            self.guidance_type == GuidanceType.GRAMMAR.value
+            and (self.answer_labels is not None)
+            and len(self.answer_labels) != 0
+        ):
+            return rf'root ::= "{'" | "'.join(self.answer_labels)}"'
+        return None
+    
+    # Validation regex for Prompted Guidance
+    @pydantic.computed_field
+    @property
+    def validation_regex(self) -> Optional[str]:
+        if (
+            self.guidance_type == GuidanceType.PROMPTED.value
+            and (self.answer_labels is not None)
+            and len(self.answer_labels) != 0
+        ):
+            return rf"^({'|'.join(self.answer_labels)})$"
+        return None
 
-    # Validation of answer labels for JSON Guidance
+    # Validation of answer labels for JSON, Regex, Grammar and Prompted Guidance
     @pydantic.model_validator(mode='after')
     def check_answer_labels(self) -> Self:
-        if self.guidance_type == GuidanceType.JSON.value:
-            if self.answer_labels is None or len(self.answer_labels) == 0:
+        if self.answer_labels is None or len(self.answer_labels) == 0:
+            if self.guidance_type in [GuidanceType.JSON.value, GuidanceType.REGEX.value, GuidanceType.GRAMMAR.value, GuidanceType.PROMPTED.value]:
                 raise ValueError(
                     'Please provide possible answer labels for multiple '
-                    'choice tasks when using JSON Guidance.'
+                    f'choice tasks when using {self.guidance_type.capitalize()} Guidance.'
                 )
-            else:
+        else:
+            if self.guidance_type == GuidanceType.JSON.value:
                 seen = set()
                 seen_twice = set(
                     x for x in self.answer_labels if x in seen or seen.add(x)
