@@ -32,7 +32,8 @@ from .confirmation_aggregation.config import ConfirmationAggregationConfig
 from .utils import (
     result_as_markdown,
     log_result,
-    _DUMMY_CLAIMS
+    _DUMMY_CLAIMS,
+    SubdirConstruction
 )
 
 
@@ -86,5 +87,6 @@ __all__ = [
     "UITexts",
     "MultiLanguageUITexts",
     "AppConfig",
-    "_DUMMY_CLAIMS"
+    "_DUMMY_CLAIMS",
+    "SubdirConstruction"
 ]

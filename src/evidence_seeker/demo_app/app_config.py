@@ -2,11 +2,13 @@ from pydantic import (
     BaseModel,
     Field,
     computed_field,
+    field_validator
 )
 from typing import Optional
 import yaml
 from loguru import logger
 
+from evidence_seeker.utils import SubdirConstruction
 
 class UITexts(BaseModel):
     """UI text configuration for a specific language"""
@@ -133,3 +135,13 @@ class AppConfig(BaseModel):
         with open(file_path) as f:
             config = AppConfig(**yaml.safe_load(f))
         return config
+    
+    @field_validator('subdirectory_construction')
+    @classmethod
+    def validate_subdirectory_construction(cls, v):
+        allowed_values = SubdirConstruction._value2member_map_.keys()
+        if (v is not None) and (v not in allowed_values):
+            raise ValueError(
+                f'subdirectory_construction must be one of {set(allowed_values)}, got {v}'
+            )
+        return v

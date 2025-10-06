@@ -1,8 +1,9 @@
 "utils.py"
 
+import enum
 from typing import Callable
 from jinja2 import Template
-from typing import Any, Mapping
+from typing import Any, Mapping, Dict
 from datetime import datetime
 import os
 from glob import glob
@@ -136,25 +137,27 @@ def result_as_markdown(
     )
     return md
 
+class SubdirConstruction(enum.Enum):
+    DAILY = "daily"
+    WEEKLY = "weekly"
+    MONTHLY = "monthly"
+    YEARLY = "yearly"
 
-# TODO: Use enum type
+    @classmethod
+    def _value2formatcode_(cls) -> Dict[str, str]:
+        return {
+            cls.DAILY.value : "%Y_%m_%d",
+            cls.WEEKLY.value : "y%Y_w%W",
+            cls.MONTHLY.value : "y%Y_m%m",
+            cls.YEARLY.value : "y%Y",
+        }
+
 def _current_subdir(subdirectory_construction: str | None) -> str:
-    if subdirectory_construction is None:
+    if subdirectory_construction is None or subdirectory_construction not in SubdirConstruction._value2formatcode_().keys():
         return ""
     now = datetime.now()
-    if subdirectory_construction == "monthly":
-        subdirectory_path = now.strftime("y%Y_m%m")
-    elif subdirectory_construction == "weekly":
-        year, week, _ = now.isocalendar()
-        subdirectory_path = f"y{year}_w{week}"
-    elif subdirectory_construction == "yearly":
-        subdirectory_path = now.strftime("y%Y")
-    elif subdirectory_construction == "daily":
-        subdirectory_path = now.strftime("%Y_%m_%d")
-    else:
-        subdirectory_path = ""
-    return subdirectory_path
-
+    dateformat = SubdirConstruction._value2formatcode_()[subdirectory_construction]
+    return now.strftime(dateformat)
 
 # TODO: provision of md template via argument
 def log_result(
