@@ -70,7 +70,7 @@ class SubdirConstruction(enum.Enum):
     YEARLY = "yearly"
 
     @classmethod
-    def _value2formatcode_(cls) -> Dict[str, str]:
+    def value2formatcode(cls) -> Dict[str, str]:
         return {
             cls.DAILY.value : "%Y_%m_%d",
             cls.WEEKLY.value : "y%Y_w%W",
@@ -79,10 +79,10 @@ class SubdirConstruction(enum.Enum):
         }
 
 def _current_subdir(subdirectory_construction: str | None) -> str:
-    if subdirectory_construction is None or subdirectory_construction not in SubdirConstruction._value2formatcode_().keys():
+    if subdirectory_construction is None or subdirectory_construction not in SubdirConstruction.value2formatcode().keys():
         return ""
     now = datetime.now()
-    dateformat = SubdirConstruction._value2formatcode_()[subdirectory_construction]
+    dateformat = SubdirConstruction.value2formatcode()[subdirectory_construction]
     return now.strftime(dateformat)
 
 # TODO: provision of md template via argument
