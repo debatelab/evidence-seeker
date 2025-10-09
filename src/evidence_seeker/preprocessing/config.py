@@ -18,7 +18,7 @@ class PreprocessorModelStepConfig(pydantic.BaseModel):
     @pydantic.field_validator('guidance_type')
     @classmethod
     def validate_guidance_type(cls, v):
-        allowed_values = {GuidanceType.JSON.value}
+        allowed_values = {GuidanceType.PYDANTIC.value}
         if (v is not None) and (v not in allowed_values):
             raise ValueError(
                 f'guidance_type must be one of {allowed_values}, got {v}'
@@ -127,7 +127,7 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
                         "Format your (possibly empty) list of statements as a JSON object.\n"
                         "Do not include any other text than the JSON object."
                     ),
-                    guidance_type=GuidanceType.JSON.value
+                    guidance_type=GuidanceType.PYDANTIC.value
                 )
             },
         ),
@@ -179,7 +179,7 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
                         "Format your (possibly empty) list of ascriptions as a JSON object.\n"
                         "Do not include any other text than the JSON object."
                     ),
-                    guidance_type=GuidanceType.JSON.value
+                    guidance_type=GuidanceType.PYDANTIC.value
                 )
             },
         ),
@@ -228,7 +228,7 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
                         "Format your (possibly empty) list of statements as a JSON object.\n"
                         "Do not include any other text than the JSON object."
                     ),
-                    guidance_type=GuidanceType.JSON.value
+                    guidance_type=GuidanceType.PYDANTIC.value
                 )
             },
         ),
