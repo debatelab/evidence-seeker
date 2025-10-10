@@ -49,11 +49,8 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
     env_file: str | None = None
 
     @pydantic.model_validator(mode='after')
-    def load_env_file(
-        cls,
-        config: 'ClaimPreprocessingConfig'
-    ) -> 'ClaimPreprocessingConfig':
-        if config.env_file is None:
+    def load_env_file(self) -> 'ClaimPreprocessingConfig':
+        if self.env_file is None:
             logger.warning(
                 "No environment file with API keys specified for preprocessor."
                 " Please set 'env_file' to a valid path if you want "
@@ -62,9 +59,9 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
         else:
             # check if the env file exists
             from os import path
-            if not path.exists(config.env_file):
+            if not path.exists(self.env_file):
                 err_msg = (
-                    f"Environment file '{config.env_file}' does not exist. "
+                    f"Environment file '{self.env_file}' does not exist. "
                     "Please provide a valid path to the environment file. "
                     "Or set it to None if you don't need it and set the "
                     "API keys in other ways as environment variables."
@@ -73,12 +70,12 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
             else:
                 # load the env file
                 from dotenv import load_dotenv
-                load_dotenv(config.env_file)
+                load_dotenv(self.env_file)
             logger.info(
-                f"Loaded environment variables from '{config.env_file}'"
+                f"Loaded environment variables from '{self.env_file}'"
             )
 
-        return config
+        return self
 
     used_model_key: str
     freetext_descriptive_analysis: PreprocessorStepConfig = pydantic.Field(
