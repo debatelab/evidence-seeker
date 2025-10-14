@@ -5,7 +5,13 @@ project:
 website:
   title: "🕵️‍♀️ EvSe"
   repo-url: https://github.com/debatelab/evidence-seeker
+  site-url: https://debatelab.github.io/evidence-seeker/
   repo-actions: [issue]
+  open-graph:
+    title: "🕵️‍♀️ EvidenceSeeker Boilerplate"
+    description: A Python code template for building customised LLM-based AI fact-checking assistants.
+    site-name: ""
+    image: img/evse_preview.png
   page-navigation: true
   navbar:
     tools:
