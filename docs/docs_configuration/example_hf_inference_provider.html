@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.7.31">
+<meta name="generator" content="quarto-1.8.25">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -69,14 +69,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../docs_configuration/advanced_configuration.html" rel="prev">
 <script src="../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-e1a5c8363afafaef2c763b6775fbf3ca.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-f698449d828ba46b281046356bba4374.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-48fbefe780f5a27fc13c67afc8cc4f05.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -116,6 +117,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    </a>
     <a class="navbar-brand" href="../index.html">
     <span class="navbar-title">🕵️‍♀️ EvSe</span>
     </a>
@@ -145,6 +148,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+      <a href="../index.html" class="sidebar-logo-link">
+      </a>
+      </div>
         <div class="mt-2 flex-shrink-0 align-items-center">
         <div class="sidebar-search">
         <div id="quarto-search" class="" title="Search"></div>
@@ -266,7 +273,7 @@ TODO: Currently, the 70B model is not available due to imprecise pricing over to
 <section id="retriever-component" class="level2">
 <h2 class="anchored" data-anchor-id="retriever-component">Retriever Component</h2>
 <p>The retriever component can be configured with the following YAML configuration file:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">embed_backend_type</span><span class="kw">:</span><span class="at"> huggingface_inference_api</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">embed_backend_type</span><span class="kw">:</span><span class="at"> huggingface_inference_api</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">embed_model_name</span><span class="kw">:</span><span class="at"> sentence-transformers/paraphrase-multilingual-mpnet-base-v2</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">embed_base_url</span><span class="kw">:</span><span class="at"> https://router.huggingface.co/hf-inference/models/sentence-transformers/paraphrase-multilingual-mpnet-base-v2</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">env_file</span><span class="kw">:</span><span class="at"> path/to/your/api_keys.txt</span></span>
@@ -280,7 +287,7 @@ TODO: Currently, the 70B model is not available due to imprecise pricing over to
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co"># token name for accessing index from Hugging Face Hub</span></span>
 <span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">hub_key_name</span><span class="kw">:</span><span class="at"> your_hub_key_name</span></span>
 <span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Path where the index is stored locally and/or loaded from.</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="fu">index_persist_path</span><span class="kw">:</span><span class="at"> path/for/storing/the/index</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="fu">index_persist_path</span><span class="kw">:</span><span class="at"> path/for/storing/the/index</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>Clarifications:</strong></p>
 <ul>
 <li><code>embed_backend_type</code> is set to <code>huggingface_inference_api</code> to use Hugging Face’s Inference Provider. For alternatives, see <a href="../docs_configuration/advanced_configuration.html#embedding-model">here</a>.</li>
@@ -294,11 +301,11 @@ TODO: Currently, the 70B model is not available due to imprecise pricing over to
 <li>Here, were load the <a href="https://huggingface.co/datasets/DebateLabKIT/apuz-index-es">APUZ example index</a> from a Hugging Face Hub repository (via <code>index_hub_path</code>) and store it locally as specified by <code>index_persist_path</code> (for alternative configuration see <a href="../docs_configuration/advanced_configuration.html#knowledge-base">here</a>).</li>
 </ul>
 <p>With the given configuration file, you can create an instance of the retriever component in your <em>EvidenceSeeker</em> pipeline as follows:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> evidence_seeker <span class="im">import</span> DocumentRetriever</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> evidence_seeker <span class="im">import</span> DocumentRetriever</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>config_file <span class="op">=</span> <span class="st">"path/to/your/config_file.yaml"</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>retriever <span class="op">=</span> DocumentRetriever.from_config_file(config_file)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>retriever <span class="op">=</span> DocumentRetriever.from_config_file(config_file)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="preprocessor-and-confirmation-analyser" class="level2">
 <h2 class="anchored" data-anchor-id="preprocessor-and-confirmation-analyser">Preprocessor and Confirmation Analyser</h2>
@@ -306,7 +313,7 @@ TODO: Currently, the 70B model is not available due to imprecise pricing over to
 <!--
 TODO: Update model
 -->
-<div class="sourceCode" id="cb3"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># timeout for the whole preprocessor pipeline</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># timeout for the whole preprocessor pipeline</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">timeout</span><span class="kw">:</span><span class="at"> </span><span class="dv">1200</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">env_file</span><span class="kw">:</span><span class="at"> path/to/your/api_keys.txt</span></span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">used_model_key</span><span class="kw">:</span><span class="at"> Llama-3.3-70B-Instruct</span></span>
@@ -323,7 +330,7 @@ TODO: Update model
 <span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">max_tokens</span><span class="kw">:</span><span class="at"> </span><span class="dv">1024</span></span>
 <span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">temperature</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.2</span></span>
 <span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="co">    # timeout for each request to the model</span></span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">timeout</span><span class="kw">:</span><span class="at"> </span><span class="dv">260</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">timeout</span><span class="kw">:</span><span class="at"> </span><span class="dv">260</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>Clarifications:</strong></p>
 <ul>
 <li>We define a model with the identifier <code>together.ai</code>. The defined model is set as the global model for the preprocessor component via <code>used_model_key</code>. (Alternatively, you can assign models to specific steps in the preprocessor pipeline. See <a href="../docs_configuration/advanced_configuration.html#step-configurations">here</a> for details.)</li>
@@ -333,18 +340,18 @@ TODO: Update model
 <li>The other fields play the same role as in the retriever component.</li>
 </ul>
 <p>With the given configuration file, you can create an instance of the preprocessor and confirmation analyser component in your EvidenceSeeker pipeline as follows:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> evidence_seeker <span class="im">import</span> ClaimPreprocessor, ConfirmationAnalyzer</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> evidence_seeker <span class="im">import</span> ClaimPreprocessor, ConfirmationAnalyzer</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>config_file <span class="op">=</span> <span class="st">"path/to/your/config_file.yaml"</span></span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>preprocessor <span class="op">=</span> ClaimPreprocessor.from_config_file(config_file)</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>confirmation_analyzer <span class="op">=</span> ConfirmationAnalyzer.from_config_file(config_file)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>confirmation_analyzer <span class="op">=</span> ConfirmationAnalyzer.from_config_file(config_file)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Here, we use one configuration file for the preprocessor and the confirmation analyser. This is possible since both components use the same model for their processing steps. If you want to configure, for instance, the different steps of each component, you should use separate configuration files. See <a href="../docs_configuration/advanced_configuration.html#step-configurations">here</a> for details on how to configure the steps of the preprocessor and confirmation analyser components, and <a href="../docs_configuration/example_local_models.html">here</a> for a specific example.</p>
 </section>
 <section id="executing-the-pipeline" class="level2">
 <h2 class="anchored" data-anchor-id="executing-the-pipeline">Executing the Pipeline</h2>
 <p>With the retriever, preprocessor, and confirmation analyser components configured, you can run the <em>EvidenceSeeker</em> pipeline as follows:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> evidence_seeker <span class="im">import</span> EvidenceSeeker</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> evidence_seeker <span class="im">import</span> EvidenceSeeker</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="bu">input</span> <span class="op">=</span> (</span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"The claim you want to check"</span></span>
@@ -356,7 +363,7 @@ TODO: Update model
 <span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    confirmation_analyzer<span class="op">=</span>confirmation_analyzer</span>
 <span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> <span class="cf">await</span> pipeline(<span class="bu">input</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> <span class="cf">await</span> pipeline(<span class="bu">input</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>
@@ -413,13 +420,14 @@ TODO: Update model
       e.clearSelection();
     }
     const getTextToCopy = function(trigger) {
-        const codeEl = trigger.previousElementSibling.cloneNode(true);
-        for (const childEl of codeEl.children) {
-          if (isCodeAnnotation(childEl)) {
-            childEl.remove();
-          }
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
         }
-        return codeEl.innerText;
+      }
+      return codeEl.innerText;
     }
     const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
       text: getTextToCopy

@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.7.31">
+<meta name="generator" content="quarto-1.8.25">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -69,14 +69,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="./index.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-e1a5c8363afafaef2c763b6775fbf3ca.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-f698449d828ba46b281046356bba4374.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-48fbefe780f5a27fc13c67afc8cc4f05.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -116,6 +117,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
+    <a href="./index.html" class="navbar-brand navbar-brand-logo">
+    </a>
     <a class="navbar-brand" href="./index.html">
     <span class="navbar-title">🕵️‍♀️ EvSe</span>
     </a>
@@ -145,6 +148,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+      <a href="./index.html" class="sidebar-logo-link">
+      </a>
+      </div>
         <div class="mt-2 flex-shrink-0 align-items-center">
         <div class="sidebar-search">
         <div id="quarto-search" class="" title="Search"></div>
@@ -306,13 +313,13 @@ TODO: Do we actually support the latest Python?
 <section id="installing-the-evidence-seeker-package" class="level3">
 <h3 class="anchored" data-anchor-id="installing-the-evidence-seeker-package">2. Installing the <code>evidence-seeker</code> package</h3>
 <p>Open a terminal and use <code>pip</code> to install the <code>evidence-seeker</code> package from PyPI:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install evidence-seeker</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install evidence-seeker</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="preparation" class="level3">
 <h3 class="anchored" data-anchor-id="preparation">3. Preparation</h3>
 <p>Generating a directory structure might be helpful before you begin configuring your <em>EvidenceSeeker</em> instance. There, you can put your configuration files, the knowledge base, the index, and possibly other resources. This is not strictly necessary as long as you specify the different locations in the configuration files.</p>
 <p>The <em>EvidenceSeeker</em> boilerplate comes with a command line interface—the <code>evse</code> cli—that can create a directory structure for your <em>EvidenceSeeker</em> instance. Calling the <code>evse</code> cli with:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">evse</span> init <span class="at">--name</span> name_of_your_evidence_seeker</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">evse</span> init <span class="at">--name</span> name_of_your_evidence_seeker</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>will create the following directory structure in the current working directory, and will contain configuration files with default values.</p>
 <pre class="text"><code>name_of_your_evidence_seeker/
 ├── config/ # Directory for configuration files
@@ -330,7 +337,7 @@ TODO: Do we actually support the latest Python?
 ├── logs/ # Directory for logging
 └── embeddings/ # Directory for the index</code></pre>
 <p>For the following steps, navigate to the directory of your <em>EvidenceSeeker</em> instance:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> name_of_your_evidence_seeker</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> name_of_your_evidence_seeker</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="configuration" class="level3">
 <h3 class="anchored" data-anchor-id="configuration">4. Configuration</h3>
@@ -346,7 +353,7 @@ TODO: Do we actually support the latest Python?
 <li>Copy all PDF files you want to use as knowledge base into the <code>knowledge_base/data_files</code> directory of your <em>EvidenceSeeker</em> instance.</li>
 <li>If you want to provide the fact checker with metadata for the files in your knowledge base, create a file <code>meta_data.json</code> in the <code>knowledge_base/</code> directory that contains metadata for each PDF file. The metadata should be in JSON format and can include fields like <code>title</code>, <code>author</code>, <code>date</code>, etc. For example:</li>
 </ol>
-<div class="sourceCode" id="cb5"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"file1.pdf"</span><span class="fu">:</span> <span class="fu">{</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">"title"</span><span class="fu">:</span> <span class="st">"Title of File 1"</span><span class="fu">,</span></span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">"author"</span><span class="fu">:</span> <span class="st">"Author of File 1"</span><span class="fu">,</span></span>
@@ -357,14 +364,14 @@ TODO: Do we actually support the latest Python?
 <span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>        <span class="dt">"author"</span><span class="fu">:</span> <span class="st">"Author of File 2"</span><span class="fu">,</span></span>
 <span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>        <span class="dt">"date"</span><span class="fu">:</span> <span class="st">"2024-02-01"</span></span>
 <span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a> <span class="fu">}</span></span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ol start="3" type="1">
 <li>If not already done, navigate to the directory of your <em>EvidenceSeeker</em> instance, e.g., <code>cd name_of_your_evidence_seeker/</code>.</li>
 <li>Ensure you have set the environment variables for your API keys in the file <code>config/api_keys.txt</code> of your <em>EvidenceSeeker</em> instance.</li>
 <li>Now you can build the index using <code>evse build-index</code>. This will create an index of the PDF files in the <code>knowledge_base/data_files</code> directory and store it in the <code>embeddings/</code> directory. The index will be created using the embedding model specified in the configuration file.</li>
 </ol>
 <p><strong>Alternatively</strong>, you can use and adapt the following Python snippet to create an index:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> evidence_seeker <span class="im">import</span> RetrievalConfig, IndexBuilder</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> evidence_seeker <span class="im">import</span> RetrievalConfig, IndexBuilder</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>config <span class="op">=</span> RetrievalConfig(</span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">### Using local embedding model (via Huggingface API)</span></span>
@@ -376,7 +383,7 @@ TODO: Do we actually support the latest Python?
 <span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    index_persist_path<span class="op">=</span><span class="st">"path/to/your/index"</span>,</span>
 <span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>index_builder <span class="op">=</span> IndexBuilder(config<span class="op">=</span>config)</span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>index_builder.build_index()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>index_builder.build_index()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>For further details on configuring the EvidenceSeeker Retriever component, see <a href="./docs_configuration/minimal_configuration.html#retriever-component">here</a> and <a href="./docs_configuration/advanced_configuration.html#retriever-component">here</a>.</p>
 </section>
 <section id="executing-the-pipeline" class="level3">
@@ -385,22 +392,22 @@ TODO: Do we actually support the latest Python?
 <section id="using-the-evse-cli" class="level4">
 <h4 class="anchored" data-anchor-id="using-the-evse-cli">Using the <code>evse</code> CLI</h4>
 <p>With the <code>evse</code> cli, you can run the pipeline with:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">evse</span> run <span class="at">--input</span> <span class="st">"your statement to fact-check"</span> </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">evse</span> run <span class="at">--input</span> <span class="st">"your statement to fact-check"</span> </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>The output will be written as a Markdown file into the <code>logs/</code> directory of your <em>EvidenceSeeker</em> instance.</p>
 <p>You can also specify the location and name of the output file with the <code>--output</code> option:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">evse</span> run <span class="at">--input</span> <span class="st">"your statement to fact-check"</span> <span class="at">--output</span> <span class="st">"path/to/output/file.md"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">evse</span> run <span class="at">--input</span> <span class="st">"your statement to fact-check"</span> <span class="at">--output</span> <span class="st">"path/to/output/file.md"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="using-the-evidenceseeker-demo-app" class="level4">
 <h4 class="anchored" data-anchor-id="using-the-evidenceseeker-demo-app">Using the EvidenceSeeker Demo App</h4>
 <p>You can also run the pipeline via the <em>EvidenceSeeker Demo App</em>, a small User Interface based on <a href="https://www.gradio.app/">Gradio</a>, which will be accessible via a web browser.</p>
 <p>You can run the app locally with:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">evse</span> demo-app</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">evse</span> demo-app</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>This will start the app on your local machine, and you can access it via <a href="http://localhost:7860" class="uri">http://localhost:7860</a> in your web browser.</p>
 </section>
 <section id="programmatically-using-the-evidence-seeker-package" class="level4">
 <h4 class="anchored" data-anchor-id="programmatically-using-the-evidence-seeker-package">Programmatically using the <code>evidence-seeker</code> package</h4>
 <p>Alternatively, you can run the pipeline with the following Python snippet:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> evidence_seeker <span class="im">import</span> EvidenceSeeker</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> evidence_seeker <span class="im">import</span> EvidenceSeeker</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> asyncio</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>pipeline <span class="op">=</span> EvidenceSeeker(</span>
@@ -409,7 +416,7 @@ TODO: Do we actually support the latest Python?
 <span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    preprocessing_config_file<span class="op">=</span><span class="st">"path/to/preprocessing_config.yaml"</span>,</span>
 <span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="co"># run the pipeline</span></span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> asyncio.run(pipeline(<span class="st">"your statement to fact-check"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> asyncio.run(pipeline(<span class="st">"your statement to fact-check"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 </section>
 <section id="integration" class="level3">
@@ -424,11 +431,11 @@ TODO: Do we actually support the latest Python?
 <section id="development-version" class="level2">
 <h2 class="anchored" data-anchor-id="development-version">Development Version</h2>
 <p>If you want to have more control over your <em>EvidenceSeeker</em> instance or if you want to implement an additional feature, you can use the development version of the <strong><em>EvidenceSeeker Boilerplate</em></strong> by git-cloning the <a href="https://github.com/debatelab/evidence-seeker">EvidenceSeeker repository</a>:</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone git@github.com:debatelab/evidence-seeker.git</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone git@github.com:debatelab/evidence-seeker.git</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>By default, we use <a href="https://hatch.pypa.io/latest/">hatch</a> for Python package and environment management. The repository contains the description of a development environment with pinned dependencies. You can create and spawn a corresponding Python environment with</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">hatch</span> <span class="at">-v</span> shell evse-dev_env.py3.11</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">hatch</span> <span class="at">-v</span> shell evse-dev_env.py3.11</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>or</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ex">hatch</span> <span class="at">-v</span> shell evse-dev_env.py3.12</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ex">hatch</span> <span class="at">-v</span> shell evse-dev_env.py3.12</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>
@@ -485,13 +492,14 @@ TODO: Do we actually support the latest Python?
       e.clearSelection();
     }
     const getTextToCopy = function(trigger) {
-        const codeEl = trigger.previousElementSibling.cloneNode(true);
-        for (const childEl of codeEl.children) {
-          if (isCodeAnnotation(childEl)) {
-            childEl.remove();
-          }
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
         }
-        return codeEl.innerText;
+      }
+      return codeEl.innerText;
     }
     const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
       text: getTextToCopy
