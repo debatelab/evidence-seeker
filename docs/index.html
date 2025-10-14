@@ -74,7 +74,10 @@ ul.task-list li input[type="checkbox"] {
 <link rel="stylesheet" href="styles.css">
 <meta property="og:title" content="🕵️‍♀️ EvidenceSeeker Boilerplate">
 <meta property="og:description" content="A Python code template for building customised LLM-based AI fact-checking assistants.">
-<meta property="og:site_name" content="🕵️‍♀️ EvSe">
+<meta property="og:image" content="https://debatelab.github.io/evidence-seeker/img/evse_preview.png">
+<meta property="og:site_name" content="">
+<meta property="og:image:height" content="631">
+<meta property="og:image:width" content="1201">
 </head>
 
 <body class="nav-sidebar floating nav-fixed fullcontent quarto-light">
@@ -353,7 +356,7 @@ ul.task-list li input[type="checkbox"] {
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp('/' + window.location.host + '/');
+        var filterRegex = new RegExp("https:\/\/debatelab\.github\.io\/evidence-seeker\/");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
