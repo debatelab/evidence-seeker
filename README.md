@@ -20,6 +20,13 @@ EvidenceSeeker Boilerplate is a Python package that provides a fact-checking pip
 2. **Evidence Retrieval**: The retriever searches through your knowledge base for relevant supporting/contradicting evidence.
 3. **Confirmation Analysis**: The confimation analyser assesses how well the found evidence supports or refutes claims and aggrated its results by providing confirmation levels for each found interpretation.
 
+<div align="center">
+  <p align="center">
+  <img src="./docs_src/img/workflow_overview_evse_pkg.jpg" alt="Figure of workflow" width="80%">
+  </p>
+</div>
+
+
 ## ✨ Key Features
 
 ### 🔧 Core Pipeline
