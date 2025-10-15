@@ -180,6 +180,22 @@ class RetrievalConfig(pydantic.BaseModel):
             )
             logger.error(err_msg)
             raise ValueError(err_msg)
+        elif (self.use_postgres and (self.index_hub_path or self.index_persist_path)):
+            if self.index_hub_path and self.index_persist_path:
+                logger.warning(
+                    "Specified 'index_hub_path' and 'index_persist_path' "
+                    "will be ignored under PostgreSQL usage."
+                )
+            elif self.index_hub_path:
+                logger.warning(
+                    "Specified 'index_hub_path' will be ignored "
+                    "under PostgreSQL usage."
+                )
+            else:
+                logger.warning(
+                    "Specified 'index_persist_path' will be ignored "
+                    "under PostgreSQL usage."
+                )
         return self
 
     @model_validator(mode='after')
