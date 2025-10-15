@@ -75,6 +75,27 @@ class DocumentRetriever:
         )
         self.index = self.load_index()
 
+    def _test_postgres_connection(self):
+        import psycopg2
+        connection_string = (
+            f"postgresql://{self.config.postgres_user}:"
+            f"{_get_postgres_password(self.config)}@"
+            f"{self.config.postgres_host}:{self.config.postgres_port}/"
+            f"{self.config.postgres_database}"
+        )
+        try:
+            conn = psycopg2.connect(connection_string)
+            conn.close()
+        except psycopg2.OperationalError as e:
+            msg = "Error while connecting to PostgreSQL database. Server might not be running on that host or accept TCP/IP connections or the credentials might be wrong."
+            logger.error(msg)
+            e.add_note("""
+                Server might not be running on specified host or accept TCP/IP connections 
+                or the credentials might be wrong.\n
+                You might need to adjust your PostgreSQL parameters in the Retrieval Config.
+            """)
+            raise
+
     def load_index(self) -> VectorStoreIndex:
         embed_dim = (
             self.config.postgres_embed_dim
@@ -82,6 +103,10 @@ class DocumentRetriever:
             else _get_embedding_dimension(self.embed_model)
         )
         if self.config.use_postgres:
+            try:
+                self._test_postgres_connection()
+            except Exception:
+                raise
             vector_store = PGVectorStore.from_params(
                 database=self.config.postgres_database,
                 host=self.config.postgres_host,
@@ -161,6 +186,10 @@ class DocumentRetriever:
             else await _aget_embedding_dimension(self.embed_model)
         )
         if self.config.use_postgres:
+            try:
+                self._test_postgres_connection()
+            except Exception:
+                raise
             vector_store = PGVectorStore.from_params(
                 database=self.config.postgres_database,
                 host=self.config.postgres_host,

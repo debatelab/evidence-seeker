@@ -24,7 +24,6 @@ import pathlib
 import tempfile
 from typing import Callable, Dict, List
 
-
 class IndexBuilder:
 
     def __init__(
@@ -66,6 +65,27 @@ class IndexBuilder:
                 trust_remote_code=self.config.trust_remote_code,
             )
         )
+
+    def _test_postgres_connection(self):
+        import psycopg2
+        connection_string = (
+            f"postgresql://{self.config.postgres_user}:"
+            f"{_get_postgres_password(self.config)}@"
+            f"{self.config.postgres_host}:{self.config.postgres_port}/"
+            f"{self.config.postgres_database}"
+        )
+        try:
+            conn = psycopg2.connect(connection_string)
+            conn.close()
+        except psycopg2.OperationalError as e:
+            msg = "Error while connecting to PostgreSQL database. Server might not be running on that host or accept TCP/IP connections or the credentials might be wrong."
+            logger.error(msg)
+            e.add_note("""
+                Server might not be running on specified host or accept TCP/IP connections 
+                or the credentials might be wrong.\n
+                You might need to adjust your PostgreSQL parameters in the Retrieval Config.
+            """)
+            raise
 
     def _init_callback_manager(
         self,
@@ -149,6 +169,10 @@ class IndexBuilder:
             logger.debug("Creating VectorStoreIndex with embeddings...")
             storage_context = None
             if self.config.use_postgres:
+                try:
+                    self._test_postgres_connection()
+                except Exception:
+                    raise
                 embed_dim = (
                     self.config.postgres_embed_dim
                     if self.config.postgres_embed_dim is not None
@@ -224,6 +248,10 @@ class IndexBuilder:
             logger.debug("Creating VectorStoreIndex with embeddings...")
             storage_context = None
             if self.config.use_postgres:
+                try:
+                    self._test_postgres_connection()
+                except Exception:
+                    raise
                 embed_dim = (
                     self.config.postgres_embed_dim
                     if self.config.postgres_embed_dim is not None
@@ -329,7 +357,10 @@ class IndexBuilder:
     def _delete_files_in_postgres(self, index: VectorStoreIndex, file_names: List[str]):
         """Delete files from PostgreSQL vector store using direct metadata filtering"""
         logger.debug(f"Deleting files from PostgreSQL: {file_names}")
-
+        try:
+            self._test_postgres_connection()
+        except Exception:
+            raise
         try:
             import psycopg2
 
@@ -424,7 +455,6 @@ class IndexBuilder:
                             )
                     else:
                         logger.debug("No nodes found to delete in PostgreSQL")
-
         except Exception as e:
             logger.error(f"Error deleting files from PostgreSQL: {e}")
             raise
@@ -436,7 +466,10 @@ class IndexBuilder:
     ):
         """Delete files from PostgreSQL vector store using direct metadata filtering"""
         logger.debug(f"Deleting files from PostgreSQL: {file_names}")
-
+        try:
+            self._test_postgres_connection()
+        except Exception:
+            raise
         try:
             import asyncpg
 
