@@ -77,7 +77,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-48fbefe780f5a27fc13c67afc8cc4f05.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-e31584831b205ffbb2d98406f31c2a5b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -315,7 +315,7 @@ window.Quarto = {
 <p>Additionally, we give some example configurations, which illustrate how to configure the pipeline for two use cases:</p>
 <ul>
 <li><a href="../docs_configuration/example_local_models.html">Using local models with EvidenceSeeker</a>:</li>
-<li><a href="../docs_configuration/example_hf_inference_provider.html">Using HuggingFace Inference Provider with EvidenceSeeker</a>:</li>
+<li><a href="../docs_configuration/example_hf_inference_provider.html">Using Hugging Face Inference Provider with EvidenceSeeker</a>:</li>
 </ul>
 <section id="retriever-component" class="level2">
 <h2 class="anchored" data-anchor-id="retriever-component">Retriever Component</h2>
@@ -327,7 +327,7 @@ window.Quarto = {
 <li>As <code>embed_backend_type</code>, you can choose between
 <ul>
 <li><code>tei</code> (<a href="https://github.com/huggingface/text-embeddings-inference">text embedding inference</a>): API for serving embedding models, that can be used, for instance, with <a href="https://huggingface.co/learn/cookbook/en/enterprise_dedicated_endpoints">dedicated endpoints for embedding models by Hugging Face</a>.</li>
-<li><code>huggingface</code>: This is for local models hosted on HuggingFace and used with the HuggingFace API. The retriever component will download the model from Hugging Face during the first use. You might need a lot of disk space and memory, depending on the model size. Additionally, it might take some time to create the index.</li>
+<li><code>huggingface</code>: This is for local models hosted on Hugging Face and used with the Hugging Face API. The retriever component will download the model from Hugging Face during the first use. You might need a lot of disk space and memory, depending on the model size. Additionally, it might take some time to create the index.</li>
 <li><code>huggingface_inference_api</code>: This is for embedding models accessed via <a href="https://huggingface.co/docs/inference-providers/index">Hugging Face Inference Provider</a>.</li>
 </ul></li>
 <li>For all these options, specify the <code>embed_base_url</code> and <code>embed_model_name</code> parameters. For instance, if you use <a href="https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2">sentence-transformers/paraphrase-multilingual-mpnet-base-v2</a> as the embedding model and if you want to use it via Hugging Face inference provider, you would set:
@@ -351,12 +351,38 @@ window.Quarto = {
 <li><code>document_input_dir</code>: Path to the directory containing your PDF files you want to use as a knowledge base. Alternatively, you can provide a list of files via the <code>document_input_files</code> parameter.</li>
 <li><code>meta_data_file</code>: Path to a JSON file containing metadata for the files in your knowledge base.</li>
 </ul>
-<p>Currently, the index is loaded into the machine’s memory, where the EvidenceSeeker pipeline runs. At least one of the following two paths must be set: <code>index_hub_path</code> or <code>index_persist_path</code> for the retriever component to locate the index of your knowledge base. These parameters have different roles during the creation and loading of the index:</p>
+<p>Currently, the index is loaded into the machine’s memory, where the EvidenceSeeker pipeline runs. Alternatively, the index can be stored in a PostgreSQL database or a repository on the Hugging Face Hub. If a PostgreSQL database should be used, <code>use_postgres</code> must be set to <code>True</code>. Otherwise, at least one of the following two paths must be set for the retriever component to locate the index of your knowledge base: <code>index_hub_path</code> or <code>index_persist_path</code>. These parameters have different roles during the creation and loading of the index:</p>
 <ul>
 <li><em>Creating the index:</em> If you create the index of your knowledge base, the retriever component will store the index in the directory specified by <code>index_persist_path</code>. If you use a Hugging Face Hub repository, you can specify <code>index_hub_path</code> to store the index in a Hugging Face Hub repository.</li>
 <li><em>Loading the index:</em> When the retriever component is initialised, it will load the index from the path specified by <code>index_persist_path</code>. If you use a Hugging Face Hub repository, you can specify <code>index_hub_path</code> to load the index from a Hugging Face Hub repository. If both paths are specified and <code>index_persist_path</code> is empty, the index will be loaded (once) from the Hub path and saved to the local path.</li>
 <li><code>hub_key_name</code>: If you use a private Hugging Face Hub repository, you have to specify the name of the environment variable that contains your Hugging Face Hub API key (see <a href="#api-keys">below</a> for details on how to set the API key). If you use a public repository, you can omit this parameter.</li>
 </ul>
+<p>For using a PostgreSQL database, you have to configure several parameters, besides setting <code>use_postgres</code> to <code>True</code> as mentioned above:</p>
+<ul>
+<li><em>Establishing a connection</em>: <strong>Required</strong> are a username provided by <code>postgres_user</code> and a matching user password. The password can be either provided directly via <code>postgres_password</code> or, if <code>env_file</code> is set, by setting <code>postgres_password_env_var</code> to the name of a environment variable containing the password. By default, the PostgreSQL server hosting the database is assumed to be available on localhost under port 5432. To configure the address, use the parameters <code>postgres_host</code> and <code>postgres_port</code>. The default database name is “evidence_seeker”, this can be changed by setting <code>postgres_database</code>.</li>
+<li><em>Creating and loading the index</em>: <code>postgres_table_name</code> and <code>postgres_schema_name</code> point to the table and the schema of the database that should contain the index. By default, the table is assumed to be named “evse_embeddings” and that the default public schema is used for it. For instantiating a vector index, the dimension of the used embedding must be specified by the pipeline. You can set it explicitly via the parameter <code>postgres_embed_dim</code>. If not set, the pipeline will infer the dimension at runtime. Finally, the parameter <code>postgres_llamaindex_table_name_prefix</code> specifies the prefix of LlamaIndex tables. By default, it is set to “data_”. You may change the prefix or explicitly set it to “null” to let the pipeline infer the prefix at runtime.</li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="at">use_postgres = True</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># The address your PostgreSQL server is running at</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_host = "localhost"</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_port = "5432"</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># The name of the database hosted at that server that stores the index</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_database "evidence_seeker"</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># A username for connecting to the PostgreSQL server</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_user = "&lt;your_username&gt;"</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># A password for connecting to the PostgreSQL server...</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_password = "&lt;your_password&gt;"</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co"># ...or alternatively the name of an env variable storing the password and a path to an .env file</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_password_env_var = "postgres_password"</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="at">env_file = "&lt;path/to/your/.env&gt;"</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># The table and schema name for storing the index</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_table_name = "evse_embeddings"</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_schema_name = "public"</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Prefix for LlamaIndex tables in PostgresCurrently</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_llamaindex_table_name_prefix = "data_"</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Dimension of the embeddings used</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_embed_dim = None</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Before executing the pipeline, make sure your PostgreSQL server is running at your specified address.</p>
 </section>
 </section>
 <section id="preprocessor-confirmation-analysis" class="level2">
@@ -365,31 +391,31 @@ window.Quarto = {
 <h3 class="anchored" data-anchor-id="models">Models</h3>
 <p>You can define an arbitrary number of models in the configuration files for the preprocessor and the confirmation analysis component, and then assign these models to the whole pipeline or specific steps of the pipeline. In this way, you can easily switch between models and even use different models for different pipeline steps.</p>
 <p>In your configuration YAML files, you can define the models in the following way:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">models</span><span class="kw">:</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">your_first_model</span><span class="kw">:</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">api_key_name</span><span class="kw">:</span><span class="at"> your_api_key_name</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">backend_type</span><span class="kw">:</span><span class="at"> backend_type_of_your_model</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">base_url</span><span class="kw">:</span><span class="at"> your_base_url</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">description</span><span class="kw">:</span><span class="at"> description_of_your_model</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">model</span><span class="kw">:</span><span class="at"> your_model_identifier</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> your_model_name</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">    # some optional parameters</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">temperature</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.2</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">timeout</span><span class="kw">:</span><span class="at"> </span><span class="dv">260</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">max_tokens</span><span class="kw">:</span><span class="at"> </span><span class="dv">1024</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">your_second_model</span><span class="kw">:</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">api_key_name</span><span class="kw">:</span><span class="at"> your_api_key_name</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">backend_type</span><span class="kw">:</span><span class="at"> backend_type_of_your_model</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">base_url</span><span class="kw">:</span><span class="at"> your_base_url</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">description</span><span class="kw">:</span><span class="at"> description_of_your_model</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">model</span><span class="kw">:</span><span class="at"> your_model_identifier</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> your_model_name</span></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="co">    # some optional parameters</span></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">temperature</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.2</span></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">timeout</span><span class="kw">:</span><span class="at"> </span><span class="dv">260</span></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">max_tokens</span><span class="kw">:</span><span class="at"> </span><span class="dv">1024</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">models</span><span class="kw">:</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">your_first_model</span><span class="kw">:</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">api_key_name</span><span class="kw">:</span><span class="at"> your_api_key_name</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">backend_type</span><span class="kw">:</span><span class="at"> backend_type_of_your_model</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">base_url</span><span class="kw">:</span><span class="at"> your_base_url</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">description</span><span class="kw">:</span><span class="at"> description_of_your_model</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">model</span><span class="kw">:</span><span class="at"> your_model_identifier</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> your_model_name</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">    # some optional parameters</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">temperature</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.2</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">timeout</span><span class="kw">:</span><span class="at"> </span><span class="dv">260</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">max_tokens</span><span class="kw">:</span><span class="at"> </span><span class="dv">1024</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">your_second_model</span><span class="kw">:</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">api_key_name</span><span class="kw">:</span><span class="at"> your_api_key_name</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">backend_type</span><span class="kw">:</span><span class="at"> backend_type_of_your_model</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">base_url</span><span class="kw">:</span><span class="at"> your_base_url</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">description</span><span class="kw">:</span><span class="at"> description_of_your_model</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">model</span><span class="kw">:</span><span class="at"> your_model_identifier</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> your_model_name</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="co">    # some optional parameters</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">temperature</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.2</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">timeout</span><span class="kw">:</span><span class="at"> </span><span class="dv">260</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">max_tokens</span><span class="kw">:</span><span class="at"> </span><span class="dv">1024</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><code>your_first_model</code> and <code>your_second_model</code> are arbitrary identifiers for the models you use in your config to specify which model to use for which step of the pipeline. You can assign a defined model, say <code>your_global_model</code>, as “global” model via</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">used_model_key</span><span class="kw">:</span><span class="at"> your_global_model</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">used_model_key</span><span class="kw">:</span><span class="at"> your_global_model</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>that is used for all pipeline steps that do not have a specific model attached via their step configuration (see below).</p>
 <p><strong>Further clarifications:</strong></p>
 <ul>
@@ -399,7 +425,7 @@ window.Quarto = {
 </ul></li>
 <li><code>base_url</code> and <code>model</code> are important since they specify the endpoint and model.
 <ul>
-<li>For instance, if you use <a href="https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct?inference_api=true&amp;language=python&amp;inference_provider=hf-inference">HuggingFace as inference provider with Llama-3.3-70B-Instruct</a>, you would set:
+<li>For instance, if you use <a href="https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct?inference_api=true&amp;language=python&amp;inference_provider=hf-inference">Hugging Face as inference provider with Llama-3.3-70B-Instruct</a>, you would set:
 <ul>
 <li><code>base_url</code> to <em>“https://router.huggingface.co/hf-inference/models/meta-llama/Llama-3.3-70B-Instruct/v1”</em> and</li>
 <li><code>model</code> to <em>“meta-llama/Llama-3.3-70B-Instruct”</em></li>
@@ -422,26 +448,26 @@ window.Quarto = {
 <p>The preprocessor and the confirmation analysis components have several steps that can be configured independently. You can specify the model for each step via the <code>used_model_key</code> parameter.</p>
 <p>Additionally, most of the step-specific configuration parameters can be defined in a model-specific way. In this way, you can easily switch between different models for different steps of the pipeline and optimise the performance of each step for different models. For instance, you can provide different prompt templates for each step, optimised for different models.</p>
 <p>A typical step configuration within your config file would look like this:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">step_identifier</span><span class="kw">:</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">description</span><span class="kw">:</span><span class="at"> Instruct the model to do ...</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">name</span><span class="kw">:</span><span class="at"> step_name</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">  # defining the model to use for this step</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">used_model_key</span><span class="kw">:</span><span class="at"> your_model_identifier</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">llm_specific_configs</span><span class="kw">:</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co">    # default configuration for the step</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">default</span><span class="kw">:</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">prompt_template</span><span class="kw">:</span><span class="at"> your_default_prompt_template</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">system_prompt</span><span class="kw">:</span><span class="at"> your_default_step_system_prompt</span></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="at">      ...</span></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co">    # configuration for a specific model that </span></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co">    # is used for this step, if the model is specified</span></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="co">    # via the `used_model_key` parameter</span></span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">your_model_identifier</span><span class="kw">:</span></span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">prompt_template</span><span class="kw">:</span><span class="at"> your_model_specific_prompt_template</span></span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">system_prompt</span><span class="kw">:</span><span class="at"> your_model_specific_step_system_prompt</span></span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="at">      ...</span></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">alternative_model_identifier</span><span class="kw">:</span></span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="at">      ...</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">step_identifier</span><span class="kw">:</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">description</span><span class="kw">:</span><span class="at"> Instruct the model to do ...</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">name</span><span class="kw">:</span><span class="at"> step_name</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co">  # defining the model to use for this step</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">used_model_key</span><span class="kw">:</span><span class="at"> your_model_identifier</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">llm_specific_configs</span><span class="kw">:</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co">    # default configuration for the step</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">default</span><span class="kw">:</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">prompt_template</span><span class="kw">:</span><span class="at"> your_default_prompt_template</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">system_prompt</span><span class="kw">:</span><span class="at"> your_default_step_system_prompt</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="at">      ...</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="co">    # configuration for a specific model that </span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="co">    # is used for this step, if the model is specified</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="co">    # via the `used_model_key` parameter</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">your_model_identifier</span><span class="kw">:</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">prompt_template</span><span class="kw">:</span><span class="at"> your_model_specific_prompt_template</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">system_prompt</span><span class="kw">:</span><span class="at"> your_model_specific_step_system_prompt</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="at">      ...</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">alternative_model_identifier</span><span class="kw">:</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="at">      ...</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <section id="default-step-configuration" class="level4">
 <h4 class="anchored" data-anchor-id="default-step-configuration">Default Step Configuration</h4>
 <p>The field <code>llm_specific_configs</code> contains model-specific configuration settings for the step. If the list does not contain a model-specific configuration that matches the specified global or step-specific <code>used_model_key,</code> the <code>default</code> configuration is used.</p>
@@ -483,16 +509,16 @@ Warning
 </section>
 <section id="api-keys" class="level2">
 <h2 class="anchored" data-anchor-id="api-keys">API Keys</h2>
-<p>If you use third-party APIs (e.g., OpenAI, HuggingFace, etc.) for the language models or embedding models, you must provide API keys for these services. The <em>EvidenceSeeker</em> pipeline assumes that these API keys are set via environment variables with the names specified in the configuration files (<code>api_key_name</code>).</p>
+<p>If you use third-party APIs (e.g., OpenAI, Hugging Face, etc.) for the language models or embedding models, you must provide API keys for these services. The <em>EvidenceSeeker</em> pipeline assumes that these API keys are set via environment variables with the names specified in the configuration files (<code>api_key_name</code>).</p>
 <p>There are two ways to set these environment variables:</p>
 <ol type="1">
 <li>You set these environment variables directly in your shell or script before running the EvidenceSeeker pipeline. For example, in a Unix-like shell, you can set an environment variable like this:</li>
 </ol>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>   <span class="bu">export</span> <span class="va">YOUR_API_KEY_NAME</span><span class="op">=</span>your_api_key_value</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>   <span class="bu">export</span> <span class="va">YOUR_API_KEY_NAME</span><span class="op">=</span>your_api_key_value</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ol start="2" type="1">
 <li>You can use a file with environment variables specified in the configuration files via <code>env_file</code> (see above). This file should contain lines like this:</li>
 </ol>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode txt code-with-copy"><code class="sourceCode default"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>YOUR_API_KEY_NAME=your_api_key_value</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode txt code-with-copy"><code class="sourceCode default"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>YOUR_API_KEY_NAME=your_api_key_value</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>
@@ -919,7 +945,7 @@ Warning
 <footer class="footer">
   <div class="nav-footer">
     <div class="nav-footer-left">
-<p>Part of <a href="https://compphil2mmae.github.io/research/kideku/"><img src="../img/logoKIdeKu.jpg" class="img-fluid" alt="KIdeKu" width="20"></a></p>
+<p>Part of <a href="https://compphil2mmae.github.io/research/kideku/"><img src="..\img/logoKIdeKu.jpg" class="img-fluid" alt="KIdeKu" width="20"></a></p>
 </div>   
     <div class="nav-footer-center">
 <p><a href="../about.html" class="text-decoration-none">About</a> | <a href="../imprint.html" class="text-decoration-none">Imprint</a> <br> Copyright © 2024-2025 <a href="https://compphil2mmae.github.io/" class="text-decoration-none">CompPhil²MMAE</a> @ KIT.</p>

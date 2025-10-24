@@ -77,7 +77,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-48fbefe780f5a27fc13c67afc8cc4f05.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-e31584831b205ffbb2d98406f31c2a5b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -354,6 +354,7 @@ TODO: Do we actually support the latest Python?
 <h3 class="anchored" data-anchor-id="building_index">5. Building the index</h3>
 <p><em>EvidenceSeeker</em> instances fact-check statements relative to a specified knowledge base. The knowledge base can, for instance, comprise a set of PDF files.</p>
 <p>For an <em>EvidenceSeeker</em> instance to work, you need to create a searchable index from the documents of your knowledge base. This process converts your documents (like PDFs) into vector embeddings—a numerical representation that allows the system to find semantically similar content when fact-checking statements. Think of it like creating a detailed catalog: instead of manually searching through hundreds of documents, the system can quickly identify which parts of your knowledge base are most relevant to any given claim. Accordingly, you have to create such an index using an embedding model.</p>
+<p>In the following, your index will be stored locally at a chosen location. You may instead also choose it to be uploaded to a Hugging Face dataset or stored into a PostgreSQL database. For information on how to configure the storage options see <a href="./docs_configuration/advanced_configuration.html#knowledge-base">here</a>.</p>
 <p>If you used <code>evse init</code> to create the directory structure, you can use the <code>evse</code> CLI to create an index in the following way:</p>
 <ol type="1">
 <li>Copy all PDF files you want to use as knowledge base into the <code>knowledge_base/data_files</code> directory of your <em>EvidenceSeeker</em> instance.</li>
@@ -371,7 +372,7 @@ TODO: Do we actually support the latest Python?
 <span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>        <span class="dt">"date"</span><span class="fu">:</span> <span class="st">"2024-02-01"</span></span>
 <span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a> <span class="fu">}</span></span>
 <span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<ol start="3" type="1">
+<ol type="1">
 <li>If not already done, navigate to the directory of your <em>EvidenceSeeker</em> instance, e.g., <code>cd name_of_your_evidence_seeker/</code>.</li>
 <li>Ensure you have set the environment variables for your API keys in the file <code>config/api_keys.txt</code> of your <em>EvidenceSeeker</em> instance.</li>
 <li>Now you can build the index using <code>evse build-index</code>. This will create an index of the PDF files in the <code>knowledge_base/data_files</code> directory and store it in the <code>embeddings/</code> directory. The index will be created using the embedding model specified in the configuration file.</li>
@@ -380,7 +381,7 @@ TODO: Do we actually support the latest Python?
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> evidence_seeker <span class="im">import</span> RetrievalConfig, IndexBuilder</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>config <span class="op">=</span> RetrievalConfig(</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">### Using local embedding model (via Huggingface API)</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">### Using local embedding model (via Hugging Face API)</span></span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    embed_backend_type<span class="op">=</span><span class="st">"huggingface"</span>,</span>
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    embed_model_name<span class="op">=</span><span class="st">"sentence-transformers/paraphrase-multilingual-mpnet-base-v2"</span>,</span>
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Path to the directory containing your PDF files</span></span>
@@ -868,7 +869,7 @@ TODO: Do we actually support the latest Python?
 <footer class="footer">
   <div class="nav-footer">
     <div class="nav-footer-left">
-<p>Part of <a href="https://compphil2mmae.github.io/research/kideku/"><img src="./img/logoKIdeKu.jpg" class="img-fluid" alt="KIdeKu" width="20"></a></p>
+<p>Part of <a href="https://compphil2mmae.github.io/research/kideku/"><img src=".\img/logoKIdeKu.jpg" class="img-fluid" alt="KIdeKu" width="20"></a></p>
 </div>   
     <div class="nav-footer-center">
 <p><a href="./about.html" class="text-decoration-none">About</a> | <a href="./imprint.html" class="text-decoration-none">Imprint</a> <br> Copyright © 2024-2025 <a href="https://compphil2mmae.github.io/" class="text-decoration-none">CompPhil²MMAE</a> @ KIT.</p>

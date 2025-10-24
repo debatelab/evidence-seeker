@@ -46,10 +46,10 @@ models:
 + Both components expect the API key to be set as an environment variable with the name specified by `api_key_name`. If you use a file with environment variables via `env_file`, the file should contain a line like this: `name_of_your_api_key=your_api_key`. Alternatively, you can set the environment variable directly in your shell or script before running the EvidenceSeeker pipeline.
     + If you do not need an API key (e.g., if you use a local model), you can omit the `env_file` and `api_key_name` parameters.
 + `base_url` and `model` are important since they specify the endpoint and model. 
-    + For instance, if you use [HuggingFace as inference provider with Llama-3.3-70B-Instruct](https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct?inference_api=true&language=python&inference_provider=hf-inference) you would set:
+    + For instance, if you use [Hugging Face as inference provider with Llama-3.3-70B-Instruct](https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct?inference_api=true&language=python&inference_provider=hf-inference) you would set:
         + `base_url` to *"https://router.huggingface.co/hf-inference/models/meta-llama/Llama-3.3-70B-Instruct/v1"* and
         + `model` to *"meta-llama/Llama-3.3-70B-Instruct"*
-+ The `backend_type` determines which API client to use (e.g., OpenAI, HuggingFace, etc.). For a list of supported backends, see the [here](./advanced_configuration.qmd#model-backend-type).
++ The `backend_type` determines which API client to use (e.g., OpenAI, Hugging Face, etc.). For a list of supported backends, see the [here](./advanced_configuration.qmd#model-backend-type).
 
 ## Retriever Component
 
@@ -70,7 +70,7 @@ index_persist_path: path/to/your/index
 
 **Clarifications:**
 
-Both `embed_base_url` and `embed_model_name` are important since they specify the endpoint and model. If you use embedding models hosted by HuggingFace and choose, for instance, [sentence-transformers/paraphrase-multilingual-mpnet-base-v2](https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2) as the model, you would set: 
+Both `embed_base_url` and `embed_model_name` are important since they specify the endpoint and model. If you use embedding models hosted by Hugging Face and choose, for instance, [sentence-transformers/paraphrase-multilingual-mpnet-base-v2](https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2) as the model, you would set: 
 
 + `embed_base_url` to *"https://router.huggingface.co/hf-inference/models/sentence-transformers/paraphrase-multilingual-mpnet-base-v2"* and
 + `embed_model_name` to *"sentence-transformers/paraphrase-multilingual-mpnet-base-v2"*

@@ -94,6 +94,8 @@ For details, see the [Configuration](configuration.qmd) section.
 
 For an *EvidenceSeeker* instance to work, you need to create a searchable index from the documents of your knowledge base. This process converts your documents (like PDFs) into vector embeddings---a numerical representation that allows the system to find semantically similar content when fact-checking statements. Think of it like creating a detailed catalog: instead of manually searching through hundreds of documents, the system can quickly identify which parts of your knowledge base are most relevant to any given claim. Accordingly, you have to create such an index using an embedding model.
 
+In the following, your index will be stored locally at a chosen location. You may instead also choose it to be uploaded to a Hugging Face dataset or stored into a PostgreSQL database. For information on how to configure the storage options see [here](docs_configuration/advanced_configuration.qmd#knowledge-base).
+
 If you used `evse init` to create the directory structure, you can use the `evse` CLI to create an index in the following way:
 
 1. Copy all PDF files you want to use as knowledge base into the `knowledge_base/data_files` directory of your *EvidenceSeeker* instance.
@@ -112,9 +114,9 @@ If you used `evse init` to create the directory structure, you can use the `evse
  }
 }
 ```
-3. If not already done, navigate to the directory of your *EvidenceSeeker* instance, e.g., `cd name_of_your_evidence_seeker/`.
-4. Ensure you have set the environment variables for your API keys in the file `config/api_keys.txt` of your *EvidenceSeeker* instance.
-5. Now you can build the index using `evse build-index`. This will create an index of the PDF files in the `knowledge_base/data_files` directory and store it in the `embeddings/` directory. The index will be created using the embedding model specified in the configuration file.
+1. If not already done, navigate to the directory of your *EvidenceSeeker* instance, e.g., `cd name_of_your_evidence_seeker/`.
+2. Ensure you have set the environment variables for your API keys in the file `config/api_keys.txt` of your *EvidenceSeeker* instance.
+3. Now you can build the index using `evse build-index`. This will create an index of the PDF files in the `knowledge_base/data_files` directory and store it in the `embeddings/` directory. The index will be created using the embedding model specified in the configuration file.
 
 
 **Alternatively**, you can use and adapt the following Python snippet to create an index:
@@ -123,7 +125,7 @@ If you used `evse init` to create the directory structure, you can use the `evse
 from evidence_seeker import RetrievalConfig, IndexBuilder
 
 config = RetrievalConfig(
-    ### Using local embedding model (via Huggingface API)
+    ### Using local embedding model (via Hugging Face API)
     embed_backend_type="huggingface",
     embed_model_name="sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
     # Path to the directory containing your PDF files

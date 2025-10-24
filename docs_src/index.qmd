@@ -61,7 +61,7 @@ Integrate _EvidenceSeeker_ into your existing workflows and AI apps.
 
 ::: {.g-col-4}
 ### Domain-specific Fact-Checking
-Use your knowledge base (e.g., a collection of PDFs) for fact-checking.
+Use your knowledge base (e.g., a collection of PDFs) for fact-checking and optionally store it at a PostgreSQL vector database.
 
 ::: {.learn-more}
 [Learn more »](getting_started.qmd#building_index)

@@ -1,5 +1,5 @@
 ---
-title: "Example Configuration: HuggingFace Inference Provider"
+title: "Example Configuration: Hugging Face Inference Provider"
 ---
 
 Through [Hugging Face’s Inference Providers](https://huggingface.co/docs/inference-providers/en/index) you can use a wide range of language models and embedding models for your *EvidenceSeeker* instance hosted by Hugging Face or other providers. The following example shows how to configure the *EvidenceSeeker* pipeline with the following models accessed via Hugging Face’s Inference Provider:
@@ -69,7 +69,7 @@ used_model_key: Llama-3.3-70B-Instruct
 models:
   Llama-3.3-70B-Instruct:
     name: Llama-3.3-70B-Instruct
-    description: Llama-3.3-70B served by Together.ai over HuggingFace
+    description: Llama-3.3-70B served by Together.ai over Hugging Face
     base_url: https://router.huggingface.co/v1
     model: meta-llama/Llama-3.3-70B-Instruct:together
     api_key_name: hf_debatelab_inference_provider

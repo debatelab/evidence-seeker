@@ -7,7 +7,7 @@ Here, we will give an overview of the most important configuration parameters. Y
 Additionally, we give some example configurations, which illustrate how to configure the pipeline for two use cases:
 
 + [Using local models with EvidenceSeeker](./example_local_models.qmd): 
-+ [Using HuggingFace Inference Provider with EvidenceSeeker](./example_hf_inference_provider.qmd):
++ [Using Hugging Face Inference Provider with EvidenceSeeker](./example_hf_inference_provider.qmd):
 
 ## Retriever Component
 
@@ -19,7 +19,7 @@ The used **embedding model** can be configured via the `embed_backend_type`, `em
 
 + As `embed_backend_type`, you can choose between 
     + `tei` ([text embedding inference](https://github.com/huggingface/text-embeddings-inference)): API for serving embedding models, that can be used, for instance, with [dedicated endpoints for embedding models by Hugging Face](https://huggingface.co/learn/cookbook/en/enterprise_dedicated_endpoints).
-    + `huggingface`: This is for local models hosted on HuggingFace and used with the HuggingFace API. The retriever component will download the model from Hugging Face during the first use. You might need a lot of disk space and memory, depending on the model size. Additionally, it might take some time to create the index.
+    + `huggingface`: This is for local models hosted on Hugging Face and used with the Hugging Face API. The retriever component will download the model from Hugging Face during the first use. You might need a lot of disk space and memory, depending on the model size. Additionally, it might take some time to create the index.
     + `huggingface_inference_api`: This is for embedding models accessed via [Hugging Face Inference Provider](https://huggingface.co/docs/inference-providers/index).
 + For all these options, specify the `embed_base_url` and `embed_model_name` parameters. For instance, if you use [sentence-transformers/paraphrase-multilingual-mpnet-base-v2](https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2) as the embedding model and if you want to use it via Hugging Face inference provider, you would set:
     + `base_url` to *"https://router.huggingface.co/hf-inference/models/sentence-transformers/paraphrase-multilingual-mpnet-base-v2"* and
@@ -37,11 +37,41 @@ The most important parameters of working with your **knowledge base**:
 + `document_input_dir`: Path to the directory containing your PDF files you want to use as a knowledge base. Alternatively, you can provide a list of files via the `document_input_files` parameter.
 + `meta_data_file`: Path to a JSON file containing metadata for the files in your knowledge base.
 
-Currently, the index is loaded into the machine's memory, where the EvidenceSeeker pipeline runs. At least one of the following two paths must be set: `index_hub_path` or `index_persist_path` for the retriever component to locate the index of your knowledge base. These parameters have different roles during the creation and loading of the index: 
+Currently, the index is loaded into the machine's memory, where the EvidenceSeeker pipeline runs. Alternatively, the index can be stored in a PostgreSQL database or a repository on the Hugging Face Hub. If a PostgreSQL database should be used, `use_postgres` must be set to `True`. Otherwise, at least one of the following two paths must be set for the retriever component to locate the index of your knowledge base: `index_hub_path` or `index_persist_path`. These parameters have different roles during the creation and loading of the index: 
 
 + *Creating the index:* If you create the index of your knowledge base, the retriever component will store the index in the directory specified by `index_persist_path`. If you use a Hugging Face Hub repository, you can specify `index_hub_path` to store the index in a Hugging Face Hub repository.
 + *Loading the index:* When the retriever component is initialised, it will load the index from the path specified by `index_persist_path`. If you use a Hugging Face Hub repository, you can specify `index_hub_path` to load the index from a Hugging Face Hub repository. If both paths are specified and `index_persist_path` is empty, the index will be loaded (once) from the Hub path and saved to the local path.
 + `hub_key_name`: If you use a private Hugging Face Hub repository, you have to specify the name of the environment variable that contains your Hugging Face Hub API key (see [below](#api-keys) for details on how to set the API key). If you use a public repository, you can omit this parameter.
+
+For using a PostgreSQL database, you have to configure several parameters, besides setting `use_postgres` to `True` as mentioned above: 
+
++ *Establishing a connection*: **Required** are a username provided by `postgres_user` and a matching user password. The password can be either provided directly via `postgres_password` or, if `env_file` is set, by setting `postgres_password_env_var` to the name of a environment variable containing the password. By default, the PostgreSQL server hosting the database is assumed to be available on localhost under port 5432. To configure the address, use the parameters `postgres_host` and `postgres_port`. The default database name is "evidence_seeker", this can be changed by setting `postgres_database`.
++ *Creating and loading the index*: `postgres_table_name` and `postgres_schema_name` point to the table and the schema of the database that should contain the index. By default, the table is assumed to be named "evse_embeddings" and that the default public schema is used for it. For instantiating a vector index, the dimension of the used embedding must be specified by the pipeline. You can set it explicitly via the parameter `postgres_embed_dim`. If not set, the pipeline will infer the dimension at runtime. Finally, the parameter `postgres_llamaindex_table_name_prefix` specifies the prefix of LlamaIndex tables. By default, it is set to "data_". You may change the prefix or explicitly set it to "null" to let the pipeline infer the prefix at runtime.
+
+```yaml
+use_postgres = True
+# The address your PostgreSQL server is running at
+postgres_host = "localhost"
+postgres_port = "5432"
+# The name of the database hosted at that server that stores the index
+postgres_database "evidence_seeker"
+# A username for connecting to the PostgreSQL server
+postgres_user = "<your_username>"
+# A password for connecting to the PostgreSQL server...
+postgres_password = "<your_password>"
+# ...or alternatively the name of an env variable storing the password and a path to an .env file
+postgres_password_env_var = "postgres_password"
+env_file = "<path/to/your/.env>"
+# The table and schema name for storing the index
+postgres_table_name = "evse_embeddings"
+postgres_schema_name = "public"
+# Prefix for LlamaIndex tables in PostgresCurrently
+postgres_llamaindex_table_name_prefix = "data_"
+# Dimension of the embeddings used
+postgres_embed_dim = None
+```
+
+Before executing the pipeline, make sure your PostgreSQL server is running at your specified address.
 
 ## Preprocessor & Confirmation Analysis
 
@@ -89,7 +119,7 @@ that is used for all pipeline steps that do not have a specific model attached v
 + **API Keys:** The *EvidenceSeeker* expects API keys to be set as environment variables with the name specified by `api_key_name` for each model. If you use a file with environment variables via `env_file`, the file should contain a line like this: `name_of_your_api_key=your_api_key`. Alternatively, you can set the environment variable directly in your shell or script before running the EvidenceSeeker pipeline (see [below](#api-keys)).
     + If you do not need an API key (e.g., if you use a local model), you can omit the `env_file` and `api_key_name` parameters.
 + `base_url` and `model` are important since they specify the endpoint and model. 
-    + For instance, if you use [HuggingFace as inference provider with Llama-3.3-70B-Instruct](https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct?inference_api=true&language=python&inference_provider=hf-inference), you would set:
+    + For instance, if you use [Hugging Face as inference provider with Llama-3.3-70B-Instruct](https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct?inference_api=true&language=python&inference_provider=hf-inference), you would set:
         + `base_url` to *"https://router.huggingface.co/hf-inference/models/meta-llama/Llama-3.3-70B-Instruct/v1"* and
         + `model` to *"meta-llama/Llama-3.3-70B-Instruct"*
 
@@ -164,7 +194,7 @@ There is a trade-off when estimating logprobs by repeating inference requests: T
 
 
 ## API Keys
-If you use third-party APIs (e.g., OpenAI, HuggingFace, etc.) for the language models or embedding models, you must provide API keys for these services. The *EvidenceSeeker* pipeline assumes that these API keys are set via environment variables with the names specified in the configuration files (`api_key_name`).
+If you use third-party APIs (e.g., OpenAI, Hugging Face, etc.) for the language models or embedding models, you must provide API keys for these services. The *EvidenceSeeker* pipeline assumes that these API keys are set via environment variables with the names specified in the configuration files (`api_key_name`).
 
 There are two ways to set these environment variables:
 

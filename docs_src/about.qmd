@@ -25,6 +25,7 @@ KIdeKu is funded by the *Federal Ministry of Education, Family Affairs, Senior C
 - **[Pydantic](https://pydantic.dev/)**: Data validation and configuration management
 - **[Sentence Transformers](https://www.sbert.net/)**: Document embeddings
 - **[Hugging Face](https://huggingface.co/)**: Model hosting and deployment
+- **[PostgreSQL](https://www.postgresql.org/)**: Database for vector indices
 
 ### 🤝 Collaborations
 

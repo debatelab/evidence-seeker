@@ -77,7 +77,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-48fbefe780f5a27fc13c67afc8cc4f05.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-e31584831b205ffbb2d98406f31c2a5b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -316,13 +316,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </ul></li>
 <li><code>base_url</code> and <code>model</code> are important since they specify the endpoint and model.
 <ul>
-<li>For instance, if you use <a href="https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct?inference_api=true&amp;language=python&amp;inference_provider=hf-inference">HuggingFace as inference provider with Llama-3.3-70B-Instruct</a> you would set:
+<li>For instance, if you use <a href="https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct?inference_api=true&amp;language=python&amp;inference_provider=hf-inference">Hugging Face as inference provider with Llama-3.3-70B-Instruct</a> you would set:
 <ul>
 <li><code>base_url</code> to <em>“https://router.huggingface.co/hf-inference/models/meta-llama/Llama-3.3-70B-Instruct/v1”</em> and</li>
 <li><code>model</code> to <em>“meta-llama/Llama-3.3-70B-Instruct”</em></li>
 </ul></li>
 </ul></li>
-<li>The <code>backend_type</code> determines which API client to use (e.g., OpenAI, HuggingFace, etc.). For a list of supported backends, see the <a href="../docs_configuration/advanced_configuration.html#model-backend-type">here</a>.</li>
+<li>The <code>backend_type</code> determines which API client to use (e.g., OpenAI, Hugging Face, etc.). For a list of supported backends, see the <a href="../docs_configuration/advanced_configuration.html#model-backend-type">here</a>.</li>
 </ul>
 </section>
 <section id="retriever-component" class="level2">
@@ -339,7 +339,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co"># path to the directory where the index is stored</span></span>
 <span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu">index_persist_path</span><span class="kw">:</span><span class="at"> path/to/your/index</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>Clarifications:</strong></p>
-<p>Both <code>embed_base_url</code> and <code>embed_model_name</code> are important since they specify the endpoint and model. If you use embedding models hosted by HuggingFace and choose, for instance, <a href="https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2">sentence-transformers/paraphrase-multilingual-mpnet-base-v2</a> as the model, you would set:</p>
+<p>Both <code>embed_base_url</code> and <code>embed_model_name</code> are important since they specify the endpoint and model. If you use embedding models hosted by Hugging Face and choose, for instance, <a href="https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2">sentence-transformers/paraphrase-multilingual-mpnet-base-v2</a> as the model, you would set:</p>
 <ul>
 <li><code>embed_base_url</code> to <em>“https://router.huggingface.co/hf-inference/models/sentence-transformers/paraphrase-multilingual-mpnet-base-v2”</em> and</li>
 <li><code>embed_model_name</code> to <em>“sentence-transformers/paraphrase-multilingual-mpnet-base-v2”</em></li>
@@ -784,7 +784,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <footer class="footer">
   <div class="nav-footer">
     <div class="nav-footer-left">
-<p>Part of <a href="https://compphil2mmae.github.io/research/kideku/"><img src="../img/logoKIdeKu.jpg" class="img-fluid" alt="KIdeKu" width="20"></a></p>
+<p>Part of <a href="https://compphil2mmae.github.io/research/kideku/"><img src="..\img/logoKIdeKu.jpg" class="img-fluid" alt="KIdeKu" width="20"></a></p>
 </div>   
     <div class="nav-footer-center">
 <p><a href="../about.html" class="text-decoration-none">About</a> | <a href="../imprint.html" class="text-decoration-none">Imprint</a> <br> Copyright © 2024-2025 <a href="https://compphil2mmae.github.io/" class="text-decoration-none">CompPhil²MMAE</a> @ KIT.</p>
