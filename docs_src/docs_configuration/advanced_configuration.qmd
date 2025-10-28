@@ -43,6 +43,8 @@ Currently, the index is loaded into the machine's memory, where the EvidenceSeek
 + *Loading the index:* When the retriever component is initialised, it will load the index from the path specified by `index_persist_path`. If you use a Hugging Face Hub repository, you can specify `index_hub_path` to load the index from a Hugging Face Hub repository. If both paths are specified and `index_persist_path` is empty, the index will be loaded (once) from the Hub path and saved to the local path.
 + `hub_key_name`: If you use a private Hugging Face Hub repository, you have to specify the name of the environment variable that contains your Hugging Face Hub API key (see [below](#api-keys) for details on how to set the API key). If you use a public repository, you can omit this parameter.
 
+#### Using PostgreSQL
+
 For using a PostgreSQL database, you have to configure several parameters, besides setting `use_postgres` to `True` as mentioned above: 
 
 + *Establishing a connection*: **Required** are a username provided by `postgres_user` and a matching user password. The password can be either provided directly via `postgres_password` or, if `env_file` is set, by setting `postgres_password_env_var` to the name of a environment variable containing the password. By default, the PostgreSQL server hosting the database is assumed to be available on localhost under port 5432. To configure the address, use the parameters `postgres_host` and `postgres_port`. The default database name is "evidence_seeker", this can be changed by setting `postgres_database`.
@@ -65,13 +67,13 @@ env_file = "<path/to/your/.env>"
 # The table and schema name for storing the index
 postgres_table_name = "evse_embeddings"
 postgres_schema_name = "public"
-# Prefix for LlamaIndex tables in PostgresCurrently
+# Prefix for LlamaIndex tables in Postgres
 postgres_llamaindex_table_name_prefix = "data_"
 # Dimension of the embeddings used
 postgres_embed_dim = None
 ```
 
-Before executing the pipeline, make sure your PostgreSQL server is running at your specified address.
+Before executing the pipeline, make sure your PostgreSQL server is running at the specified address.
 
 ## Preprocessor & Confirmation Analysis
 
