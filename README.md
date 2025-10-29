@@ -22,7 +22,7 @@ EvidenceSeeker Boilerplate is a Python package that provides a fact-checking pip
 
 <div align="center">
   <p align="center">
-  <img src="./docs_src/img/workflow_overview_evse_pkg.jpg" alt="Figure of workflow">
+  <img src="./docs_src/img/workflow_en.png" alt="Figure of workflow">
   </p>
 </div>
 
