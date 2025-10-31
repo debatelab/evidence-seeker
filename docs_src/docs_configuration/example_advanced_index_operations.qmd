@@ -1,0 +1,143 @@
+---
+title: "Example: Advanced Index Operations"
+---
+
+This section details the following advanced index configurations and operations:
+
++ **PostgreSQL Vector Store Support:** The retriever supports PostgreSQL as a vector store backend, allowing for more robust and scalable storage solutions.
++ **Metadata Filtering:** The EvSe retriever supports filtering documents based on metadata fields. This allows users to narrow down search results by specifying criteria such as author, date, or category.
+    + Metadata filtering happens before the similarity search.
+    + The filtering capability depends on your vector store backend. Most common ones support metadata filtering. (We use LlamaIndex's `MetadataFilters` under the hood.)
++ **Updating Document Store:** You can add, update, or delete documents in the document store without needing to recreate the entire index. This makes it easier to maintain and update the document repository.
+
+## PostgreSQL Vector Store Support
+
+The EvidenceSeeker pipeline supports using a (PostgreSQL)[https://www.postgresql.org/about/] server for storing and managing your index. The pipeline can be configured to use PostgreSQL via the retrieval config file. The following shows a snippet of an example retrieval config file that can be used for building and using an index hosted on a PostgreSQL:
+
+```yaml
+# Must be set to signal PostgreSQL use.
+use_postgres = True
+
+# The address your PostgreSQL server is running at, by default a local server with port 5432.
+postgres_host = "localhost"
+postgres_port = "5432"
+
+# The name of the database hosted at that server that should store the index or already does.
+# Make sure the specified server contains a database with this name.
+postgres_database "evidence_seeker"
+
+# A username for connecting to the PostgreSQL server
+postgres_user = "<your_username>"
+
+# A password for connecting to the PostgreSQL server...
+postgres_password = "<your_password>"
+# ...or alternatively the name of an env variable storing the password and a path to an .env file
+postgres_password_env_var = "postgres_password"
+env_file = "<path/to/your/.env>"
+
+# The table and schema name for storing the index.
+# The default schema used by PostgreSQL is the public schema.
+postgres_table_name = "evse_embeddings"
+postgres_schema_name = "public"
+
+# Prefix for LlamaIndex tables in the database.
+# Only necessary for deleting files in an existing index (an advanced index operation detailed below).
+postgres_llamaindex_table_name_prefix = "data_"
+
+# Dimension of the embeddings used. 
+# If set to 'null', it is determined at runtime.
+postgres_embed_dim = null
+```
+
+You can find more details on the parameters above and other paramters used in the config file (here)[./advanced_configuration.md#knowledge-base]. For information on how to set up a PostgreSQL server, refer to the official documentation (here)[https://www.postgresql.org/docs/].
+
+## Metadata filtering
+
+When running the pipeline as a whole, a retriever is instantiated based on your retrieval config as a part of it. However, if for a specific use case you are interested in using just the retriever, e.g. for searching for a specific claim in your knowledge base, you can instantiate a retriever as follows:
+
+```python
+from evidence_seeker.retrieval.document_retriever import DocumentRetriever
+
+retrieval_config = "path/to/your/retrieval_config_file.yaml"
+retriever = DocumentRetriever.from_config_file(retrieval_config)
+```
+
+For retrieving documents relevant to a specific claim, e.g. the claim "Global warming is caused by human activities", you may now utilize the retriever as follows:
+```python
+from evidence_seeker.datamodels import CheckedClaim
+claim = CheckedClaim(
+    text="Global warming is caused by human activities.", # Our example claim
+    uid="123"
+)
+docs = await retriever.retrieve_documents(claim)
+print("Source files of retrieved documents:", [doc.metadata.get("file_name") for doc in docs])
+```
+
+When building the index, we support the inclusion of custom metadata, as detailed (here)[../getting_started.qmd#building_index]. You can narrow down the retrieval of relevant documents based on their metadata.
+
+For filtering for metadata, we use the retriever's function `create_metadata_filters`, which takes a dictionary of metadata field names as keys and their filter conditions as values. As a filter condition you might either state that a metadata field must be equal to a specific value or specify a more complex inclusion criteria. 
+
+An inclusion criteria is given as a dictionary that must contain the key-value pairs `"operator"` and `"value"`. Possible operators are:
++ `"=="` and `"!="`: metadata field must be equal / inequal to value specified by key-value pair `"value"`
++ `">"`, `">="`, `"<"` and `"<="`: metadata field must be greater (or equal) / lesser (or equal) than value specified by key-value pair `"value"`
++ `"in"` and `"not_in"`: metadata field must be in / not in list specified by key-value pair `"value"`
+
+For example, you might want to filter documents by a specific author published in the last two years:
+```python
+simple_filter = retriever.create_metadata_filters({
+    "author": "Smith, Jane",
+    "year": {"operator": ">=", "value": "2024"}
+})
+
+docs = await retriever.retrieve_documents(claim, simple_filter)
+print("Source files of retrieved documents with filter:", [doc.metadata.get("file_name") for doc in docs])
+```
+
+Alternatively, you might want to narrow down your search to specific source files:
+```python
+file_name_filter = retriever.create_metadata_filters({
+    "file_name": {"operator": "in", "value": ["IPCC_AR4.pdf","IPCC_AR5.pdf","IPCC_AR6.pdf"]}
+})
+
+docs = await retriever.retrieve_documents(claim, file_name_filter)
+print("Source files of retrieved documents with filter:", [doc.metadata.get("file_name") for doc in docs])
+```
+
+## Updating the Document Store
+
+After having an index built, you can modify it without having to rebuild it as a whole. 
+
+You can delete all documents sourced from specific files using the functionality of the `IndexBuilder` as follows:
+```python
+from evidence_seeker.retrieval.index_builder import IndexBuilder
+
+# Instatiating index builder based on your retrieval config file
+retrieval_config = "path/to/your/retrieval_config_file.yaml"
+index_builder = IndexBuilder.from_config_file(retrieval_config)
+
+# Deleting documents from specified files
+files_to_delete = ["IPCC_AR5.pdf", "IPCC_AR6.pdf"] # A list of files to delete from the index
+print("Deleting documents from files:", files_to_delete)
+index_builder.delete_files(files_to_delete)
+```
+
+Besides deleting documents from specific files, you can add new source files to the index or update them, in case they already exist within the indexx:
+```python
+from evidence_seeker.retrieval.index_builder import IndexBuilder
+
+# Instatiating index builder based on your retrieval config file
+retrieval_config = "path/to/your/retrieval_config_file.yaml"
+index_builder = IndexBuilder.from_config_file(retrieval_config)
+
+# Adding/updating files:
+files_to_update = ["IPCC_AR5.pdf", "IPCC_AR6.pdf"] # A list of files to update or, if they don't exist, add to the index
+print("Adding/updating files:", files_to_update)
+index_builder.update_files(document_input_files=files_to_update)
+```
+
+Instead of providing the `IndexBuilder` with a list of files, you can alternatively provide it with a path to a directory that contains the specific files:
+```python
+directory_to_update = "path/to/your/files_to_update/"
+print("Adding/updating files in following directory:", directory_to_update)
+index_builder.update_files(document_input_dir=directory_to_update)
+```

@@ -43,6 +43,8 @@ website:
             text: "Example: Hugging Face Inference Provider"
           - href: docs_configuration/example_local_models.qmd
             text: "Example: Local Models with LM Studio"
+          - href: docs_configuration/example_advanced_index_operations.qmd
+            text: "Example: Advanced Index Operations"
         - href: roadmap.qmd
           text: "Contributing & Roadmap"
         - href: about.qmd

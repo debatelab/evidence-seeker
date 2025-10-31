@@ -243,6 +243,12 @@ window.Quarto = {
  <span class="menu-text">Example: Local Models with LM Studio</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../docs_configuration/example_advanced_index_operations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Example: Advanced Index Operations</span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item">
@@ -270,7 +276,10 @@ window.Quarto = {
   <li><a href="#retriever-component" id="toc-retriever-component" class="nav-link active" data-scroll-target="#retriever-component">Retriever Component</a>
   <ul>
   <li><a href="#embedding-model" id="toc-embedding-model" class="nav-link" data-scroll-target="#embedding-model">Embedding Model</a></li>
-  <li><a href="#knowledge-base" id="toc-knowledge-base" class="nav-link" data-scroll-target="#knowledge-base">Knowledge Base</a></li>
+  <li><a href="#knowledge-base" id="toc-knowledge-base" class="nav-link" data-scroll-target="#knowledge-base">Knowledge Base</a>
+  <ul class="collapse">
+  <li><a href="#using-postgresql" id="toc-using-postgresql" class="nav-link" data-scroll-target="#using-postgresql">Using PostgreSQL</a></li>
+  </ul></li>
   </ul></li>
   <li><a href="#preprocessor-confirmation-analysis" id="toc-preprocessor-confirmation-analysis" class="nav-link" data-scroll-target="#preprocessor-confirmation-analysis">Preprocessor &amp; Confirmation Analysis</a>
   <ul>
@@ -357,7 +366,9 @@ window.Quarto = {
 <li><em>Loading the index:</em> When the retriever component is initialised, it will load the index from the path specified by <code>index_persist_path</code>. If you use a Hugging Face Hub repository, you can specify <code>index_hub_path</code> to load the index from a Hugging Face Hub repository. If both paths are specified and <code>index_persist_path</code> is empty, the index will be loaded (once) from the Hub path and saved to the local path.</li>
 <li><code>hub_key_name</code>: If you use a private Hugging Face Hub repository, you have to specify the name of the environment variable that contains your Hugging Face Hub API key (see <a href="#api-keys">below</a> for details on how to set the API key). If you use a public repository, you can omit this parameter.</li>
 </ul>
-<p>For using a PostgreSQL database, you have to configure several parameters, besides setting <code>use_postgres</code> to <code>True</code> as mentioned above:</p>
+<section id="using-postgresql" class="level4">
+<h4 class="anchored" data-anchor-id="using-postgresql">Using PostgreSQL</h4>
+<p>For using a PostgreSQL database, you have to configure several parameters, besides setting <code>use_postgres</code> to <code>True</code> as mentioned above. A short snippet of an example configuration of these parameters can be found below as well as <a href="../docs_configuration/example_advanced_index_operations.html#postgresql-vector-store-support">here</a>. The following describes the parameters and their functionality in detail:</p>
 <ul>
 <li><em>Establishing a connection</em>: <strong>Required</strong> are a username provided by <code>postgres_user</code> and a matching user password. The password can be either provided directly via <code>postgres_password</code> or, if <code>env_file</code> is set, by setting <code>postgres_password_env_var</code> to the name of a environment variable containing the password. By default, the PostgreSQL server hosting the database is assumed to be available on localhost under port 5432. To configure the address, use the parameters <code>postgres_host</code> and <code>postgres_port</code>. The default database name is “evidence_seeker”, this can be changed by setting <code>postgres_database</code>.</li>
 <li><em>Creating and loading the index</em>: <code>postgres_table_name</code> and <code>postgres_schema_name</code> point to the table and the schema of the database that should contain the index. By default, the table is assumed to be named “evse_embeddings” and that the default public schema is used for it. For instantiating a vector index, the dimension of the used embedding must be specified by the pipeline. You can set it explicitly via the parameter <code>postgres_embed_dim</code>. If not set, the pipeline will infer the dimension at runtime. Finally, the parameter <code>postgres_llamaindex_table_name_prefix</code> specifies the prefix of LlamaIndex tables. By default, it is set to “data_”. You may change the prefix or explicitly set it to “null” to let the pipeline infer the prefix at runtime.</li>
@@ -378,11 +389,12 @@ window.Quarto = {
 <span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># The table and schema name for storing the index</span></span>
 <span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_table_name = "evse_embeddings"</span></span>
 <span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_schema_name = "public"</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Prefix for LlamaIndex tables in PostgresCurrently</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Prefix for LlamaIndex tables in Postgres</span></span>
 <span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_llamaindex_table_name_prefix = "data_"</span></span>
 <span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Dimension of the embeddings used</span></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_embed_dim = None</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Before executing the pipeline, make sure your PostgreSQL server is running at your specified address.</p>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_embed_dim = null</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Before executing the pipeline, make sure your PostgreSQL server is running at the specified address. For information on how to set up a PostgreSQL server and database, refer to the official documentation (here)[https://www.postgresql.org/docs/]</p>
+</section>
 </section>
 </section>
 <section id="preprocessor-confirmation-analysis" class="level2">

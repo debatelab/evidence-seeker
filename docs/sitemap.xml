@@ -2,11 +2,11 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://debatelab.github.io/evidence-seeker/getting_started.html</loc>
-    <lastmod>2025-10-24T12:47:02.609Z</lastmod>
+    <lastmod>2025-10-31T14:14:46.930Z</lastmod>
   </url>
   <url>
     <loc>https://debatelab.github.io/evidence-seeker/configuration.html</loc>
-    <lastmod>2025-08-14T08:56:47.000Z</lastmod>
+    <lastmod>2025-08-14T12:17:55.806Z</lastmod>
   </url>
   <url>
     <loc>https://debatelab.github.io/evidence-seeker/index.html</loc>
@@ -30,7 +30,7 @@
   </url>
   <url>
     <loc>https://debatelab.github.io/evidence-seeker/docs_configuration/advanced_configuration.html</loc>
-    <lastmod>2025-10-24T12:43:49.411Z</lastmod>
+    <lastmod>2025-10-31T14:19:05.972Z</lastmod>
   </url>
   <url>
     <loc>https://debatelab.github.io/evidence-seeker/imprint.html</loc>
@@ -43,5 +43,9 @@
   <url>
     <loc>https://debatelab.github.io/evidence-seeker/roadmap.html</loc>
     <lastmod>2025-08-22T07:03:16.748Z</lastmod>
+  </url>
+  <url>
+    <loc>https://debatelab.github.io/evidence-seeker/docs_configuration/example_advanced_index_operations.html</loc>
+    <lastmod>2025-10-31T14:14:46.930Z</lastmod>
   </url>
 </urlset>

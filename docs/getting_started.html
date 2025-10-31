@@ -216,6 +216,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">Example: Local Models with LM Studio</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./docs_configuration/example_advanced_index_operations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Example: Advanced Index Operations</span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item">
@@ -392,6 +398,7 @@ TODO: Do we actually support the latest Python?
 <span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>index_builder <span class="op">=</span> IndexBuilder(config<span class="op">=</span>config)</span>
 <span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>index_builder.build_index()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>For further details on configuring the EvidenceSeeker Retriever component, see <a href="./docs_configuration/minimal_configuration.html#retriever-component">here</a> and <a href="./docs_configuration/advanced_configuration.html#retriever-component">here</a>.</p>
+<p>It is possible to update the files included in the index after it is built. Furthermore, after building your index, you can use the EvidenceSeeker Retriever to retrieve documents based on their metadata fields. For details on both options, see <a href="./docs_configuration/example_advanced_index_operations.html">here</a>.</p>
 </section>
 <section id="executing-the-pipeline" class="level3">
 <h3 class="anchored" data-anchor-id="executing-the-pipeline">6. Executing the Pipeline</h3>

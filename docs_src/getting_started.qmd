@@ -139,6 +139,8 @@ index_builder.build_index()
 
 For further details on configuring the EvidenceSeeker Retriever component, see [here](docs_configuration/minimal_configuration.qmd#retriever-component) and [here](docs_configuration/advanced_configuration.qmd#retriever-component).
 
+It is possible to update the files included in the index after it is built. Furthermore, after building your index, you can use the EvidenceSeeker Retriever to retrieve documents based on their metadata fields. For details on both options, see [here](docs_configuration/example_advanced_index_operations.qmd).
+
 ### 6. Executing the Pipeline
 
 Once you built the index, you can run the *EvidenceSeeker* pipeline to fact-check statements against the knowledge base. 
