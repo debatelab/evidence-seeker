@@ -73,7 +73,7 @@ postgres_llamaindex_table_name_prefix = "data_"
 postgres_embed_dim = null
 ```
 
-Before executing the pipeline, make sure your PostgreSQL server is running at the specified address. For information on how to set up a PostgreSQL server and database, refer to the official documentation (here)[https://www.postgresql.org/docs/]
+Before executing the pipeline, make sure your PostgreSQL server is running at the specified address. For information on how to set up a PostgreSQL server and database, refer to the official documentation [here](https://www.postgresql.org/docs/).
 
 ## Preprocessor & Confirmation Analysis
 
