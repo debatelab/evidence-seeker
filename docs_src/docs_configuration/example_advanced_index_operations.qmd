@@ -53,7 +53,7 @@ postgres_llamaindex_table_name_prefix = "data_"
 postgres_embed_dim = null
 ```
 
-You can find more details on the parameters above and other paramters used in the config file [here](./advanced_configuration.md#knowledge-base). For information on how to set up a PostgreSQL server, refer to the official documentation [here](https://www.postgresql.org/docs/).
+You can find more details on the parameters above and other paramters used in the config file [here](./advanced_configuration.qmd#knowledge-base). For information on how to set up a PostgreSQL server, refer to the official documentation [here](https://www.postgresql.org/docs/).
 
 ## Metadata filtering
 
