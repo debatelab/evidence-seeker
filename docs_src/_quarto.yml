@@ -1,6 +1,7 @@
 project:
   type: website
   output-dir: ../docs
+  pre-render: scripts/pre-render.sh
 
 website:
   title: "🕵️‍♀️ EvSe"
