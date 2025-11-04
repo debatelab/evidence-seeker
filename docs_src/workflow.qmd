@@ -10,7 +10,7 @@ Each _EvidenceSeeker_ relies on its knowledge base to fact-check input statement
 2. **[Retriever](#retriever)**: The retriever searches for *potential evidence* in the knowlege base by identifying relevant data (i.e., semantically similar) to the identified interpretations.
 3. **[Confirmation Analysis](#confirmation-analyser)**: The confirmation analyser decides for each potential piece of evidence the degree to which it confirms or debunks an identified interpretation. Finally, the confirmation analyser aggregates the found evidence for each identified interpretation to an overall degree of confirmation.
 
-![](./img/workflow_overview_evse_pkg.jpg)
+![](./img/workflow_en.png)
 
 ::: {.callout-tip}
 ## Fact-Checking Accuracy
