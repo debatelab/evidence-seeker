@@ -77,7 +77,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-e31584831b205ffbb2d98406f31c2a5b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-48fbefe780f5a27fc13c67afc8cc4f05.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -284,40 +284,44 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </ul>
 <section id="postgresql-vector-store-support" class="level2">
 <h2 class="anchored" data-anchor-id="postgresql-vector-store-support">PostgreSQL Vector Store Support</h2>
-<p>The EvidenceSeeker pipeline supports using a (PostgreSQL)[https://www.postgresql.org/about/] server for storing and managing your index. The pipeline can be configured to use PostgreSQL via the retrieval config file. The following shows a snippet of an example retrieval config file that can be used for building and using an index hosted on a PostgreSQL:</p>
+<p>The EvidenceSeeker pipeline supports using a <a href="https://www.postgresql.org/about/">PostgreSQL</a> server for storing and managing your index. The pipeline can be configured to use PostgreSQL via the retrieval config file. The following shows a snippet of an example retrieval config file that can be used for building and using an index hosted on a PostgreSQL:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Must be set to signal PostgreSQL use.</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="at">use_postgres = True</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># The address your PostgreSQL server is running at, by default a local server with port 5432.</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_host = "localhost"</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_port = "5432"</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># The name of the database hosted at that server that should store the index or already does.</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Make sure the specified server contains a database with this name.</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_database "evidence_seeker"</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co"># A username for connecting to the PostgreSQL server</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_user = "&lt;your_username&gt;"</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co"># A password for connecting to the PostgreSQL server...</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_password = "&lt;your_password&gt;"</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co"># ...or alternatively the name of an env variable storing the password and a path to an .env file</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_password_env_var = "postgres_password"</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="at">env_file = "&lt;path/to/your/.env&gt;"</span></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="co"># The table and schema name for storing the index.</span></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="co"># The default schema used by PostgreSQL is the public schema.</span></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_table_name = "evse_embeddings"</span></span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_schema_name = "public"</span></span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Prefix for LlamaIndex tables in the database.</span></span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="co"># Only necessary for deleting files in an existing index (an advanced index operation detailed below).</span></span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_llamaindex_table_name_prefix = "data_"</span></span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="co"># Dimension of the embeddings used. </span></span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="co"># If set to 'null', it is determined at runtime.</span></span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_embed_dim = null</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>You can find more details on the parameters above and other paramters used in the config file (here)[./advanced_configuration.md#knowledge-base]. For information on how to set up a PostgreSQL server, refer to the official documentation (here)[https://www.postgresql.org/docs/].</p>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># The address your PostgreSQL server is running at, by default a local</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># server with port 5432.</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_host = "localhost"</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_port = "5432"</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># The name of the database hosted at that server that should store the</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># index or already does.</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Make sure the specified server contains a database with this name.</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_database "evidence_seeker"</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># A username for connecting to the PostgreSQL server</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_user = "&lt;your_username&gt;"</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co"># A password for connecting to the PostgreSQL server...</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_password = "&lt;your_password&gt;"</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co"># ...or alternatively the name of an env variable storing the password</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="co"># and a path to an .env file</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_password_env_var = "postgres_password"</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="at">env_file = "&lt;path/to/your/.env&gt;"</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="co"># The table and schema name for storing the index.</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="co"># The default schema used by PostgreSQL is the public schema.</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_table_name = "evse_embeddings"</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_schema_name = "public"</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="co"># Prefix for LlamaIndex tables in the database.</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="co"># Only necessary for deleting files in an existing index (an advanced index</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="co"># operation detailed below).</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_llamaindex_table_name_prefix = "data_"</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Dimension of the embeddings used. </span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a><span class="co"># If set to 'null', it is determined at runtime.</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a><span class="at">postgres_embed_dim = null</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>You can find more details on the parameters above and other paramters used in the config file <a href="../docs_configuration/advanced_configuration.html#knowledge-base">here</a>. For information on how to set up a PostgreSQL server, refer to the official documentation <a href="https://www.postgresql.org/docs/">here</a>.</p>
 </section>
 <section id="metadata-filtering" class="level2">
 <h2 class="anchored" data-anchor-id="metadata-filtering">Metadata filtering</h2>
@@ -333,10 +337,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    uid<span class="op">=</span><span class="st">"123"</span></span>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>docs <span class="op">=</span> <span class="cf">await</span> retriever.retrieve_documents(claim)</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Source files of retrieved documents:"</span>, [doc.metadata.get(<span class="st">"file_name"</span>) <span class="cf">for</span> doc <span class="kw">in</span> docs])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>When building the index, we support the inclusion of custom metadata, as detailed (here)[../getting_started.qmd#building_index]. You can narrow down the retrieval of relevant documents based on their metadata.</p>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Source files of retrieved documents:"</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"</span><span class="sc">{</span>[doc.metadata.get(<span class="st">"file_name"</span>) <span class="cf">for</span> doc <span class="kw">in</span> docs]<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>When building the index, we support the inclusion of custom metadata, as detailed <a href="../getting_started.html#building_index">here</a>. You can narrow down the retrieval of relevant documents based on their metadata.</p>
 <p>For filtering for metadata, we use the retriever’s function <code>create_metadata_filters</code>, which takes a dictionary of metadata field names as keys and their filter conditions as values. As a filter condition you might either state that a metadata field must be equal to a specific value or specify a more complex inclusion criteria.</p>
-<p>An inclusion criteria is given as a dictionary that must contain the key-value pairs <code>"operator"</code> and <code>"value"</code>. Possible operators are: + <code>"=="</code> and <code>"!="</code>: metadata field must be equal / inequal to value specified by key-value pair <code>"value"</code> + <code>"&gt;"</code>, <code>"&gt;="</code>, <code>"&lt;"</code> and <code>"&lt;="</code>: metadata field must be greater (or equal) / lesser (or equal) than value specified by key-value pair <code>"value"</code> + <code>"in"</code> and <code>"not_in"</code>: metadata field must be in / not in list specified by key-value pair <code>"value"</code></p>
+<p>An inclusion criteria is given as a dictionary that must contain the key-value pairs <code>"operator"</code> and <code>"value"</code>. Possible operators are:</p>
+<ul>
+<li><code>"=="</code> and <code>"!="</code>: metadata field must be equal / inequal to value specified by key-value pair <code>"value"</code></li>
+<li><code>"&gt;"</code>, <code>"&gt;="</code>, <code>"&lt;"</code> and <code>"&lt;="</code>: metadata field must be greater (or equal) / lesser (or equal) than value specified by key-value pair <code>"value"</code></li>
+<li><code>"in"</code> and <code>"not_in"</code>: metadata field must be in / not in list specified by key-value pair <code>"value"</code></li>
+</ul>
 <p>For example, you might want to filter documents by a specific author published in the last two years:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>simple_filter <span class="op">=</span> retriever.create_metadata_filters({</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"author"</span>: <span class="st">"Smith, Jane"</span>,</span>
@@ -344,14 +356,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>})</span>
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>docs <span class="op">=</span> <span class="cf">await</span> retriever.retrieve_documents(claim, simple_filter)</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Source files of retrieved documents with filter:"</span>, [doc.metadata.get(<span class="st">"file_name"</span>) <span class="cf">for</span> doc <span class="kw">in</span> docs])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Source files of retrieved documents with filter:"</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"</span><span class="sc">{</span>[doc.metadata.get(<span class="st">"file_name"</span>) <span class="cf">for</span> doc <span class="kw">in</span> docs]<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Alternatively, you might want to narrow down your search to specific source files:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>file_name_filter <span class="op">=</span> retriever.create_metadata_filters({</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"file_name"</span>: {<span class="st">"operator"</span>: <span class="st">"in"</span>, <span class="st">"value"</span>: [<span class="st">"IPCC_AR4.pdf"</span>,<span class="st">"IPCC_AR5.pdf"</span>,<span class="st">"IPCC_AR6.pdf"</span>]}</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>docs <span class="op">=</span> <span class="cf">await</span> retriever.retrieve_documents(claim, file_name_filter)</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Source files of retrieved documents with filter:"</span>, [doc.metadata.get(<span class="st">"file_name"</span>) <span class="cf">for</span> doc <span class="kw">in</span> docs])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"file_name"</span>: {</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">"operator"</span>: <span class="st">"in"</span>,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>        <span class="st">"value"</span>: [<span class="st">"IPCC_AR4.pdf"</span>,<span class="st">"IPCC_AR5.pdf"</span>,<span class="st">"IPCC_AR6.pdf"</span>]</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>docs <span class="op">=</span> <span class="cf">await</span> retriever.retrieve_documents(claim, file_name_filter)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Source files of retrieved documents with filter:"</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"</span><span class="sc">{</span>[doc.metadata.get(<span class="st">"file_name"</span>) <span class="cf">for</span> doc <span class="kw">in</span> docs]<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="updating-the-document-store" class="level2">
 <h2 class="anchored" data-anchor-id="updating-the-document-store">Updating the Document Store</h2>
@@ -364,10 +385,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>index_builder <span class="op">=</span> IndexBuilder.from_config_file(retrieval_config)</span>
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Deleting documents from specified files</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>files_to_delete <span class="op">=</span> [<span class="st">"IPCC_AR5.pdf"</span>, <span class="st">"IPCC_AR6.pdf"</span>] <span class="co"># A list of files to delete from the index</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Deleting documents from files:"</span>, files_to_delete)</span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>index_builder.delete_files(files_to_delete)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Besides deleting documents from specific files, you can add new source files to the index or update them, in case they already exist within the indexx:</p>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co"># A list of files to delete from the index</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>files_to_delete <span class="op">=</span> [<span class="st">"IPCC_AR5.pdf"</span>, <span class="st">"IPCC_AR6.pdf"</span>]</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Deleting documents from files:"</span>, files_to_delete)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>index_builder.delete_files(files_to_delete)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Besides deleting documents from specific files, you can add new source files to the index or update them, in case they already exist within the index:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> evidence_seeker.retrieval.index_builder <span class="im">import</span> IndexBuilder</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Instatiating index builder based on your retrieval config file</span></span>
@@ -375,9 +397,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>index_builder <span class="op">=</span> IndexBuilder.from_config_file(retrieval_config)</span>
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Adding/updating files:</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>files_to_update <span class="op">=</span> [<span class="st">"IPCC_AR5.pdf"</span>, <span class="st">"IPCC_AR6.pdf"</span>] <span class="co"># A list of files to update or, if they don't exist, add to the index</span></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Adding/updating files:"</span>, files_to_update)</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>index_builder.update_files(document_input_files<span class="op">=</span>files_to_update)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co"># A list of files to update or, if they don't exist, add to the index</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>files_to_update <span class="op">=</span> [<span class="st">"IPCC_AR5.pdf"</span>, <span class="st">"IPCC_AR6.pdf"</span>] </span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Adding/updating files:"</span>, files_to_update)</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>index_builder.update_files(document_input_files<span class="op">=</span>files_to_update)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Instead of providing the <code>IndexBuilder</code> with a list of files, you can alternatively provide it with a path to a directory that contains the specific files:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>directory_to_update <span class="op">=</span> <span class="st">"path/to/your/files_to_update/"</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Adding/updating files in following directory:"</span>, directory_to_update)</span>
@@ -808,7 +831,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <footer class="footer">
   <div class="nav-footer">
     <div class="nav-footer-left">
-<p>Part of <a href="https://compphil2mmae.github.io/research/kideku/"><img src="..\img/logoKIdeKu.jpg" class="img-fluid" alt="KIdeKu" width="20"></a></p>
+<p>Part of <a href="https://compphil2mmae.github.io/research/kideku/"><img src="../img/logoKIdeKu.jpg" class="img-fluid" alt="KIdeKu" width="20"></a></p>
 </div>   
     <div class="nav-footer-center">
 <p><a href="../about.html" class="text-decoration-none">About</a> | <a href="../imprint.html" class="text-decoration-none">Imprint</a> <br> Copyright © 2024-2025 <a href="https://compphil2mmae.github.io/" class="text-decoration-none">CompPhil²MMAE</a> @ KIT.</p>

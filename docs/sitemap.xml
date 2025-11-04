@@ -2,27 +2,31 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://debatelab.github.io/evidence-seeker/getting_started.html</loc>
-    <lastmod>2025-10-31T14:14:46.930Z</lastmod>
+    <lastmod>2025-11-04T08:05:07.893Z</lastmod>
   </url>
   <url>
     <loc>https://debatelab.github.io/evidence-seeker/configuration.html</loc>
-    <lastmod>2025-08-14T12:17:55.806Z</lastmod>
+    <lastmod>2025-08-14T08:56:47.000Z</lastmod>
   </url>
   <url>
     <loc>https://debatelab.github.io/evidence-seeker/index.html</loc>
-    <lastmod>2025-10-24T12:55:01.672Z</lastmod>
+    <lastmod>2025-10-28T08:53:24.748Z</lastmod>
   </url>
   <url>
     <loc>https://debatelab.github.io/evidence-seeker/workflow.html</loc>
-    <lastmod>2025-10-15T09:46:53.684Z</lastmod>
+    <lastmod>2025-10-29T16:20:34.253Z</lastmod>
   </url>
   <url>
     <loc>https://debatelab.github.io/evidence-seeker/docs_configuration/example_hf_inference_provider.html</loc>
-    <lastmod>2025-10-24T11:49:51.660Z</lastmod>
+    <lastmod>2025-10-28T08:53:24.748Z</lastmod>
+  </url>
+  <url>
+    <loc>https://debatelab.github.io/evidence-seeker/docs_configuration/example_advanced_index_operations.html</loc>
+    <lastmod>2025-11-04T08:37:32.664Z</lastmod>
   </url>
   <url>
     <loc>https://debatelab.github.io/evidence-seeker/docs_configuration/minimal_configuration.html</loc>
-    <lastmod>2025-10-24T11:49:30.375Z</lastmod>
+    <lastmod>2025-10-28T08:53:24.748Z</lastmod>
   </url>
   <url>
     <loc>https://debatelab.github.io/evidence-seeker/docs_configuration/example_local_models.html</loc>
@@ -30,7 +34,7 @@
   </url>
   <url>
     <loc>https://debatelab.github.io/evidence-seeker/docs_configuration/advanced_configuration.html</loc>
-    <lastmod>2025-10-31T14:19:05.972Z</lastmod>
+    <lastmod>2025-11-04T08:13:10.344Z</lastmod>
   </url>
   <url>
     <loc>https://debatelab.github.io/evidence-seeker/imprint.html</loc>
@@ -38,14 +42,10 @@
   </url>
   <url>
     <loc>https://debatelab.github.io/evidence-seeker/about.html</loc>
-    <lastmod>2025-10-24T12:52:40.980Z</lastmod>
+    <lastmod>2025-10-28T08:53:24.748Z</lastmod>
   </url>
   <url>
     <loc>https://debatelab.github.io/evidence-seeker/roadmap.html</loc>
     <lastmod>2025-08-22T07:03:16.748Z</lastmod>
-  </url>
-  <url>
-    <loc>https://debatelab.github.io/evidence-seeker/docs_configuration/example_advanced_index_operations.html</loc>
-    <lastmod>2025-10-31T14:14:46.930Z</lastmod>
   </url>
 </urlset>
