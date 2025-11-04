@@ -76,7 +76,7 @@ claim = CheckedClaim(
 docs = await retriever.retrieve_documents(claim)
 print(
     "Source files of retrieved documents:"
-    [doc.metadata.get("file_name") for doc in docs]
+    f"{[doc.metadata.get("file_name") for doc in docs]}"
 )
 ```
 
@@ -100,7 +100,7 @@ simple_filter = retriever.create_metadata_filters({
 docs = await retriever.retrieve_documents(claim, simple_filter)
 print(
     "Source files of retrieved documents with filter:"
-    [doc.metadata.get("file_name") for doc in docs]
+    f"{[doc.metadata.get("file_name") for doc in docs]}"
 )
 ```
 
@@ -116,7 +116,7 @@ file_name_filter = retriever.create_metadata_filters({
 docs = await retriever.retrieve_documents(claim, file_name_filter)
 print(
     "Source files of retrieved documents with filter:"
-    [doc.metadata.get("file_name") for doc in docs]
+    f"{[doc.metadata.get("file_name") for doc in docs]}"
 )
 ```
 
