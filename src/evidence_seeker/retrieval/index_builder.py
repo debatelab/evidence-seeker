@@ -24,6 +24,7 @@ import pathlib
 import tempfile
 from typing import Callable, Dict, List
 
+
 class IndexBuilder:
 
     def __init__(
@@ -78,12 +79,17 @@ class IndexBuilder:
             conn = psycopg2.connect(connection_string)
             conn.close()
         except psycopg2.OperationalError as e:
-            msg = "Error while connecting to PostgreSQL database. Server might not be running on that host or accept TCP/IP connections or the credentials might be wrong."
+            msg = (
+                "Error while connecting to PostgreSQL database. Server might not be"
+                "running on that host or accept TCP/IP connections or the"
+                "credentials might be wrong."
+            )
             logger.error(msg)
             e.add_note("""
-                Server might not be running on specified host or accept TCP/IP connections 
-                or the credentials might be wrong.\n
-                You might need to adjust your PostgreSQL parameters in the Retrieval Config.
+                Server might not be running on specified host or accept TCP/IP
+                connections or the credentials might be wrong.\n
+                You might need to adjust your PostgreSQL parameters in the Retrieval
+                Config.
             """)
             raise
 
@@ -491,16 +497,17 @@ class IndexBuilder:
                     )
                 else:
                     # Find the actual table name
-                    result = await conn.fetchrow("""
+                    result = await conn.fetchrow(
+                        """
                         SELECT tablename FROM pg_tables
-                        WHERE schemaname = %s
-                        AND tablename LIKE %s
+                        WHERE schemaname = $1
+                        AND tablename LIKE $2
                         ORDER BY tablename DESC
                         LIMIT 1;
-                    """, (
+                        """,
                         self.config.postgres_schema_name,
                         f"%{self.config.postgres_table_name}%"
-                    ))
+                    )
 
                     if not result:
                         logger.error(
