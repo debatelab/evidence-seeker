@@ -175,7 +175,8 @@ class PreprocessingWorkflow(Workflow):
             claims.claims.remove("")
 
         # store number of descriptive claims to negate in the context
-        await ctx.set("num_descriptive_claims", len(claims.claims))
+        await ctx.store.set("num_descriptive_claims", len(claims.claims))
+
         logger.debug(
             f"Identified {len(claims.claims)} decriptive interpretations."
         )
@@ -236,7 +237,7 @@ class PreprocessingWorkflow(Workflow):
             claims.claims.remove("")
 
         # store number of ascriptive claims to negate in the context
-        await ctx.set("num_ascriptive_claims", len(claims.claims))
+        await ctx.store.set("num_ascriptive_claims", len(claims.claims))
         logger.debug(
             f"Identified {len(claims.claims)} ascriptive interpretations."
         )
@@ -296,7 +297,7 @@ class PreprocessingWorkflow(Workflow):
             claims.claims.remove("")
 
         # store number of normative claims to negate in the context
-        await ctx.set("num_normative_claims", len(claims.claims))
+        await ctx.store.set("num_normative_claims", len(claims.claims))
         logger.debug(
             f"Identified {len(claims.claims)} normative interpretations."
         )
@@ -337,9 +338,9 @@ class PreprocessingWorkflow(Workflow):
         self, ctx: Context,
         ev: CollectClarifiedClaimsEvent | StartedNegatingClaims
     ) -> StopEvent:
-        num_descriptive_claims = await ctx.get("num_descriptive_claims", 0)
-        num_ascriptive_claims = await ctx.get("num_ascriptive_claims", 0)
-        num_normative_claims = await ctx.get("num_normative_claims", 0)
+        num_descriptive_claims = await ctx.store.get("num_descriptive_claims", 0)
+        num_ascriptive_claims = await ctx.store.get("num_ascriptive_claims", 0)
+        num_normative_claims = await ctx.store.get("num_normative_claims", 0)
         claims_to_collect = (
             num_descriptive_claims
             + num_ascriptive_claims

@@ -7,8 +7,7 @@ name = "evidence-seeker"
 dynamic = ["version"]
 description = 'EvidenceSeeker Boilerplate'
 # >=3.11: Using typing.SELF
-# <3.13, since openinference-instrumentation-llama-index==3.0.4 needs python < 3.13
-requires-python = ">=3.11, <3.13"
+requires-python = ">=3.12"
 license = "MIT"
 keywords = []
 authors = [
@@ -30,6 +29,9 @@ classifiers = [
 dependencies = [
   "python-dotenv",
   "loguru",
+  # we use the newer workflow-context storage methods  
+  # see: https://github.com/run-llama/workflows-py/releases/tag/v2.0.0
+  "llama-index-workflows>=2.0.0",
   "llama-index",
   "llama-index-llms-openai-like",
   #"llama-index-embeddings-text-embeddings-inference==0.3.0",
@@ -150,4 +152,10 @@ exclude_lines = [
   "no cov",
   "if __name__ == .__main__.:",
   "if TYPE_CHECKING:",
+]
+
+# used by `uv`
+[dependency-groups]
+dev = [
+    "ipykernel>=7.1.0",
 ]
