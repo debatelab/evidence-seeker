@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Upgrade dependencies: From now one, we are using llama-index-workflows>=2.0.0. (3b4e576419ca49473991490c8d3f11c61ff7f1c4)
+- Upgrade dependencies: From now one, we are using llama-index-workflows>=2.0.0. (debatelab/evidence-seeker@553c2c3)
 
 ## [0.1.2] - 2025-11-04
 
