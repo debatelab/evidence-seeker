@@ -6,13 +6,20 @@ config_version: v0.1
 description: Configuration of EvidenceSeeker's retriever component.
 # The type of embedding backend to use.
 # Options are: 'huggingface', 'tei' and 'huggingface_inference_api'.
+# `huggingface`: will use Hugging Face to download the model and 
+#   load it locally
+# `tei` (text embedding inference): 
+#   API for serving embedding models, that can be used, for instance,
+#   with dedicated endpoints for embedding models by Hugging Face.
+# `huggingface_inference_api`: mbedding models accessed via Hugging 
+#   Face Inference Provider.
 embed_backend_type: huggingface
 # The name of the embedding model to use. 
 # E.g., "sentence-transformers/paraphrase-multilingual-mpnet-base-v2", which 
 # is used by default. For more information, see:
 # https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2
 embed_model_name: sentence-transformers/paraphrase-multilingual-mpnet-base-v2
-# embed_base_url: null
+embed_base_url: null
 ## Names of relevant API keys that should be set as environment variables.
 # token name for API model access
 api_key_name: API_TOKEN_EMBEDDING_MODEL
@@ -21,7 +28,7 @@ hub_key_name: null
 # Optional: Path to a file containing API keys for the embedding model. 
 # Should have the format:
 # your_api_key_name=your_api_token
-env_file: "./config/api_keys.txt"
+# env_file: "./config/api_keys.txt"
 # Used if Huggingface Inference Provider is used and billing should be
 # done via organization on Hugging Face
 # See: https://huggingface.co/docs/inference-providers/pricing (30.06.2025)
@@ -30,7 +37,7 @@ bill_to: null
 ignore_statement_types:
 - normative
 # You can provide a string as id for the index
-index_id: your_id_of_the_index
+# index_id: your_id_of_the_index
 # Path where the index is stored locally and/or loaded from.
 # At least, one of the following two paths must be set.
 # If both are specified, the index will be loaded (once) from the hub path
@@ -48,3 +55,7 @@ meta_data_file: ./knowledge_base/meta_data.json
 document_input_dir: ./knowledge_base/data_files
 # Alternatively, you can provide a list of files to be indexed.
 document_input_files: null
+# Some model parameters
+top_k: 8
+window_size: 3
+embed_batch_size: 32

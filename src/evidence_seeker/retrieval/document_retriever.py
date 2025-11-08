@@ -87,22 +87,27 @@ class DocumentRetriever:
             conn = psycopg2.connect(connection_string)
             conn.close()
         except psycopg2.OperationalError as e:
-            msg = "Error while connecting to PostgreSQL database. Server might not be running on that host or accept TCP/IP connections or the credentials might be wrong."
+            msg = (
+                "Error while connecting to PostgreSQL database. "
+                "Server might not be running on that host or accept "
+                "TCP/IP connections or the credentials might be wrong."
+            )
             logger.error(msg)
             e.add_note("""
-                Server might not be running on specified host or accept TCP/IP connections 
-                or the credentials might be wrong.\n
-                You might need to adjust your PostgreSQL parameters in the Retrieval Config.
+                Server might not be running on specified host or accept TCP/IP
+                connections or the credentials might be wrong.\n
+                You might need to adjust your PostgreSQL parameters in the
+                Retrieval Config.
             """)
             raise
 
     def load_index(self) -> VectorStoreIndex:
-        embed_dim = (
-            self.config.postgres_embed_dim
-            if self.config.postgres_embed_dim is not None
-            else _get_embedding_dimension(self.embed_model)
-        )
         if self.config.use_postgres:
+            embed_dim = (
+                self.config.postgres_embed_dim
+                if self.config.postgres_embed_dim is not None
+                else _get_embedding_dimension(self.embed_model)
+            )
             try:
                 self._test_postgres_connection()
             except Exception:
@@ -180,12 +185,12 @@ class DocumentRetriever:
         return index  # type: ignore
 
     async def aload_index(self) -> VectorStoreIndex:
-        embed_dim = (
-            self.config.postgres_embed_dim
-            if self.config.postgres_embed_dim is not None
-            else await _aget_embedding_dimension(self.embed_model)
-        )
         if self.config.use_postgres:
+            embed_dim = (
+                self.config.postgres_embed_dim
+                if self.config.postgres_embed_dim is not None
+                else await _aget_embedding_dimension(self.embed_model)
+            )
             try:
                 self._test_postgres_connection()
             except Exception:

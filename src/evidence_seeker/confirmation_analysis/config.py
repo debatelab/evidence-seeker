@@ -1,14 +1,45 @@
 "confirmation_analysis.py"
 
+from functools import lru_cache
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Self
+import importlib.resources as pkg_resources
+
+import enum
+import pydantic
+import re
+import yaml
 from loguru import logger
 from llama_index.core import ChatPromptTemplate
 
-import re
-import pydantic
-import enum
-
 from evidence_seeker.backend import GuidanceType
+
+
+@lru_cache(maxsize=1)
+def _load_default_config_dict() -> Dict[str, Any]:
+    """Load default configuration from YAML. Cached for performance."""
+    try:
+        # Use importlib.resources to access package data
+        config_file = pkg_resources.files(
+            "evidence_seeker.package_data"
+        ).joinpath("config/confirmation_analysis_config.yaml")
+        
+        with config_file.open('r', encoding='utf-8') as f:
+            return yaml.safe_load(f)
+    except (FileNotFoundError, AttributeError):
+        logger.error(
+            "Failed to load default confirmation analysis configuration "
+            "from package data. "
+            "Ensure 'evidence_seeker.package_data' is properly installed."
+        )
+        raise
+
+
+def _get_default_for_field(field_name: str) -> Any:
+    """Get default value for a specific field from YAML."""
+    config_dict = _load_default_config_dict()
+    return config_dict.get(field_name)
+
 
 # TODO: validation for `used_model_key`: Check whether corresponding model is defined
 
@@ -158,21 +189,32 @@ class ConfirmationAnalyzerStepConfig(pydantic.BaseModel):
 
 
 class ConfirmationAnalyzerConfig(pydantic.BaseModel):
-    config_version: str = "v0.2"
-    description: str = (
-        "Configuration of EvidenceSeeker's confirmation analyzer component."
+    config_version: str = pydantic.Field(
+        default_factory=lambda: _get_default_for_field("config_version") or "v0.2"
     )
-    system_prompt: str = (
-        "You are a helpful assistant with outstanding expertise in critical thinking and logico-semantic analysis.\n"
-        "You have a background in philosophy and experience in fact checking and debate analysis.\n"
-        "You read instructions carefully and follow them precisely. You give concise and clear answers."
+    description: str = pydantic.Field(
+        default_factory=lambda: (
+            _get_default_for_field("description") or
+            "Configuration of EvidenceSeeker's confirmation analyzer component."
+        )
     )
-    timeout: int = 900
-    # Whether or not the workflow/pipeline should print additional informative 
+    system_prompt: str = pydantic.Field(
+        default_factory=lambda: _get_default_for_field("system_prompt")
+    )
+    timeout: int = pydantic.Field(
+        default_factory=lambda: _get_default_for_field("timeout") or 900
+    )
+    # Whether or not the workflow/pipeline should print additional informative
     # messages during execution.
-    verbose: bool = False
-    used_model_key: Optional[str] = None
-    env_file: str | None = None
+    verbose: bool = pydantic.Field(
+        default_factory=lambda: _get_default_for_field("verbose") or False
+    )
+    used_model_key: Optional[str] = pydantic.Field(
+        default_factory=lambda: _get_default_for_field("used_model_key") or None
+    )
+    env_file: str | None = pydantic.Field(
+        default_factory=lambda: _get_default_for_field("env_file") or None
+    )
 
     @pydantic.model_validator(mode='after')
     def load_env_file(self) -> 'ConfirmationAnalyzerConfig':
@@ -204,41 +246,36 @@ class ConfirmationAnalyzerConfig(pydantic.BaseModel):
         return self
 
     freetext_confirmation_analysis: ConfirmationAnalyzerStepConfig = pydantic.Field(
-        default_factory=lambda: ConfirmationAnalyzerStepConfig(
-            name="freetext_confirmation_analysis",
-            description="Instruct the assistant to carry out free-text RTE analysis.",
-            llm_specific_configs={
-                "default": ConfirmationAnalyzerModelStepConfig(
-                    prompt_template=(
-                        "Determine the relationship between the following two texts:\n"
-                        "<TEXT>{evidence_item}</TEXT>\n"
-                        "\n"
-                        "<HYPOTHESIS>{statement}</HYPOTHESIS>\n"
-                        "Does the TEXT entail, contradict, or neither entail nor contradict the HYPOTHESIS?\n"
-                        "Classify the relationship as one of the following:\n"
-                        "Entailment: The TEXT provides sufficient evidence to support the HYPOTHESIS.\n"
-                        "Contradiction: The TEXT provides evidence that contradicts the HYPOTHESIS.\n"
-                        "Neutral: The TEXT neither supports nor contradicts the HYPOTHESIS.\n"
-                        "Please discuss this question thoroughly before providing your final answer."
-                    )
-                )
-            }
+        default_factory=lambda: ConfirmationAnalyzerStepConfig.model_validate(
+            _get_default_for_field("freetext_confirmation_analysis")
         )
     )
     multiple_choice_confirmation_analysis: ConfirmationAnalyzerStepConfig = pydantic.Field(
-         default_factory=lambda: ConfirmationAnalyzerStepConfig(
-                name="multiple_choice_confirmation_analysis",
-                description="Multiple choice RTE task given CoT trace.",
-                llm_specific_configs={
-                    "default": MultipleChoiceTaskStepConfig(),
-                }
-            ),
+        default_factory=lambda: ConfirmationAnalyzerStepConfig.model_validate(
+            _get_default_for_field("multiple_choice_confirmation_analysis")
+        )
     )
     # TODO (?): Define Pydantic class for model. Or do we leave it at this?
     # Since we want to unpack the dict as model kwargs.
     models: Dict[str, Dict[str, Any]] = pydantic.Field(
         default_factory=lambda: dict()
     )
+
+    @classmethod
+    def from_yaml(
+        cls, yaml_path: str | Path
+    ) -> "ConfirmationAnalyzerConfig":
+        """Load configuration from YAML file.
+        
+        Args:
+            yaml_path: Path to YAML configuration file
+            
+        Returns:
+            ConfirmationAnalyzerConfig instance with values from YAML
+        """
+        with open(yaml_path, 'r', encoding='utf-8') as f:
+            config_dict = yaml.safe_load(f)
+        return cls.model_validate(config_dict)
 
     # ==helper functions==
     def _step_config(

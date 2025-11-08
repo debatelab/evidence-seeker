@@ -1,12 +1,41 @@
 "PreprocessingConfig"
 
+from functools import lru_cache
+from pathlib import Path
 from typing import Any, Dict, Optional
+import importlib.resources as pkg_resources
 
 import pydantic
+import yaml
 from loguru import logger
 from llama_index.core import ChatPromptTemplate
 
 from evidence_seeker.backend import GuidanceType
+
+
+@lru_cache(maxsize=1)
+def _load_default_config_dict() -> Dict[str, Any]:
+    """Load default configuration from YAML. Cached for performance."""
+    try:
+        # Use importlib.resources to access package data
+        config_file = pkg_resources.files(
+            "evidence_seeker.package_data"
+        ).joinpath("config/preprocessing_config.yaml")
+
+        with config_file.open('r', encoding='utf-8') as f:
+            return yaml.safe_load(f)
+    except (FileNotFoundError, AttributeError):
+        logger.error(
+            "Failed to load default preprocessing configuration from package data. "
+            "Ensure 'evidence_seeker.package_data' is properly installed."
+        )
+        raise
+
+
+def _get_default_for_field(field_name: str) -> Any:
+    """Get default value for a specific field from YAML."""
+    config_dict = _load_default_config_dict()
+    return config_dict.get(field_name)
 
 
 class PreprocessorModelStepConfig(pydantic.BaseModel):
@@ -34,19 +63,32 @@ class PreprocessorStepConfig(pydantic.BaseModel):
 
 
 class ClaimPreprocessingConfig(pydantic.BaseModel):
-    config_version: str = "v0.1"
-    description: str = "Configuration of EvidenceSeeker's preprocessing component."
-    system_prompt: str = (
-        "You are a helpful assistant with outstanding expertise in critical thinking and logico-semantic analysis. \n"
-        "You have a background in philosophy and experience in fact checking and debate analysis.\n"
-        "You read instructions carefully and follow them precisely. You give concise and clear answers."
+    config_version: str = pydantic.Field(
+        default_factory=lambda: _get_default_for_field("config_version") or "v0.1"
     )
-    language: str = "DE"
-    timeout: int = 900
+    description: str = pydantic.Field(
+        default_factory=lambda: (
+            _get_default_for_field("description") or
+            "Configuration of EvidenceSeeker's preprocessing component."
+        )
+    )
+    system_prompt: str = pydantic.Field(
+        default_factory=lambda: _get_default_for_field("system_prompt")
+    )
+    language: str = pydantic.Field(
+        default_factory=lambda: _get_default_for_field("language") or "DE"
+    )
+    timeout: int = pydantic.Field(
+        default_factory=lambda: _get_default_for_field("timeout") or 900
+    )
     # Whether or not the workflow/pipeline should print additional informative messages
     # during execution.
-    verbose: bool = False
-    env_file: str | None = None
+    verbose: bool = pydantic.Field(
+        default_factory=lambda: _get_default_for_field("verbose") or False
+    )
+    env_file: str | None = pydantic.Field(
+        default_factory=lambda: _get_default_for_field("env_file") or None
+    )
 
     @pydantic.model_validator(mode='after')
     def load_env_file(self) -> 'ClaimPreprocessingConfig':
@@ -79,179 +121,57 @@ class ClaimPreprocessingConfig(pydantic.BaseModel):
 
     used_model_key: str
     freetext_descriptive_analysis: PreprocessorStepConfig = pydantic.Field(
-        default_factory=lambda: PreprocessorStepConfig(
-            name="freetext_descriptive_analysis",
-            description="Instruct the assistant to carry out free-text factual/descriptive analysis.",
-            llm_specific_configs={
-                "default": PreprocessorModelStepConfig(
-                    prompt_template=(
-                        "The following {language} claim has been submitted for fact-checking.\n\n"
-                        "<claim>{claim}</claim>\n\n"
-                        "Before we proceed with retrieving evidence items, we carefully analyse the claim. "
-                        "Your task is to contribute to this preparatory analysis, as detailed below.\n"
-                        "In particular, you should thoroughly discuss whether the claim contains or implies "
-                        "factual or descriptive statements, which can be verified or falsified by empirical "
-                        "observation or through scientific analysis, and which may include, for example, "
-                        "descriptive reports, historical facts, or scientific claims.\n"
-                        "If so, try to identify them and render them in your own words.\n"
-                        "In doing so, watch out for ambiguity and vagueness in the claim. Make alternative "
-                        "interpretations explicit.\n"
-                        "End your analysis with a short list of all identified factual or descriptive statements in {language}. "
-                        "Formulate each statement in a concise manner and such that its factual nature stands "
-                        "out clearly."
-                    ),
-                )
-            }
+        default_factory=lambda: PreprocessorStepConfig.model_validate(
+            _get_default_for_field("freetext_descriptive_analysis")
         )
     )
     list_descriptive_statements: PreprocessorStepConfig = pydantic.Field(
-        default_factory=lambda: PreprocessorStepConfig(
-            name="list_descriptive_statements",
-            description="Instruct the assistant to list factual claims.",
-            llm_specific_configs={
-                "default": PreprocessorModelStepConfig(
-                    prompt_template=(
-                        "We have previously analysed the descriptive content of the following {language} claim:\n"
-                        "<claim>{claim}</claim>\n"
-                        "The analysis yielded the following results:\n\n"
-                        "<results>\n"
-                        "{descriptive_analysis}\n"
-                        "</results>\n\n"
-                        "Your task is to list all factual or descriptive {language} statements identified "
-                        "in the previous analysis. Only include clear cases, i.e. statements that are unambiguously "
-                        "factual or descriptive.\n"
-                        "If you did not identify any descriptive statements, make sure to return an empty list containing no strings, not even empty ones.\n"
-                        "Format your (possibly empty) list of statements as a JSON object.\n"
-                        "Do not include any other text than the JSON object."
-                    ),
-                    guidance_type=GuidanceType.PYDANTIC.value
-                )
-            },
-        ),
+        default_factory=lambda: PreprocessorStepConfig.model_validate(
+            _get_default_for_field("list_descriptive_statements")
+        )
     )
     freetext_ascriptive_analysis: PreprocessorStepConfig = pydantic.Field(
-        default_factory=lambda: PreprocessorStepConfig(
-            name="freetext_ascriptive_analysis",
-            description="Instruct the assistant to carry out free-text ascriptions analysis.",
-            llm_specific_configs={
-                "default": PreprocessorModelStepConfig(
-                    prompt_template=(
-                        "The following {language} claim has been submitted for fact-checking.\n\n"
-                        "<claim>{claim}</claim>\n\n"
-                        "Before we proceed with retrieving evidence items, we carefully analyse the claim. "
-                        "Your task is to contribute to this preparatory analysis, as detailed below.\n"
-                        "In particular, you should thoroughly discuss whether the claim makes any explicit "
-                        "ascriptions, that is, whether it explicitly ascribes a statement to a person or an "
-                        "organisation (e.g., as something the person has said, believes, acts on etc.) "
-                        "rather than plainly asserting that statement straightaway.\n"
-                        "If so, clarify which statements are ascribed to whom exactly and in which ways.\n"
-                        "In doing so, watch out for ambiguity and vagueness in the claim. Make alternative "
-                        "interpretations explicit.\n"
-                        "Conclude your analysis with a short list of all identified ascriptions: "
-                        "Formulate each statement in a concise manner, and such that it is transparent to "
-                        "whom it is attributed. Render the clarified ascriptions in {language}."
-                    ),
-                )
-            },
+        default_factory=lambda: PreprocessorStepConfig.model_validate(
+            _get_default_for_field("freetext_ascriptive_analysis")
         )
     )
     list_ascriptive_statements: PreprocessorStepConfig = pydantic.Field(
-        default_factory=lambda: PreprocessorStepConfig(
-            name="list_ascriptive_statements",
-            description="Instruct the assistant to list ascriptions.",
-            llm_specific_configs={
-                "default": PreprocessorModelStepConfig(
-                    prompt_template=(
-                        "The following {language} claim has been submitted for ascriptive content analysis.\n"
-                        "<claim>{claim}</claim>\n"
-                        "The analysis yielded the following results:\n\n"
-                        "<results>\n"
-                        "{ascriptive_analysis}\n"
-                        "</results>\n\n"
-                        "Your task is to list all ascriptions identified in this analysis. "
-                        "Clearly state each ascription as a concise {language} "
-                        "statement, such that it is transparent to whom it is attributed. Only include "
-                        "ascriptions that are explicitly attributed to a specific person or organisation.\n"
-                        "If you did not identify any ascriptions, make sure to return an empty list containing no strings, not even empty ones..\n"
-                        "Format your (possibly empty) list of ascriptions as a JSON object.\n"
-                        "Do not include any other text than the JSON object."
-                    ),
-                    guidance_type=GuidanceType.PYDANTIC.value
-                )
-            },
-        ),
+        default_factory=lambda: PreprocessorStepConfig.model_validate(
+            _get_default_for_field("list_ascriptive_statements")
+        )
     )
     freetext_normative_analysis: PreprocessorStepConfig = pydantic.Field(
-        default_factory=lambda: PreprocessorStepConfig(
-            name="freetext_normative_analysis",
-            description="Instruct the assistant to carry out free-text normative analysis.",
-            llm_specific_configs={
-                "default": PreprocessorModelStepConfig(
-                    prompt_template=(
-                        "The following {language} claim has been submitted for fact-checking.\n\n"
-                        "<claim>{claim}</claim>\n\n"
-                        "Before we proceed with retrieving evidence items, we carefully analyse the claim. "
-                        "Your task is to contribute to this preparatory analysis, as detailed below.\n"
-                        "In particular, you should thoroughly discuss whether the claim contains or implies "
-                        "normative statements, such as value judgements, recommendations, or evaluations. "
-                        "If so, try to identify them and render them in your own words.\n"
-                        "In doing so, watch out for ambiguity and vagueness in the claim. Make alternative "
-                        "interpretations explicit. "
-                        "However, avoid reading normative content into the claim without textual evidence.\n\n"
-                        "End your analysis with a short list of all identified normative statements in {language}. "
-                        "Formulate each statement in a concise manner and such that its normative nature "
-                        "stands out clearly."
-                    ),
-                )
-            },
-        ),
+        default_factory=lambda: PreprocessorStepConfig.model_validate(
+            _get_default_for_field("freetext_normative_analysis")
+        )
     )
     list_normative_statements: PreprocessorStepConfig = pydantic.Field(
-        default_factory=lambda: PreprocessorStepConfig(
-            name="list_normative_statements",
-            description="Instruct the assistant to list normative claims.",
-            llm_specific_configs={
-                "default": PreprocessorModelStepConfig(
-                    prompt_template=(
-                        "The following {language} claim has been submitted for normative content analysis.\n"
-                        "<claim>{claim}</claim>\n"
-                        "The analysis yielded the following results:\n\n"
-                        "<results>\n"
-                        "{normative_analysis}\n"
-                        "</results>\n\n"
-                        "Your task is to list all normative statements identified in this analysis "
-                        "(e.g., value judgements, recommendations, or evaluations) in {language}.\n"
-                        "If you did not identify any normative statements, make sure to return an empty list containing no strings, not even empty ones.\n"
-                        "Format your (possibly empty) list of statements as a JSON object.\n"
-                        "Do not include any other text than the JSON object."
-                    ),
-                    guidance_type=GuidanceType.PYDANTIC.value
-                )
-            },
-        ),
+        default_factory=lambda: PreprocessorStepConfig.model_validate(
+            _get_default_for_field("list_normative_statements")
+        )
     )
     negate_claim: PreprocessorStepConfig = pydantic.Field(
-        default_factory=lambda: PreprocessorStepConfig(
-            name="negate_claim",
-            description="Instruct the assistant to negate a claim.",
-            llm_specific_configs={
-                "default": PreprocessorModelStepConfig(
-                    prompt_template=(
-                        "Your task is to express the opposite of the following statement in plain "
-                        "and unequivocal language.\n"
-                        "Please generate a single {language} sentence that clearly states the negation.\n"
-                        "<statement>\n"
-                        "{statement}\n"
-                        "</statement>\n"
-                        "Provide only the negated statement in {language} without any additional comments."
-                    ),
-                )
-            },
-        ),
+        default_factory=lambda: PreprocessorStepConfig.model_validate(
+            _get_default_for_field("negate_claim")
+        )
     )
     models: Dict[str, Dict[str, Any]] = pydantic.Field(
         default_factory=lambda: dict()
     )
+
+    @classmethod
+    def from_yaml(cls, yaml_path: str | Path) -> "ClaimPreprocessingConfig":
+        """Load configuration from YAML file.
+
+        Args:
+            yaml_path: Path to YAML configuration file
+
+        Returns:
+            ClaimPreprocessingConfig instance with values from YAML
+        """
+        with open(yaml_path, 'r', encoding='utf-8') as f:
+            config_dict = yaml.safe_load(f)
+        return cls.model_validate(config_dict)
 
     # ==helper functions==
     def _step_config(

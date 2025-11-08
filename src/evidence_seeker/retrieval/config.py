@@ -1,13 +1,42 @@
 "retrieval config"
 
+import enum
+import yaml
+from functools import lru_cache
+from pathlib import Path
+from typing import Any, Dict
+import importlib.resources as pkg_resources
+
 import pydantic
 from pydantic import model_validator
 from loguru import logger
-import enum
-import pathlib
-import yaml
 
 from evidence_seeker.datamodels import StatementType
+
+
+@lru_cache(maxsize=1)
+def _load_default_config_dict() -> Dict[str, Any]:
+    """Load default configuration from YAML. Cached for performance."""
+    try:
+        # Use importlib.resources to access package data
+        config_file = pkg_resources.files(
+            "evidence_seeker.package_data"
+        ).joinpath("config/retrieval_config.yaml")
+        
+        with config_file.open('r', encoding='utf-8') as f:
+            return yaml.safe_load(f)
+    except (FileNotFoundError, AttributeError):
+        logger.error(
+            "Failed to load default retrieval configuration from package data. "
+            "Ensure 'evidence_seeker.package_data' is properly installed."
+        )
+        raise
+
+
+def _get_default_for_field(field_name: str) -> Any:
+    """Get default value for a specific field from YAML."""
+    config_dict = _load_default_config_dict()
+    return config_dict.get(field_name)
 
 
 class EmbedBackendType(enum.Enum):
@@ -26,29 +55,78 @@ class EmbedBackendType(enum.Enum):
 
 class RetrievalConfig(pydantic.BaseModel):
     # TODO: Add field Descriptions
-    config_version: str = "v0.1"
-    description: str = "Configuration of EvidenceSeeker's retriever component."
-    embed_base_url: str | None = None
+    config_version: str = pydantic.Field(
+        default_factory=lambda: _get_default_for_field("config_version") or "v0.1"
+    )
+    description: str = pydantic.Field(
+        default_factory=lambda: (
+            _get_default_for_field("description") or
+            "Configuration of EvidenceSeeker's retriever component."
+        )
+    )
+    embed_base_url: str | None = pydantic.Field(
+        default_factory=lambda: _get_default_for_field("embed_base_url")
+    )
     # https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2
-    embed_model_name: str = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
-    embed_backend_type: str = "huggingface"
+    embed_model_name: str = pydantic.Field(
+        default_factory=lambda: (
+            _get_default_for_field("embed_model_name") or
+            "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
+        )
+    )
+    embed_backend_type: str = pydantic.Field(
+        default_factory=lambda: (
+            _get_default_for_field("embed_backend_type") or "huggingface"
+        )
+    )
     # Used if Huggingface Inference Provider is used and billing should be
     # done via organization on Hugging Face
     # See: https://huggingface.co/docs/inference-providers/pricing (30.06.2025)
-    bill_to: str | None = None
-    api_key_name: str | None = None
-    hub_key_name: str | None = None
-    embed_batch_size: int = 32
-    document_input_dir: str | None = None
-    meta_data_file: str | None = None
+    bill_to: str | None = pydantic.Field(
+        default_factory=lambda: _get_default_for_field("bill_to")
+    )
+    api_key_name: str | None = pydantic.Field(
+        default_factory=lambda: _get_default_for_field("api_key_name")
+    )
+    hub_key_name: str | None = pydantic.Field(
+        default_factory=lambda: _get_default_for_field("hub_key_name")
+    )
+    embed_batch_size: int = pydantic.Field(
+        default_factory=lambda: _get_default_for_field("embed_batch_size") or 32
+    )
+    document_input_dir: str | None = pydantic.Field(
+        default_factory=lambda: _get_default_for_field("document_input_dir")
+    )
+    meta_data_file: str | None = pydantic.Field(
+        default_factory=lambda: _get_default_for_field("meta_data_file")
+    )
     env_file: str | None = None
-    document_input_files: list[str] | None = None
-    window_size: int = 3
-    index_id: str = "default_index_id"
-    index_persist_path: str | None = None
-    index_hub_path: str | None = None
-    top_k: int = 8
-    ignore_statement_types: list[str] = [StatementType.NORMATIVE.value]
+    document_input_files: list[str] | None = pydantic.Field(
+        default_factory=lambda: _get_default_for_field("document_input_files")
+    )
+    window_size: int = pydantic.Field(
+        default_factory=lambda: _get_default_for_field("window_size") or 3
+    )
+    index_id: str = pydantic.Field(
+        default_factory=lambda: (
+            _get_default_for_field("index_id") or "default_index_id"
+        )
+    )
+    index_persist_path: str | None = pydantic.Field(
+        default_factory=lambda: _get_default_for_field("index_persist_path")
+    )
+    index_hub_path: str | None = pydantic.Field(
+        default_factory=lambda: _get_default_for_field("index_hub_path")
+    )
+    top_k: int = pydantic.Field(
+        default_factory=lambda: _get_default_for_field("top_k") or 8
+    )
+    ignore_statement_types: list[str] = pydantic.Field(
+        default_factory=lambda: (
+            _get_default_for_field("ignore_statement_types") or
+            [StatementType.NORMATIVE.value]
+        )
+    )
     # nessecary for some models (e.g., snowflake-arctic-embed-m-v2.0)
     trust_remote_code: bool | None = None
 
@@ -228,6 +306,20 @@ class RetrievalConfig(pydantic.BaseModel):
         return self
 
     @classmethod
+    def from_yaml(cls, yaml_path: str | Path) -> "RetrievalConfig":
+        """Load configuration from YAML file.
+        
+        Args:
+            yaml_path: Path to YAML configuration file
+            
+        Returns:
+            RetrievalConfig instance with values from YAML
+        """
+        with open(yaml_path, 'r', encoding='utf-8') as f:
+            config_dict = yaml.safe_load(f)
+        return cls.model_validate(config_dict)
+
+    @classmethod
     def from_config_file(cls, config_file: str):
-        path = pathlib.Path(config_file)
-        return cls(**yaml.safe_load(path.read_text()))
+        """Legacy method - use from_yaml instead."""
+        return cls.from_yaml(config_file)
