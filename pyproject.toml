@@ -32,17 +32,21 @@ dependencies = [
   # we use the newer workflow-context storage methods  
   # see: https://github.com/run-llama/workflows-py/releases/tag/v2.0.0
   "llama-index-workflows>=2.0.0",
-  "llama-index",
+  # Use llama-index-core with specific component packages
+  # Note: llama-index-core provides the namespace package structure
+  "llama-index-core>=0.14.0",
+  "llama-index-llms-openai",
   "llama-index-llms-openai-like",
-  #"llama-index-embeddings-text-embeddings-inference==0.3.0",
-  "llama-index-embeddings-text-embeddings-inference",
+  # Note: text-embeddings-inference has compatibility issues with
+  # llama-index-utils-huggingface, so we explicitly manage both
+  "llama-index-embeddings-text-embeddings-inference>=0.4.0",
+  "llama-index-utils-huggingface>=0.4.0",
   "llama-index-embeddings-huggingface",
-  "llama_index.embeddings.ollama",
+  "llama-index-embeddings-ollama",
+  "llama-index-readers-file",
   "huggingface_hub",
   "numpy",
   "pydantic",
-  #"wrapt<=1.16.0",
-  #"httpx==0.27.2",
   "wrapt",
   "httpx",
   "jinja2",
@@ -158,4 +162,5 @@ exclude_lines = [
 [dependency-groups]
 dev = [
     "ipykernel>=7.1.0",
+    "pytest>=8.4.2",
 ]
