@@ -189,7 +189,8 @@ list_ascriptive_statements:
         </results>
 
 
-        Your task is to list all ascriptions identified in this analysis. Clearly
+        Your task is to list all ascriptions identified in this analysis
+        (i.e., the identified relevant interpretations). Clearly
         state each ascription as a concise {language} statement, such that it is transparent
         to whom it is attributed. Only include ascriptions that are explicitly attributed
         to a specific person or organisation.
@@ -221,7 +222,8 @@ list_descriptive_statements:
 
 
         Your task is to list all factual or descriptive {language} statements identified
-        in the previous analysis. Only include clear cases, i.e. statements that are
+        in the previous analysis (i.e., the identified relevant interpretations).
+        Only include clear cases, i.e. statements that are
         unambiguously factual or descriptive.
 
         Format your (possibly empty) list of statements as a JSON object.
@@ -253,7 +255,8 @@ list_normative_statements:
         Your task is to list all normative statements identified in this analysis
         (e.g., value judgements, recommendations, or evaluations) in {language}.
 
-        Format your (possibly empty) list of statements as a JSON object.
+        Format your (possibly empty) list of statements (i.e., the identified relevant interpretations) 
+        as a JSON object.
 
         Do not include any other text than the JSON object.'
       system_prompt: null
