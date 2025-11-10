@@ -42,30 +42,44 @@ freetext_ascriptive_analysis:
   description: Instruct the assistant to carry out free-text ascriptions analysis.
   llm_specific_configs:
     default:
-      prompt_template: 'The following {language} claim has been submitted for fact-checking.
+      prompt_template: |
+        The following {language} statement has been submitted for fact-checking.
 
+        <statement>{claim}</statement>
 
-        <claim>{claim}</claim>
+        Before we proceed with retrieving evidence items, we carefully analyse the statement.
+        Your task is to contribute to this preparatory analysis, as detailed below.
+        In particular, you should thoroughly discuss whether the statement makes any explicit ascriptions,
+        that is, whether it explicitly ascribes a statement to a person, group, or an organisation
+        (e.g., as something the person has said, believes, wishes for, fears, or intends, etc.)
+        rather than plainly asserting that statement straightaway. In other words, you should identify
+        whether the statement formulates any propositional attitudes, which are canonically formulated as "that-clauses".
 
+        Examples of ascriptive statements are:
 
-        Before we proceed with retrieving evidence items, we carefully analyse the
-        claim. Your task is to contribute to this preparatory analysis, as detailed
-        below.
+        + 'Viele Menschen wünschen sich mehr Informationen darüber, wie sie ihren Alltag klimafreundlich gestalten können.',
+        + 'Caritas befürchtet Verelendung von Menschen wegen Sparmaßnahmen.' and
+        + 'Merz möchte harte Sanktionen.'
 
-        In particular, you should thoroughly discuss whether the claim makes any explicit
-        ascriptions, that is, whether it explicitly ascribes a statement to a person
-        or an organisation (e.g., as something the person has said, believes, acts
-        on etc.) rather than plainly asserting that statement straightaway.
+        Proceed with your analysis as follows:
 
-        If so, clarify which statements are ascribed to whom exactly and in which
-        ways.
+        1. **Analysis of the ascription:** Analyse the ascription of the input statement. Which statement(s) are ascribed to whom exactly and in which ways? What is the propositional attitude expressed in the ascription?
+        2. **Identification of relevant ambiguities:** Identify ambiguities and vagueness in the ascription that make it difficult to fact-check whether the ascription is correct. (Do not analyse ambiguities in the ascribed statement itself here since it is not relevant for fact-checking the ascription.)
+        3. **Formulation of relevant interpretations:** Given your analysis in Steps 1 and 2, formulate relevant ascriptive statements that make the ascription explicit and possibly resolve the identified ambiguities and vagueness clearly.
 
-        In doing so, watch out for ambiguity and vagueness in the claim. Make alternative
-        interpretations explicit.
+        Some further hints about the identification of ascriptions:
 
-        Conclude your analysis with a short list of all identified ascriptions: Formulate
-        each statement in a concise manner, and such that it is transparent to whom
-        it is attributed. Render the clarified ascriptions in {language}.'
+        + **Dealing with unclear ascriptees:** Oftentimes, the ascription is indirect, i.e., it remains unsaid to whom the content is ascribed. For instance, "Die Deutsche Bahn wird weithin als dysfunktional wahrgenommen." does not specify who exactly perceives the Deutsche Bahn as dysfunctional. In these cases, Step 2 demands to pinpoint this ambiguity and Step 3 requires to formulate interpretations that resolve this ambiguity. In the described example, one could formulate interpretations such as "Viele Fahrgäste der Deutschen Bahn nehmen die Deutsche Bahn als dysfunktional wahr." or "In der Öffentlichkeit wird die Deutsche Bahn als dysfunktional wahrgenommen."
+
+        Adhere to the following guidelines:
+
+        + If the statement does not contain ambiguities, do not make up any interpretations (Step 3). 
+        + Do not read any content into the statement without textual evidence (Step 1).
+        + Make sure not to introduce new ambiguities in your interpretations (during Step 3).
+        + Each formulated statement (Step 3) should be understandable on its own, without reference to the original statement. Formulate each statement in a concise manner and such that its ascriptive and factual nature stands out clearly.
+        + If the original statement contains only minor ambiguities that do not obstruct fact-checking (i.e., if it is already verifiable or falsifiable in its original form), do not formulate any relevant interpretations (Step 3).
+
+        End your analysis with a short list of all identified relevant ascriptive interpretations (Step 3) in {language}. If the input statement does not contain any ascriptive content, return an empty list. If the input statement is ascriptive and does not contain any ambiguities, return the input statement as it is. 
       system_prompt: null
   name: freetext_ascriptive_analysis
   used_model_key: null
@@ -73,29 +87,42 @@ freetext_descriptive_analysis:
   description: Instruct the assistant to carry out free-text factual/descriptive analysis.
   llm_specific_configs:
     default:
-      prompt_template: 'The following {language} claim has been submitted for fact-checking.
+      prompt_template: |
+        The following {language} statement has been submitted for fact-checking.
 
+        <statement>{claim}</statement>
 
-        <claim>{claim}</claim>
+        Before we proceed with retrieving evidence items, we carefully analyse the statement. 
+        Your task is to contribute to this preparatory analysis, as detailed below.
+        In particular, you should thoroughly discuss whether the statement contains or implies factual or descriptive statements,
+        which can be verified or falsified by empirical observation or through scientific analysis, and which may include,
+        for example, descriptive reports, historical facts, or scientific statements.
 
+        Examples of descriptive statements are: 
 
-        Before we proceed with retrieving evidence items, we carefully analyse the
-        claim. Your task is to contribute to this preparatory analysis, as detailed
-        below.
+        + 'Jeder vierte Mensch lebt in einem von Bürgerkrieg betroffenen Land.
+        + 'Das Grundgesetz verbietet die Auslieferung an das Ausland.' and
+        + 'Durch die weiteren Transportwege etablierte sich die Banane in Europa erst in den 1920er Jahren.'
 
-        In particular, you should thoroughly discuss whether the claim contains or
-        implies factual or descriptive statements, which can be verified or falsified
-        by empirical observation or through scientific analysis, and which may include,
-        for example, descriptive reports, historical facts, or scientific claims.
+        Proceed with your analysis as follows:
 
-        If so, try to identify them and render them in your own words.
+        1. **Identification of descriptive content:** Identify the descriptive content that is contained in or implied by the original statement. If the input statement ascribes descriptive content to a person, group, or organisation (ascriptive statement), do not include the ascriptive part in your analysis; focus only on the descriptive content. If, on the other hand, the input statement ascribes normative or evaluative content that does not contain descriptive content, return an empty list at the end of your analysis.
+        2. **Identification of ambiguities:** Identify ambiguities and vagueness in the original statement that make it difficult to scrutinise the descriptive content empirically.
+        3. **Formulation of relevant interpretations:** Given your results from Steps 1 and 2, provide different reformulations of the input statement that resolve the identified ambiguities and vagueness in different directions (as suggested by your analysis results from Step 2). The number of statements should increase with the extent of ambiguity: The statements you formulate should illustrate the whole spectrum of possible interpretations.
 
-        In doing so, watch out for ambiguity and vagueness in the claim. Make alternative
-        interpretations explicit.
+        Some further hints about the identification of descriptive content:
 
-        End your analysis with a short list of all identified factual or descriptive
-        statements in {language}. Formulate each statement in a concise manner and
-        such that its factual nature stands out clearly.'
+        + **Dealing with a mix of descriptive and normative content:** Oftentimes, the original statement contains a mix of descriptive and normative content. In these cases, focus only on the descriptive content for your analysis and try to strip the normative content by rephrasing the input statement. For instance, the statement "Die Klimakatastrophe ist menschengemacht" contains a descriptive part (a causal statement about what causes climate change) and an evaluative part expressed by the term "Katastrophe". In this case, Step 3 requires formulating purely descriptive interpretations that preserve the descriptive content as much as possible. In the described example, one could formulate interpretations such as "Der Klimawandel wird durch menschliche Aktivitäten verursacht." or "Der Klimawandel ist auf menschliche Einflüsse zurückzuführen."
+
+        Adhere to the following guidelines:
+
+        + If the statement is descriptive and does not contain ambiguities, do not make up any interpretations (Step 3). 
+        + Do not read descriptive content into the statement without textual evidence (Step 1).
+        + Make sure not to introduce new ambiguities in your interpretations (during Step 3).
+        + Each formulated descriptive statement (Step 3) should be understandable on its own, without reference to the original statement. Formulate each statement in a concise manner and such that its factual nature stands out clearly.
+        + If the original statement contains only minor ambiguities that do not obstruct fact-checking (i.e., if it is already verifiable or falsifiable in its original form), do not formulate any relevant interpretations (Step 3).
+
+        End your analysis with a short list of all identified relevant interpretations (Step 3) in {language}. If the input statement does not contain any descriptive content, return an empty list. If the input statement is descriptive and does not contain any ambiguities, return the input statement as it is.
       system_prompt: null
   name: freetext_descriptive_analysis
   used_model_key: null
@@ -103,28 +130,42 @@ freetext_normative_analysis:
   description: Instruct the assistant to carry out free-text normative analysis.
   llm_specific_configs:
     default:
-      prompt_template: 'The following {language} claim has been submitted for fact-checking.
+      prompt_template: |
+        The following {language} statement has been submitted for fact-checking.
+
+        <statement>{claim}</statement>
+
+        Before we proceed with retrieving evidence items, we carefully analyse the statement. 
+        Your task is to contribute to this preparatory analysis, as detailed below.
+        In particular, you should thoroughly discuss whether the statement contains or implies normative statements, such as value judgements, recommendations, or evaluations.
+
+        Examples of normative statements are: 
+
+        + 'Wir dürfen die Gefahren eines menschengemachten Klimawandels nicht unterschätzen.', 
+        + 'Du sollst nicht töten' und 
+        + 'Erbschaftssteuern sind ungerecht'.
+
+        Proceed with your analysis as follows:
+
+        1. **Identification of normative content:** Identify the normative content that is contained in or implied by the original statement. If the input statement ascribes normative content to a person, group, or organisation (ascriptive statement), do not include the ascriptive part in your analysis; focus only on the normative content that is ascribed. If, on the other hand, the input statement ascribes only descriptive or factual content that does not contain normative content, return an empty list at the end of your analysis.
+        2. **Identification of ambiguities:** Identify ambiguities and vagueness in the original statement that make it difficult to pinpoint the normative content.
+        3. **Formulation of relevant interpretations:** Given your results from Steps 1 and 2, provide different reformulations of the input statement that resolve the identified ambiguities and vagueness in different directions (as suggested by your analysis results from Step 2). The number of statements should increase with the extent of ambiguity: The statements you formulate should illustrate the whole spectrum of possible interpretations.
+
+        Some further hints about the identification of descriptive content:
+
+        + **Dealing with a mix of descriptive and normative content:** Oftentimes, the original statement contains a mix of descriptive and normative content. In these cases, focus only on the normative content for your analysis and try to strip the descriptive content by rephrasing the input statement. For instance, the statement "Die Klimakatastrophe ist menschengemacht" contains a descriptive part (a causal statement about what causes climate change) and an evaluative part expressed by the term "Katastrophe". In this case, Step 3 requires formulating purely normative interpretations that preserve the normative content as much as possible. In the described example, one could formulate interpretations such as "Der Klimawandel ist sehr schlecht für die Menschheit." or "Die Folgen des Klimawandels sind sehr schlecht."
 
 
-        <claim>{claim}</claim>
+        Adhere to the following guidelines:
 
+        + If the statement is clearly normative and does not contain ambiguities, do not make up any interpretations (Step 3). 
+        + Do not read normative content into the statement without textual evidence (Step 1).
+        + Make sure not to introduce new ambiguities in your interpretations (during Step 3).
+        + Each formulated normative statement (Step 3) should be understandable on its own, without reference to the original statement. Formulate each statement in a concise manner and such that its normative nature stands out clearly.
 
-        Before we proceed with retrieving evidence items, we carefully analyse the
-        claim. Your task is to contribute to this preparatory analysis, as detailed
-        below.
-
-        In particular, you should thoroughly discuss whether the claim contains or
-        implies normative statements, such as value judgements, recommendations, or
-        evaluations. If so, try to identify them and render them in your own words.
-
-        In doing so, watch out for ambiguity and vagueness in the claim. Make alternative
-        interpretations explicit. However, avoid reading normative content into the
-        claim without textual evidence.
-
-
-        End your analysis with a short list of all identified normative statements
-        in {language}. Formulate each statement in a concise manner and such that
-        its normative nature stands out clearly.'
+        End your analysis with a short list of all identified relevant interpretations (Step 3) in {language}.
+        If the input statement does not contain any normative content, return an empty list.
+        If the input statement is normative and does not contain any ambiguities, return the input statement as it is. 
       system_prompt: null
   name: freetext_normative_analysis
   used_model_key: null
@@ -133,10 +174,10 @@ list_ascriptive_statements:
   llm_specific_configs:
     default:
       guidance_type: pydantic
-      prompt_template: 'The following {language} claim has been submitted for ascriptive
+      prompt_template: 'The following {language} statement has been submitted for ascriptive
         content analysis.
 
-        <claim>{claim}</claim>
+        <statement>{claim}</statement>
 
         The analysis yielded the following results:
 
@@ -160,14 +201,14 @@ list_ascriptive_statements:
   name: list_ascriptive_statements
   used_model_key: null
 list_descriptive_statements:
-  description: Instruct the assistant to list factual claims.
+  description: Instruct the assistant to list factual statements.
   llm_specific_configs:
     default:
       guidance_type: pydantic
       prompt_template: 'We have previously analysed the descriptive content of the
-        following {language} claim:
+        following {language} statement:
 
-        <claim>{claim}</claim>
+        <statement>{claim}</statement>
 
         The analysis yielded the following results:
 
@@ -190,14 +231,14 @@ list_descriptive_statements:
   name: list_descriptive_statements
   used_model_key: null
 list_normative_statements:
-  description: Instruct the assistant to list normative claims.
+  description: Instruct the assistant to list normative statements.
   llm_specific_configs:
     default:
       guidance_type: pydantic
-      prompt_template: 'The following {language} claim has been submitted for normative
+      prompt_template: 'The following {language} statement has been submitted for normative
         content analysis.
 
-        <claim>{claim}</claim>
+        <statement>{claim}</statement>
 
         The analysis yielded the following results:
 
@@ -219,7 +260,7 @@ list_normative_statements:
   name: list_normative_statements
   used_model_key: null
 negate_claim:
-  description: Instruct the assistant to negate a claim.
+  description: Instruct the assistant to negate a statement.
   llm_specific_configs:
     default:
       prompt_template: 'Your task is to express the opposite of the following statement
