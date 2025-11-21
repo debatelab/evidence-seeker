@@ -11,13 +11,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+### Fixed
+
 ### Removed
 
-## [0.1.3b1] - 2025-11-06
+## [0.1.3] - 2025-11-25
 
 ### Changed
 
-- Upgrade dependencies: From now one, we are using llama-index-workflows>=2.0.0. (debatelab/evidence-seeker@553c2c3)
++ New handling of config defaults: All defaults are loaded from package data. [7f5c588](https://github.com/debatelab/evidence-seeker/commit/7f5c58876bdb8bf950dc81fa02215a8e0ddbc5cb)
++ Improved prompt templates for preprocessing (disambiguation). [b83b535](https://github.com/debatelab/evidence-seeker/commit/b83b535125b2184ea9124dbf6da1ec0a3046adaa)
+    + Known issue: [Llama 3.3 70B Instruct](https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct) has problems with the listing step.
+
+### Fixed
+
++ Fixed incorrect `asyncpg` query. [3b4e576](https://github.com/debatelab/evidence-seeker/commit/3b4e576419ca49473991490c8d3f11c61ff7f1c4)
+
+## [0.1.3b1] - 2025-11-06
+
++ Beta release for version 0.1.3. (released on PyPI and tagged in GitHub).
+
+### Changed
+
+- Upgrade dependencies: From now one, we are using llama-index-workflows>=2.0.0. [553c2c3](https://github.com/debatelab/evidence-seeker/commit/553c2c30268c3d0a8a0f663fec1584071908533b)
 
 ## [0.1.2] - 2025-11-04
 
