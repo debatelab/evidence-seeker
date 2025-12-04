@@ -61,35 +61,55 @@ class HFTextEmbeddingsInference(TextEmbeddingsInference):
 
     def _call_api(self, texts: List[str]) -> List[List[float]]:
         import httpx
-
         headers = self._headers()
         json_data = {"inputs": texts, "truncate": self.truncate_text}
 
         with httpx.Client() as client:
             response = client.post(
-                f"{self.base_url}/pipeline/feature-extraction",
+                f"{self.base_url}{self.endpoint}",
                 headers=headers,
                 json=json_data,
                 timeout=self.timeout,
             )
 
-        return response.json()
+        try:
+            response_json = response.json()
+        except Exception as e:
+            logger.error(f"Failed to parse JSON response: {e}")
+            logger.error(f"Response text: {response.text}")
+            raise
+
+        if isinstance(response_json, dict) and "error" in response_json:
+            logger.error(f"HF Inference API Error: {response_json['error']}")
+            raise ValueError(f"HF Inference API Error: {response_json['error']}")
+
+        return response_json
 
     async def _acall_api(self, texts: List[str]) -> List[List[float]]:
         import httpx
-
         headers = self._headers()
         json_data = {"inputs": texts, "truncate": self.truncate_text}
 
         async with httpx.AsyncClient() as client:
             response = await client.post(
-                f"{self.base_url}/pipeline/feature-extraction",
+                f"{self.base_url}{self.endpoint}",
                 headers=headers,
                 json=json_data,
                 timeout=self.timeout,
             )
 
-        return response.json()
+        try:
+            response_json = response.json()
+        except Exception as e:
+            logger.error(f"Failed to parse JSON response: {e}")
+            logger.error(f"Response text: {response.text}")
+            raise
+
+        if isinstance(response_json, dict) and "error" in response_json:
+            logger.error(f"HF Inference API Error: {response_json['error']}")
+            raise ValueError(f"HF Inference API Error: {response_json['error']}")
+
+        return response_json
 
     def _headers(self) -> Dict[str, str]:
         headers = {"Content-Type": "application/json"}
@@ -236,6 +256,7 @@ def _get_embed_model(
     logger.debug(
             "Inititializing embed model: "
             f"{text_embeddings_inference_kwargs.get('model_name')} "
+            f"with backend type: {embed_backend_type.value}"
         )
     if embed_backend_type == EmbedBackendType.OLLAMA:
         return OllamaEmbedding(
@@ -256,6 +277,7 @@ def _get_embed_model(
             **text_embeddings_inference_kwargs,
         )
         embed_model.bill_to = bill_to
+        embed_model.endpoint = "/pipeline/feature-extraction"
         return embed_model
     elif embed_backend_type == EmbedBackendType.HUGGINGFACE_INSTRUCT_PREFIX:
         return PrefixedHuggingFaceEmbedding(
