@@ -50,9 +50,9 @@ index_hub_path: null
 index_persist_path: ./embeddings
 # Path to a JSON file containing metadata for the documents.
 # (Used during creation of the index.)
-meta_data_file: ./knowledge_base/meta_data.json
+meta_data_file: null
 # Path to the directory containing the documents to be indexed.
-document_input_dir: ./knowledge_base/data_files
+document_input_dir: null
 # Alternatively, you can provide a list of files to be indexed.
 document_input_files: null
 # Some model parameters
