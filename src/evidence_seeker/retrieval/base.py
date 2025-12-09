@@ -236,7 +236,7 @@ def _get_text_embeddings_inference_kwargs(
             "base_url": embed_base_url,
             "embed_batch_size": embed_batch_size,
             "auth_token": token,
-            # "bill_to": bill_to,
+            "bill_to": bill_to,
             "endpoint": "/pipeline/feature-extraction"
         }
         if trust_remote_code is not None:
