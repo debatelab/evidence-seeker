@@ -236,7 +236,8 @@ def _get_text_embeddings_inference_kwargs(
             "base_url": embed_base_url,
             "embed_batch_size": embed_batch_size,
             "auth_token": token,
-            "bill_to": bill_to,
+            # "bill_to": bill_to,
+            "endpoint": "/pipeline/feature-extraction"
         }
         if trust_remote_code is not None:
             kwargs["trust_remote_code"] = trust_remote_code
@@ -275,9 +276,10 @@ def _get_embed_model(
         bill_to = text_embeddings_inference_kwargs.pop("bill_to", None)
         embed_model = HFTextEmbeddingsInference(
             **text_embeddings_inference_kwargs,
+            timeout=200
         )
         embed_model.bill_to = bill_to
-        embed_model.endpoint = "/pipeline/feature-extraction"
+        #embed_model.endpoint = "/pipeline/feature-extraction"
         return embed_model
     elif embed_backend_type == EmbedBackendType.HUGGINGFACE_INSTRUCT_PREFIX:
         return PrefixedHuggingFaceEmbedding(
