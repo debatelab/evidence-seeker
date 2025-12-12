@@ -15,6 +15,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## [0.1.4b] - 2025-11-25
+
+### Changed
+
++ Error handlung and patience (via `tenacity`) for `HFTextEmbeddingsInference`. [8134435
+](https://github.com/debatelab/evidence-seeker/commit/8134435f124196ecac90da7beee75538022c5187)
+
+### Fixed
+
++ Corrected default values RetrievalConig.
+
 ## [0.1.3] - 2025-11-25
 
 ### Changed
