@@ -59,6 +59,10 @@ class HFTextEmbeddingsInference(TextEmbeddingsInference):
         description="Organization to bill for the inference API usage."
     )
 
+    @tenacity.retry(
+        stop=tenacity.stop_after_attempt(10),
+        wait=tenacity.wait_exponential(multiplier=1, max=30),
+    )
     def _call_api(self, texts: List[str]) -> List[List[float]]:
         import httpx
         headers = self._headers()
@@ -85,6 +89,10 @@ class HFTextEmbeddingsInference(TextEmbeddingsInference):
 
         return response_json
 
+    @tenacity.retry(
+        stop=tenacity.stop_after_attempt(10),
+        wait=tenacity.wait_exponential(multiplier=1, max=30),
+    )
     async def _acall_api(self, texts: List[str]) -> List[List[float]]:
         import httpx
         headers = self._headers()
